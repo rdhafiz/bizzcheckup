@@ -119,10 +119,10 @@
   {# --- The five vital signs ------------------------------------------------------- #}
   <section class="signs" aria-labelledby="signs-title">
     {# Decoration only: soft shapes, dot grids and sparkle strokes. #}
-    <span class="signs__dots signs__dots--left" aria-hidden="true"></span>
-    <span class="signs__dots signs__dots--right" aria-hidden="true"></span>
-    <svg class="signs__spark signs__spark--left" viewBox="0 0 40 40" aria-hidden="true"><path d="M22 4l6 18M8 22l14 8M18 16l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-    <svg class="signs__spark signs__spark--right" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 4 8 26M12 34l22-6M20 22l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <span class="dot-grid signs__dots--left" aria-hidden="true"></span>
+    <span class="dot-grid signs__dots--right" aria-hidden="true"></span>
+    <svg class="deco-spark signs__spark--left" viewBox="0 0 40 40" aria-hidden="true"><path d="M22 4l6 18M8 22l14 8M18 16l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg class="deco-spark signs__spark--right" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 4 8 26M12 34l22-6M20 22l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
 
     <div class="container-wide relative">
       <div class="grid items-center gap-6 lg:grid-cols-[1.3fr_1fr]">
@@ -187,14 +187,23 @@
   {# --- What a healthier website brings ------------------------------------------------ #}
   <section class="benefits" aria-labelledby="benefits-title">
     <div class="benefits__text">
+      {# Decoration only. #}
+      <span class="dot-grid benefits__dots" aria-hidden="true"></span>
+      <svg class="deco-spark benefits__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 13 22M16 34l18-9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+
       <p class="eyebrow-dash">A healthier website means</p>
-      <h2 id="benefits-title" class="mt-3 text-4xl leading-[1.08] font-bold sm:text-5xl lg:text-[2.9rem]">More visibility.<br>More trust. More growth.</h2>
+      <h2 id="benefits-title" class="benefits__title">More visibility.<br>More trust.<br>
+        <span class="benefits__growth">More growth.<svg viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="growth-fade" x1="0" x2="1"><stop offset="0" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><path d="M4 16C60 2 110 4 150 14s100 10 146-4" fill="none" stroke="url(#growth-fade)" stroke-width="5" stroke-linecap="round"/></svg></span>
+      </h2>
       <ul class="benefits__list">
-        <li class="tone-teal"><span class="tone-tile tone-tile--round">{% include "partials/icon.html" with name="users" css="size-5" %}</span><span><strong>Attract</strong><br>more customers</span></li>
-        <li class="tone-rose"><span class="tone-tile tone-tile--round">{% include "partials/icon.html" with name="handshake" css="size-5" %}</span><span><strong>Build</strong><br>more trust</span></li>
-        <li class="tone-violet"><span class="tone-tile tone-tile--round">{% include "partials/icon.html" with name="growth" css="size-5" %}</span><span><strong>Turn visitors</strong><br>into real opportunities</span></li>
+        <li class="tone-teal"><span class="benefit-tile">{% include "partials/icon.html" with name="users" css="size-7" %}</span><span><strong>Attract</strong> more customers</span></li>
+        <li class="tone-rose"><span class="benefit-tile">{% include "partials/icon.html" with name="handshake" css="size-7" %}</span><span><strong>Build</strong> more trust</span></li>
+        <li class="tone-violet"><span class="benefit-tile">{% include "partials/icon.html" with name="growth" css="size-7" %}</span><span><strong>Turn visitors</strong> into real opportunities</span></li>
       </ul>
-      <a href="#start" class="btn-pill mt-10">Start your free check-up {% include "partials/icon.html" with name="arrow" css="size-5" %}</a>
+      <div class="relative mt-12 inline-block">
+        <a href="#start" class="btn-pill btn-pill--glow">Start your free check-up <span class="btn-pill__arrow">{% include "partials/icon.html" with name="arrow" css="size-5" %}</span></a>
+        <svg class="deco-spark benefits__spark--cta" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 14l6 14M18 6l14 8" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+      </div>
     </div>
     <div class="benefits__art">
       <img src="{% static 'img/healthier-website.webp' %}" alt="A BizzCheckup health report with a score of 92 on a laptop, a desktop screen and a phone, on a sunny office desk" width="1448" height="1086" loading="lazy" decoding="async">

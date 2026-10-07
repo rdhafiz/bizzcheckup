@@ -461,13 +461,14 @@
     @apply -top-10 -right-56 h-[36rem] w-[44rem];
     background: radial-gradient(closest-side, var(--tone-violet-soft), transparent);
   }
-  .signs__dots {
+  /* Shared decoration: a dot grid and little sparkle strokes (wide screens only). */
+  .dot-grid {
     @apply pointer-events-none absolute hidden size-24 opacity-60 xl:block;
     background: radial-gradient(circle, var(--line) 2px, transparent 2.5px) 0 0 / 1.5rem 1.5rem;
   }
   .signs__dots--left { @apply top-[42%] left-8; }
   .signs__dots--right { @apply right-8 bottom-24; }
-  .signs__spark {
+  .deco-spark {
     @apply pointer-events-none absolute hidden size-10 xl:block;
   }
   .signs__spark--left { @apply top-[34%] left-[8%]; color: var(--tone-green); }
@@ -554,19 +555,80 @@
     @apply mt-1 ml-auto w-12;
   }
 
-  /* Benefits: text on the left, the illustration bleeding to the right edge. */
+  /* Benefits: text on a soft mint background on the left, the photo on the right. */
   .benefits {
     @apply grid bg-card lg:grid-cols-2;
   }
   .benefits__text {
-    @apply px-4 py-16 sm:px-6 sm:py-20 lg:py-24 lg:pr-12;
+    @apply relative isolate overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:py-24 lg:pr-12;
     padding-left: max(1rem, calc((100vw - 72rem) / 2 + 1.5rem));
+    background: linear-gradient(160deg, var(--card) 40%, color-mix(in srgb, var(--primary-soft) 70%, var(--card)));
   }
+  /* Soft shapes: a blob in the top-left corner, a wave along the bottom right. */
+  .benefits__text::before,
+  .benefits__text::after {
+    @apply pointer-events-none absolute -z-10 rounded-full;
+    content: "";
+  }
+  .benefits__text::before {
+    @apply -top-24 -left-24 size-72;
+    background: color-mix(in srgb, var(--primary-soft) 60%, transparent);
+  }
+  .benefits__text::after {
+    @apply -right-40 -bottom-56 h-96 w-[44rem] rotate-[-14deg];
+    background: color-mix(in srgb, var(--primary-soft) 80%, transparent);
+  }
+  .benefits__dots { @apply bottom-8 left-6; }
+  .benefits__spark--title { @apply top-[22%] right-[12%]; color: var(--primary); }
+  .benefits__spark--cta { @apply -right-9 -bottom-9 size-8; color: var(--primary); }
+
+  .benefits__title {
+    @apply mt-5 text-5xl leading-[1.02] font-extrabold tracking-tight sm:text-6xl;
+  }
+  .benefits__growth {
+    @apply relative inline-block pb-3;
+    color: var(--primary); /* also the colour of the underline (currentColor) */
+  }
+  /* Gradient text: the gradient is the background, clipped to the letters. */
+  @supports (background-clip: text) {
+    .benefits__growth {
+      background: linear-gradient(90deg, var(--primary) 30%, color-mix(in srgb, var(--primary) 55%, #5eead4));
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+  .benefits__growth svg {
+    @apply absolute -bottom-1 left-1 h-4 w-[105%];
+  }
+
   .benefits__list {
-    @apply mt-10 grid gap-5 text-sm sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-line;
+    @apply mt-12 grid gap-6 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-line;
   }
   .benefits__list li {
-    @apply flex items-center gap-3 sm:px-4 sm:first:pl-0;
+    @apply flex items-center gap-4 text-muted sm:px-5 sm:first:pl-0 sm:last:pr-0;
+  }
+  .benefits__list strong {
+    @apply block text-base font-bold text-ink;
+  }
+  .benefit-tile {
+    @apply inline-flex size-16 shrink-0 items-center justify-center rounded-[1.4rem];
+    color: var(--tone);
+    background: var(--tone-soft);
+  }
+
+  /* The pill button's arrow in its own translucent circle; a soft glow below. */
+  .btn-pill--glow {
+    @apply pr-2 pl-8;
+    background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 75%, #0b3d38));
+    box-shadow: 0 18px 36px -14px color-mix(in srgb, var(--primary) 75%, transparent);
+  }
+  .btn-pill__arrow {
+    @apply ml-3 inline-flex size-10 items-center justify-center rounded-full transition-transform
+      duration-200;
+    background: rgb(255 255 255 / 0.16);
+  }
+  .btn-pill--glow:hover .btn-pill__arrow {
+    @apply translate-x-1;
   }
   .benefits__art {
     @apply aspect-[4/3] overflow-hidden lg:aspect-auto;
