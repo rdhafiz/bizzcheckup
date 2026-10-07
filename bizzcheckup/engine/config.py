@@ -2,7 +2,16 @@
 
 from pydantic import BaseModel, Field
 
-USER_AGENT = "BizzCheckup/0.1 (+https://ridwanulhafiz.me)"
+# Who we are, for site owners reading their logs.
+BOT_IDENTITY = "BizzCheckup/0.1 (+https://ridwanulhafiz.me)"
+# The User-Agent we send: a normal browser identity with ours added at the end, the way
+# Google's Lighthouse does it. Many hosts' bot protection (e.g. Vercel's) challenges
+# anything that doesn't look like a browser, so a bare "BizzCheckup/0.1" gets HTTP 429
+# instead of the website. The site owner still sees exactly who visited.
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+    f"Chrome/141.0.0.0 Safari/537.36 {BOT_IDENTITY}"
+)
 ROBOTS_AGENT_NAME = "BizzCheckup"  # the name robots.txt rules refer to
 
 

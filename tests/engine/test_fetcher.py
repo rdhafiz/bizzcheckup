@@ -21,6 +21,7 @@ async def test_fetch_returns_page_with_our_user_agent(
     assert page.is_html
     assert page.headers["x-thing"] == "1"
     assert route.calls.last.request.headers["user-agent"] == USER_AGENT
+    assert USER_AGENT.endswith("BizzCheckup/0.1 (+https://ridwanulhafiz.me)")
 
 
 async def test_sends_browser_like_accept_headers(fetcher: Fetcher, router: respx.Router) -> None:
