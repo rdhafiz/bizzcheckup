@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static bizz %}
 
 {% block title %}{{ view.checkup.domain }}: {{ view.branding.report_title }} — {{ product_name }}{% endblock %}
 {% block description %}Website health check-up of {{ view.checkup.domain }}: scores, diagnosis and treatment plan.{% endblock %}
@@ -19,7 +19,7 @@
       <span class="self-center text-sm text-muted" data-copy-status aria-live="polite"></span>
     </div>
     <p class="no-print mt-3 text-sm text-muted">
-      Checked {{ view.checkup.finished_at|timesince }} ago. Changed something on your website?
+      Checked {{ view.checkup.finished_at|ago }}. Changed something on your website?
       Check again to see the new result.
     </p>
     <div class="report mt-8">

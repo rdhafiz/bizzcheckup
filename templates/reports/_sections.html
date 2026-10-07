@@ -20,7 +20,10 @@
       <img class="w-full rounded-xl border border-line" src="{% url 'checkups:screenshot' checkup.pk %}"
            alt="Screenshot of the {{ checkup.domain }} homepage" width="1280" height="800">
     {% else %}
-      <div class="flex aspect-[16/10] items-center justify-center rounded-xl border border-dashed border-line text-muted">No screenshot available</div>
+      <div class="flex aspect-[16/10] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-line p-6 text-center text-muted">
+        <p class="font-semibold">No screenshot available</p>
+        {% if report.browser_note %}<p class="max-w-md text-sm">{{ report.browser_note }}</p>{% endif %}
+      </div>
     {% endif %}
     <div class="band-{{ report.health_score|band }} text-center">
       <p class="text-sm font-semibold">Business Health Score</p>

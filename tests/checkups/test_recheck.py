@@ -100,3 +100,10 @@ def test_check_again_only_accepts_post_with_csrf(client: Client) -> None:
     assert client.get(reverse("checkups:recheck", args=[old.pk])).status_code == 405
     strict = Client(enforce_csrf_checks=True)
     assert strict.post(reverse("checkups:recheck", args=[old.pk])).status_code == 403
+
+
+def test_brand_new_report_says_just_now(client: Client) -> None:
+    html = client.get(
+        reverse("checkups:detail", args=[finished(minutes_ago=0).pk])
+    ).content.decode()
+    assert "Checked just now." in html

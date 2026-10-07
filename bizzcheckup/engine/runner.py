@@ -163,6 +163,8 @@ async def _run(
     overall = health_score(categories)
 
     notes: list[str] = []
+    if RENDER in ctx.unavailable:  # e.g. a firewall checkpoint stopped the browser
+        notes.append(ctx.unavailable[RENDER])
     if result.skipped_by_robots:
         notes.append(
             f"Your robots.txt asks robots not to visit {len(result.skipped_by_robots)} "
@@ -180,6 +182,7 @@ async def _run(
         health_band=band_for(overall),
         results=results,
         notes=notes,
+        browser_note=ctx.unavailable.get(RENDER, ""),
         screenshot_jpeg=ctx.render.screenshot_jpeg if ctx.render else None,
     )
 

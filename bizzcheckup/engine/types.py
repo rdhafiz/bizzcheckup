@@ -282,6 +282,7 @@ class AuditReport(BaseModel):
     health_band: Band | None
     results: list[CheckResult]
     notes: list[str] = Field(default_factory=list)
+    browser_note: str = ""  # why the browser couldn't see the site (e.g. a firewall)
     # Homepage screenshot (JPEG). Saved as a file by the web app, not in the JSON.
     screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
 

@@ -1,6 +1,10 @@
 """Template filters used across BizzCheckup pages: {% load bizz %}."""
 
+from datetime import datetime, timedelta
+
 from django import template
+from django.utils import timezone
+from django.utils.timesince import timesince
 
 from bizzcheckup.engine.scoring import band_for
 
@@ -52,3 +56,13 @@ def first_items(items: list[str], count: int = 5) -> list[str]:
 def remaining(items: list[str], count: int = 5) -> int:
     """How many items are left after the first `count`."""
     return max(0, len(items) - count)
+
+
+@register.filter
+def ago(moment: datetime | None) -> str:
+    """{{ checkup.finished_at|ago }} -> "just now" or "2 hours, 18 minutes ago"."""
+    if moment is None:
+        return ""
+    if timezone.now() - moment < timedelta(minutes=1):
+        return "just now"
+    return f"{timesince(moment)} ago"

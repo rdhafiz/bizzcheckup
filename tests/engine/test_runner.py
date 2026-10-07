@@ -274,3 +274,14 @@ async def test_each_finished_data_source_moves_the_progress_bar(site: respx.Rout
     assert (45, "Measuring speed with Google PageSpeed…") in steps  # 1 of 2 finished
     assert (70, "Vital signs taken") in steps  # 2 of 2 finished
     assert [p for p, _ in steps] == sorted(p for p, _ in steps)  # never goes backwards
+
+
+async def test_browser_note_explains_a_missing_browser_visit(site: respx.Router) -> None:
+    from bizzcheckup.engine.context import RENDER
+
+    async def blocked_browser(ctx: AuditContext, fetcher: Fetcher, cfg: EngineConfig) -> None:
+        ctx.unavailable[RENDER] = "Your website's security firewall (Vercel) showed our browser…"
+
+    report = await audit(site, registry_with(HasTitle), collectors=[blocked_browser])
+    assert report.browser_note.startswith("Your website's security firewall (Vercel)")
+    assert report.browser_note in report.notes
