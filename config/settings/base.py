@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # Our apps
     "bizzcheckup.core",
     "bizzcheckup.checkups",
+    "bizzcheckup.reports",
 ]
 
 MIDDLEWARE = [
