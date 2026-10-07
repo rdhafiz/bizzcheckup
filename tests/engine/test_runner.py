@@ -226,3 +226,22 @@ def test_check_returning_wrong_category_is_an_error() -> None:
             return [other.finding(Severity.FAIL, "x", "y", "z")]
 
     assert run_check(Confused, make_context()).status is CheckStatus.ERROR
+
+
+async def test_skip_note_says_no_key_only_when_there_is_no_key(site: respx.Router) -> None:
+    async def failing_pagespeed(ctx: AuditContext, fetcher: Fetcher, cfg: EngineConfig) -> None:
+        raise RuntimeError("Google quota exceeded")
+
+    async def run(key: str) -> str:
+        report = await run_audit(
+            "https://shop.test/",
+            EngineConfig(retries=0, psi_api_key=key),
+            registry=registry_with(NeedsPageSpeed),
+            collectors=[failing_pagespeed],
+            guard=NetGuard(fake_resolver),
+            transport=httpx.MockTransport(site.async_handler),
+        )
+        return report.category(Category.PERFORMANCE).note
+
+    assert "no PageSpeed API key" in await run("")
+    assert "couldn't measure your site this time" in await run("a-real-key")

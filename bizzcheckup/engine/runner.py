@@ -30,11 +30,12 @@ logger = logging.getLogger(__name__)
 # on_progress(percent, step) is awaited after every stage.
 ProgressCallback = Callable[[int, str], Awaitable[None]]
 
-SKIP_REASONS = {
+SKIP_REASONS = {  # a data source was tried but failed
     RENDER: "We couldn't open your site in a browser, so this wasn't checked.",
-    PAGESPEED: "Speed wasn't measured because no PageSpeed API key is configured.",
+    PAGESPEED: "Google PageSpeed couldn't measure your site this time, so speed wasn't checked.",
     PROBES: "Extra checks of your site couldn't be completed.",
 }
+NO_PAGESPEED_KEY = "Speed wasn't measured because no PageSpeed API key is configured."
 
 
 class AuditError(Exception):
@@ -104,6 +105,8 @@ async def _run(
             if isinstance(outcome, BaseException):
                 name = getattr(collector, "__name__", repr(collector))
                 logger.error("Collector %s failed: %r", name, outcome, exc_info=outcome)
+        if not config.psi_api_key:
+            ctx.unavailable[PAGESPEED] = NO_PAGESPEED_KEY
 
     results: list[CheckResult] = []
     groups = [(category, list(items)) for category, items in groupby(checks, lambda c: c.category)]
@@ -154,7 +157,8 @@ def run_check(check_class: type[Check], ctx: AuditContext) -> CheckResult:
 
     missing = sorted(check_class.requires - ctx.capabilities)
     if missing:
-        return result(CheckStatus.SKIPPED, note=SKIP_REASONS.get(missing[0], "Not checked."))
+        reason = ctx.unavailable.get(missing[0]) or SKIP_REASONS.get(missing[0], "Not checked.")
+        return result(CheckStatus.SKIPPED, note=reason)
 
     check = check_class()
     try:
