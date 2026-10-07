@@ -13,7 +13,7 @@
     {% if pdf %}<p class="font-semibold">{{ finding.message }}</p>
     {% else %}<label class="plan-item__label" for="plan-{{ key }}-{{ forloop.counter }}">{{ finding.message }}</label>{% endif %}
     <p class="mt-2 flex flex-wrap items-center gap-2 text-xs">
-      <span class="band-pill px-2 py-0.5 text-xs">{% include "reports/_icon.html" with name=finding.severity css="size-3.5" %}{{ finding.severity|severity_label }}</span>
+      <span class="band-pill px-2 py-0.5 text-xs">{% include "partials/icon.html" with name=finding.severity css="size-3.5" %}{{ finding.severity|severity_label }}</span>
       <span class="chip">{{ finding.category.label }}</span>
       <span class="chip">Impact: {{ finding.impact }}</span>
       <span class="chip">Effort: {{ finding.effort }}</span>

@@ -6,7 +6,7 @@
 {% endcomment %}
 {% if pdf %}<div class="bullet band-{{ sign.score.score|band }}">{% else %}<a href="#{{ sign.anchor }}" class="bullet band-{{ sign.score.score|band }}">{% endif %}
   <span class="bullet__name">
-    {% include "reports/_icon.html" with name=sign.category.value css="size-5 text-primary" %}
+    {% include "partials/icon.html" with name=sign.category.value css="size-5 text-primary" %}
     {{ sign.label }}
   </span>
   <span class="bullet__bar">

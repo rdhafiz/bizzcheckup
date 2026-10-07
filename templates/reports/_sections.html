@@ -46,22 +46,22 @@
 
   <ul class="stats mt-6" aria-label="Summary of findings">
     <li class="stat band-urgent">
-      {% include "reports/_icon.html" with name="fail" css="size-6 stat__icon" %}
+      {% include "partials/icon.html" with name="fail" css="size-6 stat__icon" %}
       <span class="stat__number">{{ view.needs_treatment }}</span>
       <span class="stat__label">Need treatment</span>
     </li>
     <li class="stat band-attention">
-      {% include "reports/_icon.html" with name="warn" css="size-6 stat__icon" %}
+      {% include "partials/icon.html" with name="warn" css="size-6 stat__icon" %}
       <span class="stat__number">{{ view.worth_fixing }}</span>
       <span class="stat__label">Worth fixing</span>
     </li>
     <li class="stat stat--primary">
-      {% include "reports/_icon.html" with name="bolt" css="size-6 stat__icon" %}
+      {% include "partials/icon.html" with name="bolt" css="size-6 stat__icon" %}
       <span class="stat__number">{{ view.plan.quick_wins|length }}</span>
       <span class="stat__label">Quick wins</span>
     </li>
     <li class="stat band-healthy">
-      {% include "reports/_icon.html" with name="pass" css="size-6 stat__icon" %}
+      {% include "partials/icon.html" with name="pass" css="size-6 stat__icon" %}
       <span class="stat__number">{{ view.healthy_count }}</span>
       <span class="stat__label">Checks passed</span>
     </li>
@@ -100,16 +100,16 @@
       <li class="risk band-{{ risk.severity|severity_band }}">
         <div class="flex items-center justify-between gap-3">
           <span class="risk__rank" aria-hidden="true">{{ forloop.counter }}</span>
-          <span class="band-pill text-xs">{% include "reports/_icon.html" with name=risk.severity css="size-4" %}{{ risk.severity|severity_label }}</span>
+          <span class="band-pill text-xs">{% include "partials/icon.html" with name=risk.severity css="size-4" %}{{ risk.severity|severity_label }}</span>
         </div>
         <p class="mt-1 text-xs font-semibold text-muted">{{ risk.category.label }}</p>
         <h3 class="mt-2 text-lg leading-snug font-bold">{{ risk.message }}</h3>
         <div class="risk__part">
-          <p class="issue__heading">{% include "reports/_icon.html" with name="why" css="size-4" %} What it costs you</p>
+          <p class="issue__heading">{% include "partials/icon.html" with name="why" css="size-4" %} What it costs you</p>
           <p class="mt-1 text-sm">{{ risk.why_it_matters }}</p>
         </div>
         <div class="risk__part risk__part--fix">
-          <p class="issue__heading">{% include "reports/_icon.html" with name="fix" css="size-4" %} The solution</p>
+          <p class="issue__heading">{% include "partials/icon.html" with name="fix" css="size-4" %} The solution</p>
           <p class="mt-1 text-sm break-words">{{ risk.how_to_fix|urlize }}</p>
         </div>
       </li>
@@ -135,11 +135,11 @@
     {% endif %}
     <div data-plan="{{ checkup.pk }}">
       {% if view.plan.quick_wins %}
-        <h3 class="mt-8 flex items-center gap-2 text-xl font-bold">{% include "reports/_icon.html" with name="bolt" css="size-5 text-primary" %} Quick wins</h3>
+        <h3 class="mt-8 flex items-center gap-2 text-xl font-bold">{% include "partials/icon.html" with name="bolt" css="size-5 text-primary" %} Quick wins</h3>
         <ol class="plan-list mt-4">{% for finding in view.plan.quick_wins %}{% include "reports/_plan_item.html" with key="q"|add:finding.check_id %}{% endfor %}</ol>
       {% endif %}
       {% if view.plan.others %}
-        <h3 class="mt-8 flex items-center gap-2 text-xl font-bold">{% include "reports/_icon.html" with name="list" css="size-5 text-primary" %} Next steps</h3>
+        <h3 class="mt-8 flex items-center gap-2 text-xl font-bold">{% include "partials/icon.html" with name="list" css="size-5 text-primary" %} Next steps</h3>
         <ol class="plan-list mt-4">{% for finding in view.plan.others %}{% include "reports/_plan_item.html" with key="o"|add:finding.check_id %}{% endfor %}</ol>
       {% endif %}
     </div>
@@ -154,7 +154,7 @@
   <section id="{{ sign.anchor }}" class="report-section" aria-labelledby="{{ sign.anchor }}-title">
     <div class="sign-head band-{{ sign.score.score|band }}">
       <div class="flex items-start gap-4">
-        <span class="sign-icon">{% include "reports/_icon.html" with name=sign.category.value css="size-6" %}</span>
+        <span class="sign-icon">{% include "partials/icon.html" with name=sign.category.value css="size-6" %}</span>
         <div>
           <p class="eyebrow">Vital sign {{ forloop.counter }} of 5</p>
           <h2 id="{{ sign.anchor }}-title" class="mt-1 text-3xl font-bold">{{ sign.label }}</h2>
@@ -183,9 +183,9 @@
     {% if sign.healthy %}
       <details class="healthy-group mt-8" {% if pdf %}open{% endif %}>
         <summary class="healthy-group__summary">
-          {% include "reports/_icon.html" with name="pass" css="size-5 text-healthy" %}
+          {% include "partials/icon.html" with name="pass" css="size-5 text-healthy" %}
           <span>What's healthy ({{ sign.healthy|length }})</span>
-          <span class="issue__chevron no-print">{% include "reports/_icon.html" with name="chevron" css="size-5" %}</span>
+          <span class="issue__chevron no-print">{% include "partials/icon.html" with name="chevron" css="size-5" %}</span>
         </summary>
         <ul class="mt-3 grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">{% for finding in sign.healthy %}<li class="healthy-item">{{ finding.message }}</li>{% endfor %}</ul>
       </details>
@@ -203,7 +203,7 @@
       {% for rec in view.recommendations %}
         <article class="card band-{{ rec.score|band }}">
           <p class="flex items-center gap-2 text-sm font-semibold">
-            {% include "reports/_icon.html" with name=rec.category.value css="size-5 text-primary" %}
+            {% include "partials/icon.html" with name=rec.category.value css="size-5 text-primary" %}
             <span class="band-pill text-xs">{{ rec.category.label }} · {{ rec.score }}</span>
           </p>
           <h3 class="mt-3 text-lg font-bold">{{ rec.service.name }}</h3>
@@ -228,7 +228,7 @@
       <p class="mt-2 max-w-2xl">{{ brand.call_to_action.text }}</p>
     </div>
     <a class="btn-primary shrink-0" href="{{ brand.call_to_action.button_url }}" rel="noopener" target="_blank">
-      {{ brand.call_to_action.button_label }} {% include "reports/_icon.html" with name="arrow" css="size-4" %}
+      {{ brand.call_to_action.button_label }} {% include "partials/icon.html" with name="arrow" css="size-4" %}
     </a>
   </div>
 </section>
