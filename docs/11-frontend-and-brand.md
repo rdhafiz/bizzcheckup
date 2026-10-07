@@ -98,19 +98,25 @@ Four sections, top to bottom:
 
 | Section | What | How |
 |---------|------|-----|
-| **Hero** | Headline with "healthy" underlined, three perks, a report preview on a laptop, the check-up form | On large screens a 12-column grid where the laptop (columns 6–9) slides *under* the form (columns 9–12). On phones and tablets: text, then the form, then the laptop |
+| **Hero** | Full screen height. A background image, a dark backdrop on top of it, then two columns: headline, paragraph and three perks on the left, the check-up form on the right | `.hero-full` (`min-height: 100dvh`, so phones use the visible height); the backdrop is a `::before` gradient, darker on the left where the text is; the header is laid over the hero. On phones the form goes under the text |
 | **Five vital signs** | One pastel card per sign, each with its tone | The whole card is a link to the form (`#start`); it lifts on hover |
 | **How it works** | Three numbered steps with dashed arrows and a handwritten "Simple. Fast. Actionable." | Arrows and the note are decorative (`aria-hidden`) and only shown on wide screens |
 | **A healthier website means** | Three benefits and a second call to action, next to an illustration | `static/img/healthier-website.svg`, loaded lazily because it is below the fold |
 
-Why the laptop is **HTML, not a photo**: text stays sharp at any size, it follows dark
-mode, and it costs a few hundred bytes instead of a large image. The tilt is a CSS
-`transform: rotateY(-16deg)` inside `perspective`. The handwriting uses a cursive system
-font (`Segoe Print` on Windows, `Bradley Hand` on Mac), so no extra font file is needed.
+**The background image** is `static/img/hero-bg.svg`, a softly blurred desk scene drawn
+in SVG (small, and sharp on any screen). To use a real photo, save it as
+`static/img/hero-bg.jpg` (about 1920×1080, under 300 KB) and change the `url()` in
+`.hero-full` in `frontend/tailwind.css`. It is preloaded in the page `<head>` because
+it is the first thing visitors see.
 
-The page-wide warm glow is a `radial-gradient` on `body.page-home`. `base.html` has small
-blocks (`body_class`, `header_class`, `header_container`) so one page can change the
-header without copying it.
+**Text on a photo** needs light text. Instead of new colours, the hero text and the header
+get the class `on-dark`, which switches *just that area* to the dark-mode palette (the
+same variables as dark mode). The form keeps the page's normal theme, so it stays a light
+card in light mode. The handwriting in "How it works" uses a cursive system font
+(`Segoe Print` on Windows, `Bradley Hand` on Mac), so no extra font file is needed.
+
+`base.html` has small blocks (`body_class`, `header_class`, `header_container`) so one
+page can change the header without copying it.
 
 ## Template pieces
 
