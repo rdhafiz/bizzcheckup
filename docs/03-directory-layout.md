@@ -2,52 +2,72 @@
 
 ```
 bizzcheckup/
-├── .venv/               Virtual environment (NOT in git; each computer creates its own)
-├── config/              The Django *project*: site-wide settings and URLs
-│   ├── __init__.py      Empty file that marks this folder as a Python package
-│   ├── settings.py      All configuration (apps, database, secrets from .env)
-│   ├── urls.py          The site's main URL list ("which address goes to which view")
-│   ├── wsgi.py          Entry point for normal web servers in production
-│   └── asgi.py          Entry point for async web servers in production
-├── scanner/             A Django *app*: the website-scanning feature
-│   ├── migrations/      Database change history for this app (auto-generated)
-│   ├── __init__.py      Marks the folder as a package
-│   ├── admin.py         Registers models with Django's admin panel
-│   ├── apps.py          App configuration (its name)
-│   ├── models.py        MODEL: database tables, as Python classes
-│   ├── views.py         VIEW: functions that handle a request and return a response
-│   └── tests.py         Automated tests
-├── docs/                This documentation
-├── branding.yaml        Consultant branding used in the report (name, services, contact)
-├── manage.py            Command-line tool: runserver, migrate, startapp...
-├── requirements.txt     List of libraries to install
-├── .env                 Your secrets (NOT in git)
-├── .env.example         Template showing which values .env needs (in git)
-└── .gitignore           Files git must never save
+├── bizzcheckup/              Our Python package: all app code lives here
+│   ├── __init__.py           Package marker + __version__ ("0.1.0a0")
+│   ├── core/                 Django app: site-wide pages and helpers
+│   │   ├── apps.py           App configuration (name "bizzcheckup.core")
+│   │   ├── context_processors.py  Puts product_name/tagline into every template
+│   │   ├── tasks.py          Celery jobs (just "ping" for now)
+│   │   ├── urls.py           URLs of this app: /, /healthz/, /styleguide/
+│   │   └── views.py          CONTROLLER: functions that handle requests
+│   ├── engine/               (phase 2) Audit engine, pure Python, no Django
+│   ├── checkups/             (phase 6) Checkup / Finding / Lead models, Celery task
+│   └── reports/              (phase 7) Report page, branding loader, PDF
+├── config/                   Django project configuration
+│   ├── __init__.py           Loads the Celery app when Django starts
+│   ├── celery.py             The Celery app (background jobs)
+│   ├── settings/
+│   │   ├── base.py           Settings shared by every environment
+│   │   ├── dev.py            Your computer (DEBUG on)
+│   │   ├── test.py           pytest (SQLite in memory, fake cache, no worker)
+│   │   └── prod.py           Live server (DEBUG off, HTTPS, secure cookies)
+│   ├── urls.py               Main URL list. Hands paths to each app's urls.py.
+│   ├── wsgi.py / asgi.py     Entry points for web servers (gunicorn)
+├── templates/                HTML templates (VIEW layer)
+│   ├── base.html             Page skeleton every page extends: header, footer, theme
+│   ├── partials/             Small reusable pieces: logo, score ring
+│   └── core/                 Templates of the core app: home, styleguide
+├── frontend/tailwind.css     Design system source (colours, fonts, components)
+├── static/                   Files sent to the browser as they are
+│   ├── css/app.css           BUILT by Tailwind (not in git)
+│   ├── fonts/                Self-hosted fonts + their licences
+│   ├── img/favicon.svg       Browser tab icon
+│   └── js/theme.js           Light/dark mode switch
+├── tests/                    pytest tests, mirroring the package layout
+├── scripts/get_tailwind.py   Downloads the Tailwind CLI into .bin/
+├── docker/Dockerfile         How to build the app image
+├── compose.yaml              Runs web, worker, postgres and redis together
+├── .github/workflows/ci.yml  Automatic checks on GitHub
+├── requirements/
+│   ├── base.txt              Libraries the app needs to run
+│   └── dev.txt               + test and code-quality tools
+├── pyproject.toml            Settings for Ruff, mypy and pytest
+├── branding.yaml             Consultant details used in the report
+├── CHANGELOG.md              What changed in each version
+├── manage.py                 Django command-line tool
+├── .env / .env.example       Your secrets (not in git) / the template (in git)
+├── .gitignore                Files git never saves
+├── .gitattributes            Forces Linux line endings (needed for Docker)
+└── .dockerignore             Files left out of the Docker image
 ```
 
-## Project vs app: what's the difference?
+## Project vs app
 
-Django splits code into two levels:
+- The **project** (`config/`) is the whole site's configuration. There is only one.
+- An **app** (`bizzcheckup/core/` and others) is one feature area. Apps keep code
+  organised: each has its own views, URLs, models and templates.
 
-- **Project** (`config/`): the whole website. There is only one. It holds settings and
-  the main URL list.
-- **App** (`scanner/`): one feature of the website. A project can have many apps. Later
-  we might add `reports/` or `accounts/`.
-
-We named the project folder `config` instead of the default `bizzcheckup` because it
-only contains configuration. That makes its job obvious.
+Our apps sit inside the `bizzcheckup/` package, which gives clean imports like
+`from bizzcheckup.core.views import home`. It also means the engine can live at
+`bizzcheckup.engine`.
 
 ## Why some files are not in git
 
-`.gitignore` lists files git ignores:
-
 | Ignored | Why |
 |---------|-----|
-| `.venv/` | Large, and each computer creates its own from `requirements.txt` |
-| `.env` | Contains secrets (secret key, API keys) |
-| `db.sqlite3` | Local data. Each computer creates its own with `migrate` |
-| `__pycache__/` | Compiled Python files that Python recreates automatically |
-| `.vscode/`, `.idea/` | Personal editor and tool settings |
-
-> This page is updated every time a folder or important file is added.
+| `.venv/` | Each computer creates its own from `requirements/` |
+| `.env` | Secrets |
+| `db.sqlite3` | Local test data |
+| `.bin/`, `static/css/app.css` | Downloaded tool and its build output. Rebuilt anywhere. |
+| `staticfiles/` | Output of `collectstatic` |
+| `__pycache__/` | Compiled Python, recreated automatically |

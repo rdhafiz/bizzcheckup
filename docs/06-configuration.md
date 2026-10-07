@@ -1,76 +1,99 @@
 # 6. Configuration
 
-Settings come from three places:
-
 | Place | Contains | In git? |
 |-------|----------|---------|
-| `config/settings.py` | How Django is set up (apps, database, templates) | Yes |
-| `.env` | Secrets and values that differ per computer | **No** |
-| `branding.yaml` | Consultant name, services and contact details for the report | Yes |
+| `config/settings/*.py` | How Django is set up | Yes |
+| Environment variables / `.env` | Secrets and per-machine values | **No** (`.env.example` is) |
+| `branding.yaml` | Consultant details for the report | Yes |
 
-## The `.env` file
+## Settings files
 
-| Key | Example | Meaning |
-|-----|---------|---------|
-| `DJANGO_SECRET_KEY` | a 50-character random string | Django uses it to sign cookies and tokens. If it leaks, attackers can forge logins. |
-| `DJANGO_DEBUG` | `True` | Shows detailed error pages. **Never `True` on a live server**, because it reveals your code. |
-| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Domain names the site may answer to. Blocks a type of attack called "host header" attacks. |
-| `PAGESPEED_API_KEY` | (empty for now) | Google API key for the scan engine |
-
-`.env.example` is the public template. It has the same keys with no real values.
-
-## How `settings.py` reads `.env`
-
-```python
-import os
-from pathlib import Path
-
-from dotenv import load_dotenv
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / '.env')
-
-SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+```
+config/settings/
+├── base.py   shared by everything
+├── dev.py    from .base import *   + DEBUG on by default
+├── test.py   from .base import *   + SQLite in memory, fake cache, tasks run inline
+└── prod.py   from .base import *   + DEBUG off, HTTPS redirect, HSTS, secure cookies
 ```
 
-Line by line:
+`from .base import *` copies every setting from `base.py`. The file then changes only
+what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variable:
 
-- `BASE_DIR` is the project root folder. `__file__` is the path of `settings.py`.
-  `.parent.parent` goes up two folders, from `config/settings.py` to `bizzcheckup/`.
-- `load_dotenv(...)` copies each line of `.env` into the environment variables.
-- `os.environ['X']` **must** exist, or the app crashes with `KeyError`. We use it for the
-  secret key on purpose, because it's better to crash than to run with no key.
-- `os.getenv('X', 'default')` returns the default if `X` is missing. It's safe for
-  optional values.
-- `== 'True'` turns the text `"True"` into the boolean `True`. Everything in `.env` is
-  text.
-- `.split(',')` turns `"localhost,127.0.0.1"` into `['localhost', '127.0.0.1']`.
+| Who | Uses |
+|-----|------|
+| `python manage.py ...` | `config.settings.dev` (default in `manage.py`) |
+| pytest | `config.settings.test` (set in `pyproject.toml`) |
+| gunicorn (`wsgi.py`) | `config.settings.prod` (default), but `compose.yaml` sets `dev` locally |
+
+## Environment variables
+
+| Variable | Required | Default | Meaning |
+|----------|----------|---------|---------|
+| `DJANGO_SECRET_KEY` | yes | — | Signs cookies and tokens. If it leaks, attackers can forge sessions. |
+| `DJANGO_DEBUG` | no | `False` (`True` in dev) | Detailed error pages. **Never on in production.** |
+| `DJANGO_ALLOWED_HOSTS` | no | `localhost,127.0.0.1` | Domain names the site answers to |
+| `DATABASE_URL` | yes | — | e.g. `postgres://user:pw@host:5432/db` |
+| `REDIS_URL` | no | `redis://localhost:6379/0` | Cache |
+| `CELERY_BROKER_URL` | no | `redis://localhost:6379/1` | Job queue (a separate Redis database, number 1) |
+| `PSI_API_KEY` | no | empty | Google PageSpeed key. Empty means performance checks are skipped and the report says so. |
+| `DJANGO_SECURE_SSL_REDIRECT` | prod only | `True` | Redirect http to https |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | prod only | empty | e.g. `https://bizzcheckup.example.com` |
+| `WORKER_CONCURRENCY` | compose only | `3` | How many check-ups run at once |
+
+## How `base.py` reads them
+
+```python
+import environ
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent   # the project root
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")                      # load .env if present
+
+SECRET_KEY = env("DJANGO_SECRET_KEY")                        # required: crashes if missing
+DEBUG = env.bool("DJANGO_DEBUG", default=False)              # "True" → True
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+DATABASES = {"default": env.db("DATABASE_URL")}
+```
+
+- `BASE_DIR` goes up three `.parent`s because the file is now at
+  `config/settings/base.py`.
+- Real environment variables (for example, set by Docker) **win** over `.env`.
+- A required variable that's missing stops Django with a clear message. That's better
+  than running with a bad configuration.
+
+## Production security (`prod.py`)
+
+| Setting | Protects against |
+|---------|------------------|
+| `DEBUG = False` | Leaking code and settings in error pages |
+| `SECURE_SSL_REDIRECT` | Traffic sent unencrypted over http |
+| `SECURE_HSTS_SECONDS` (1 year) | Browsers ever using http for the site again |
+| `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE` | Cookies being sent over http |
+| `X_FRAME_OPTIONS = "DENY"` (base) | Our pages being embedded in other sites (clickjacking) |
+| `SECURE_CONTENT_TYPE_NOSNIFF` (base) | Browsers guessing file types |
+
+Check them with:
+
+```bash
+DJANGO_SETTINGS_MODULE=config.settings.prod python manage.py check --deploy
+```
 
 ## Custom BizzCheckup settings
 
-At the bottom of `settings.py`:
-
 | Setting | Meaning |
 |---------|---------|
-| `PAGESPEED_API_KEY` | Read from `.env`. Used by the scan engine. |
+| `PSI_API_KEY` | From the environment. Used by the performance collector. |
 | `BRANDING_FILE` | Path to `branding.yaml` |
 
-Use them anywhere in the code with:
-
-```python
-from django.conf import settings
-
-settings.BRANDING_FILE
-```
+Read them anywhere with `from django.conf import settings` and then
+`settings.BRANDING_FILE`.
 
 ## `branding.yaml`
 
 This file controls everything personal in the report: product name, consultant intro,
-contact links, services and the call to action. Anyone who forks the project replaces it
-with their own details. No code changes are needed.
+contact links, services and the call to action. Someone who forks the project only
+edits this file.
 
 `services[].related_categories` must use the engine's category ids: `performance`,
-`accessibility`, `best_practices`, `seo` and `agentic`. When a category fails, the report
-recommends the services linked to it.
+`accessibility`, `best_practices`, `seo` and `agentic`. A failing category recommends
+the services linked to it.

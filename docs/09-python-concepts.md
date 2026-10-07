@@ -1,88 +1,119 @@
 # 9. Python Concepts Used
 
-A learning page. Every time the code uses a Python feature for the first time, it gets
-explained here with a tiny example.
+Each Python feature the code uses gets a short explanation here, with the file where
+you can see it.
 
-## `import` and `from ... import`
-
-```python
-import os                        # bring in the whole module; use it as os.getenv(...)
-from pathlib import Path         # bring in one name; use it directly as Path(...)
-```
-
-A **module** is a `.py` file. A **package** is a folder of modules with an
-`__init__.py` file.
-
-**Import order convention (PEP 8):** standard library first, then third-party libraries,
-then our own code. Put a blank line between each group. That's why `settings.py` has
-`import os` and `from pathlib import Path`, then a blank line, then
-`from dotenv import load_dotenv`.
-
-## `pathlib.Path`: working with file paths
+## Modules, packages, `import`
 
 ```python
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_DIR / 'branding.yaml'      # the / operator joins paths
+import os                    # the whole module: os.environ
+from pathlib import Path     # one name: Path(...)
+from . import views          # "." = the package this file is in  (core/urls.py)
+from .base import *          # copy every public name  (settings/dev.py)
 ```
 
-`Path` works on Windows (`\`) and Linux (`/`) without changes. Prefer it over plain
-strings for file paths.
+- A **module** is one `.py` file.
+- A **package** is a folder with `__init__.py`. `bizzcheckup/` is a package, and so is
+  `bizzcheckup/core/`.
+- **Import order** (Ruff enforces it): standard library, then third-party, then our
+  code, with a blank line between groups.
+- `import *` is normally avoided. Settings files are the classic exception, which is
+  why they have `# noqa: F403` to tell Ruff "I know".
 
-## `__file__`
-
-A special variable holding the path of the current `.py` file.
-
-## Dictionaries (`dict`)
-
-Key-value pairs:
+## Functions and type hints
 
 ```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-    }
-}
-DATABASES['default']['ENGINE']    # 'django.db.backends.sqlite3'
+def home(request: HttpRequest) -> HttpResponse:   # core/views.py
+    return render(request, "core/home.html")
 ```
 
-`yaml.safe_load` turns `branding.yaml` into a dict, too.
+- `request: HttpRequest` means this parameter should be an `HttpRequest`.
+- `-> HttpResponse` means the function returns an `HttpResponse`.
+- Python **doesn't enforce** hints at runtime. **mypy** checks them before the code
+  runs.
+- `-> None` means the function returns nothing (`manage.py::main`).
+- `dict[str, str]` is a dictionary with string keys and string values
+  (`context_processors.py`).
+- `list[str]` is a list of strings (`ALLOWED_HOSTS: list[str]` in `base.py`).
 
-## Lists
-
-Ordered collections:
+## Docstrings
 
 ```python
-INSTALLED_APPS = ['django.contrib.admin', 'scanner']
-INSTALLED_APPS.append('reports')
+def healthz(request):
+    """Tiny endpoint Docker uses to know the web server is alive."""
 ```
 
-## `os.environ[...]` vs `os.getenv(...)`
+The first string inside a function, class or module documents it. Editors show it on
+hover.
+
+## Decorators: `@something`
 
 ```python
-os.environ['KEY']          # crashes with KeyError if KEY is missing
-os.getenv('KEY', 'x')      # returns 'x' if KEY is missing
+@shared_task                 # core/tasks.py
+def ping() -> str:
+    return "pong"
 ```
 
-## String methods
+A decorator wraps a function to give it extra powers. `@shared_task` turns `ping` into
+a Celery task, so you can call `ping.delay()` to run it in the worker.
+
+## Classes and inheritance
 
 ```python
-'a,b,c'.split(',')         # ['a', 'b', 'c']
-'True' == 'True'           # True  (comparison returns a bool)
+class CoreConfig(AppConfig):          # core/apps.py
+    name = "bizzcheckup.core"
 ```
 
-## `with open(...) as f:`
+`CoreConfig` **inherits** from Django's `AppConfig`: it gets all of its behaviour and
+only changes `name`. Phase 2 uses this heavily: every check inherits from `Check`.
+
+## `if __name__ == "__main__":`
 
 ```python
-with open('branding.yaml', encoding='utf-8') as f:
-    text = f.read()
+if __name__ == "__main__":   # manage.py, scripts/get_tailwind.py
+    main()
 ```
 
-`with` closes the file automatically, even if an error happens. Always pass
-`encoding='utf-8'` on Windows, or characters like `—` and `·` in `branding.yaml` break.
+`__name__` is `"__main__"` only when you **run** the file directly
+(`python manage.py`). If another file imports it, `main()` doesn't run.
 
-## `python -m <module>`
+## f-strings
 
-`python -m venv .venv` runs a module as a program. `python -m pip` makes sure you use
-the pip that belongs to *this* Python.
+```python
+f"tailwindcss-windows-{arch}.exe"     # scripts/get_tailwind.py
+```
+
+An `f` before the quotes lets `{expression}` insert values.
+
+## `pathlib.Path`
+
+```python
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR / "branding.yaml"     # / joins paths on every OS
+```
+
+`__file__` is the path of the current file. `.parent` goes up one folder.
+
+## Conditional expression (one-line if)
+
+```python
+arch = "arm64" if machine in ("arm64", "aarch64") else "x64"
+```
+
+## Tuples and `in`
+
+`("arm64", "aarch64")` is a **tuple**, an unchangeable list. `x in (...)` checks
+membership.
+
+## Exceptions
+
+```python
+if not settings.DEBUG:
+    raise Http404              # core/views.py: stop here, Django shows "Not found"
+```
+
+`raise` stops the function with an error. Django turns `Http404` into a 404 page.
+
+## `sys.exit("message")`
+
+This stops a script and prints the message (`get_tailwind.py`, unsupported OS).

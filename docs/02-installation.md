@@ -1,89 +1,121 @@
 # 2. Installation
 
-Follow these steps on a new computer. The commands are for **Git Bash on Windows**.
-PowerShell differences are noted where they matter.
+There are two ways to run BizzCheckup:
 
-## Step 1: Get the code
+- **A. Everything in Docker.** This is easiest and closest to a live server.
+- **B. Django from your virtual environment, with only PostgreSQL and Redis in Docker.**
+  This is best while you're writing code, because changes show up instantly.
+
+Commands are for **Git Bash on Windows**.
 
 ```bash
 git clone https://github.com/rdhafiz/bizzcheckup.git
 cd bizzcheckup
 ```
 
-## Step 2: Create a virtual environment
+---
+
+## A. Everything in Docker
+
+```bash
+docker compose up --build
+```
+
+Open <http://localhost:8000>. Press `Ctrl+C` to stop.
+
+What happens:
+
+1. Docker builds one image from `docker/Dockerfile`. It builds the CSS, installs the
+   libraries and collects the static files.
+2. It starts four containers: `postgres`, `redis`, `web` (Django) and `worker` (Celery).
+3. `web` runs the database migrations, then starts gunicorn on port 8000.
+
+Useful commands:
+
+| Command | What it does |
+|---------|--------------|
+| `docker compose up -d` | Start in the background |
+| `docker compose logs -f worker` | Follow the worker's output |
+| `docker compose exec web python manage.py createsuperuser` | Create an admin login |
+| `docker compose down` | Stop and remove the containers (data is kept) |
+| `docker compose down -v` | Same, **and delete the database** |
+
+---
+
+## B. Developing from a virtual environment
+
+### 1. Create and activate a virtual environment
 
 ```bash
 python -m venv .venv
+source .venv/Scripts/activate        # PowerShell: .venv\Scripts\Activate.ps1
 ```
 
-**What is this?** A virtual environment is a private folder (`.venv/`) holding this
-project's own copy of Python and its libraries. Without one, every project on your
-computer would share the same libraries, and two projects needing different versions of
-Django would break each other.
+A virtual environment is this project's private folder of libraries, so projects don't
+break each other. Your prompt shows `(.venv)` while it's active.
 
-- `python -m venv` runs Python's built-in `venv` module.
-- `.venv` is the folder name. The dot keeps it hidden and out of the way.
-
-## Step 3: Activate it
+### 2. Install the libraries
 
 ```bash
-# Git Bash
-source .venv/Scripts/activate
-
-# PowerShell
-.venv\Scripts\Activate.ps1
+pip install -r requirements/dev.txt
 ```
 
-Your prompt now starts with `(.venv)`. While it's active, `python` and `pip` mean the
-ones inside `.venv`. Type `deactivate` to leave.
+`dev.txt` contains everything in `base.txt` (needed to run the app) plus the test and
+lint tools.
 
-> If PowerShell says "running scripts is disabled", run this once:
-> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
-
-## Step 4: Install the libraries
-
-```bash
-pip install -r requirements.txt
-```
-
-`-r requirements.txt` means "read the list of libraries from this file". See
-[Dependencies](04-dependencies.md) for what each one does.
-
-## Step 5: Create your `.env` file
+### 3. Create `.env`
 
 ```bash
 cp .env.example .env
 ```
 
-Open `.env` and set `DJANGO_SECRET_KEY` to a long random value. Generate one with:
+Set `DJANGO_SECRET_KEY` to a long random value:
 
 ```bash
 python -c "from django.core.management.utils import get_random_secret_key as g; print(g())"
 ```
 
-See [Configuration](06-configuration.md) for what every value means.
+### 4. Start PostgreSQL and Redis
 
-## Step 6: Create the database tables
+```bash
+docker compose up -d postgres redis
+```
+
+> **No Docker yet?** In `.env`, set `DATABASE_URL=sqlite:///db.sqlite3` to try the pages.
+> Check-ups (phase 6 onwards) need Redis, so Docker is required for those.
+
+### 5. Build the CSS
+
+```bash
+python scripts/get_tailwind.py                                            # once
+.bin/tailwindcss -i frontend/tailwind.css -o static/css/app.css --watch   # leave running
+```
+
+### 6. Database and server (in a second terminal)
 
 ```bash
 python manage.py migrate
-```
-
-This creates `db.sqlite3` and the tables Django needs. See [Database](07-database.md).
-
-## Step 7: Run the development server
-
-```bash
 python manage.py runserver
 ```
 
-Open <http://127.0.0.1:8000/> in your browser. Press `Ctrl+C` in the terminal to stop.
+Open <http://127.0.0.1:8000>. The brand style guide is at
+<http://127.0.0.1:8000/styleguide/> (only while `DJANGO_DEBUG=True`).
+
+### 7. Worker (in a third terminal, once check-ups exist)
+
+```bash
+celery -A config worker --loglevel=info --pool=solo     # --pool=solo is needed on Windows
+```
+
+---
 
 ## Common problems
 
 | Problem | Fix |
 |---------|-----|
-| `KeyError: 'DJANGO_SECRET_KEY'` | You skipped step 5. The `.env` file is missing or empty. |
-| `ModuleNotFoundError: No module named 'django'` | The virtual environment isn't active. Do step 3 again. |
-| `python` is not recognised | Python isn't on PATH. Reinstall it and tick "Add to PATH". |
-| Port 8000 already in use | Run `python manage.py runserver 8001` |
+| `ImproperlyConfigured: Set the DJANGO_SECRET_KEY environment variable` | `.env` is missing. Do step 3. |
+| `ImproperlyConfigured: Set the DATABASE_URL environment variable` | Add `DATABASE_URL` to `.env` |
+| `connection refused ... 5432` | PostgreSQL isn't running. Do step 4. |
+| Page has no styling | The CSS isn't built. Do step 5. |
+| `ModuleNotFoundError: No module named 'django'` | Activate the virtual environment (step 1). |
+| Port 8000 already in use | `python manage.py runserver 8001` |

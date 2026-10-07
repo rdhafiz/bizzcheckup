@@ -1,62 +1,87 @@
 # 5. How Django Works (MVC / MTV)
 
-## MVC in one minute
+## MVC vs Django's MTV
 
-Most web frameworks split code into three jobs:
+| Classic MVC | Django name | File | Job |
+|-------------|-------------|------|-----|
+| Model | **Model** | `models.py` | Data and database tables |
+| View (screen) | **Template** | `templates/**/*.html` | What the user sees |
+| Controller (logic) | **View** | `views.py` | Handles a request and decides the response |
+| Router | **URLconf** | `urls.py` | Maps an address to a view |
 
-| Job | MVC name | Question it answers |
-|-----|----------|---------------------|
-| Data | **Model** | What do we store, and how? |
-| Screen | **View** | What does the user see? |
-| Logic | **Controller** | What happens when the user does something? |
+**Remember:** a Django *view* is the controller. A *template* is the screen.
 
-## Django calls it MTV
-
-Django uses different names for the same idea. This confuses everyone at first:
-
-| Classic MVC | Django | File | In BizzCheckup |
-|-------------|--------|------|----------------|
-| Model | **Model** | `models.py` | A `Scan` saved in the database (URL, date, scores) |
-| View (the screen) | **Template** | `templates/*.html` | The report page the visitor sees |
-| Controller (the logic) | **View** | `views.py` | "Receive the URL, run the scan, show the report" |
-| Router | **URLconf** | `urls.py` | `/scan/` goes to the scan view |
-
-**Remember:** in Django, a *view* is the controller (Python logic) and a *template* is
-the screen (HTML).
-
-## The life of a request
-
-What happens when someone opens `http://127.0.0.1:8000/scan/`:
+## A real request in our code: `GET /`
 
 ```
-Browser
-   │  GET /scan/
-   ▼
-config/urls.py        ← "which view handles /scan/?"
-   │
-   ▼
-scanner/views.py      ← CONTROLLER: run Python logic
-   │      │
-   │      ▼
-   │   scanner/models.py  ← MODEL: read/save the database
-   │
-   ▼
-templates/report.html ← TEMPLATE: fill the HTML with data
-   │
-   ▼
-Browser shows the page
+1. Browser asks for  http://127.0.0.1:8000/
+2. config/urls.py           path("", include("bizzcheckup.core.urls"))  → hand over to core
+3. bizzcheckup/core/urls.py path("", views.home, name="home")             → call home()
+4. bizzcheckup/core/views.py
+       def home(request):
+           return render(request, "core/home.html")
+5. Context processor        core/context_processors.py adds product_name + tagline
+6. Template                 templates/core/home.html  extends  templates/base.html
+7. Browser receives the finished HTML
 ```
+
+### URLs (`urls.py`)
+
+```python
+app_name = "core"                      # namespace, so we write "core:home"
+urlpatterns = [
+    path("", views.home, name="home"),
+    path("healthz/", views.healthz, name="healthz"),
+]
+```
+
+The `name` lets templates and code build links without hard-coding addresses:
+`{% url 'core:home' %}` in a template, or `reverse("core:home")` in Python.
+
+### Views (`views.py`)
+
+A view is a function that takes a `request` and returns a `response`:
+
+```python
+def healthz(request: HttpRequest) -> JsonResponse:
+    return JsonResponse({"status": "ok"})
+```
+
+### Templates
+
+`base.html` is the skeleton. Pages **extend** it and fill in **blocks**:
+
+```django
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ product_name }}</h1>     {# {{ }} prints a value #}
+{% endblock %}
+```
+
+| Syntax | Meaning |
+|--------|---------|
+| `{{ value }}` | Print a value (HTML-escaped automatically, which blocks injection attacks) |
+| `{% tag %}` | Logic: `if`, `for`, `url`, `static`, `include` |
+| `{# ... #}` | Comment |
+| `{% include "partials/logo.html" %}` | Insert a small reusable template |
+
+### Context processors
+
+A function that adds values to **every** template.
+`bizzcheckup/core/context_processors.py::brand` adds `product_name`, `tagline` and
+`app_version`. It's registered in `TEMPLATES["OPTIONS"]["context_processors"]` in
+`config/settings/base.py`.
+
+### Models
+
+Coming in phase 6 (`Checkup`, `Finding`, `Lead`). See [Database](07-database.md).
 
 ## Where business logic goes
 
-Views should stay **thin**. They take the request, call the logic, and return the
-response. The real work (calling PageSpeed, checking `robots.txt`, scoring) will live in
-separate plain-Python files called **services**, such as `scanner/services/`. This has
-three benefits:
+Views stay **thin**: receive the request, call the logic, return the response. The
+heavy logic lives in the **engine** (`bizzcheckup/engine/`, pure Python), which the
+Celery worker calls. This means:
 
-- Logic can be tested without a browser.
-- Logic can be reused, for example from a command-line command.
-- Views stay short and readable.
-
-> This page gains concrete code examples once the first model, view and template exist
-> (steps 2 to 4).
+- logic is tested without a browser or a database,
+- views stay short and readable,
+- the engine could be reused outside Django later.
