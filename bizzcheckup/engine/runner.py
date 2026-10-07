@@ -30,6 +30,22 @@ logger = logging.getLogger(__name__)
 # on_progress(percent, step) is awaited after every stage.
 ProgressCallback = Callable[[int, str], Awaitable[None]]
 
+# Progress milestones (percent). The progress page's steps use the same numbers
+# (checkups/progress.py), so keep them in sync.
+CRAWL_START = 3
+COLLECT_START = 20  # the slow part: browser, PageSpeed, probes (in parallel)
+COLLECT_END = 70
+CHECKS_START = 70  # five categories, quick
+CHECKS_STEP = 4
+REPORT_START = 90  # scoring here, then the web app saves the report and makes the PDF
+
+# What the visitor reads while each data source is still working.
+COLLECTOR_LABELS = {
+    "collect_probes": "Checking links, security and AI access",
+    "collect_render": "Opening your site in a real browser",
+    "collect_pagespeed": "Measuring speed with Google PageSpeed",
+}
+
 SKIP_REASONS = {  # a data source was tried but failed
     RENDER: "We couldn't open your site in a browser, so this wasn't checked.",
     PAGESPEED: "Google PageSpeed couldn't measure your site this time, so speed wasn't checked.",
@@ -84,7 +100,7 @@ async def _run(
     checks = (registry or load_builtin_checks()).all()
 
     async with Fetcher(config, guard=guard, transport=transport) as fetcher:
-        await progress(5, "Visiting your website")
+        await progress(CRAWL_START, "Visiting your website")
         try:
             result = await crawl(fetcher, url)
         except (BlockedURLError, UnusableHomepageError) as error:
@@ -95,10 +111,38 @@ async def _run(
             ) from error
 
         ctx = AuditContext(crawl=result)
-        await progress(25, "Taking your website's vital signs")
-        # Collectors run at the same time; one failing data source must not stop the audit.
+        page_word = "page" if len(result.pages) == 1 else "pages"
+        await progress(COLLECT_START, f"Found {len(result.pages)} {page_word}, taking vital signs")
+
+        # Collectors run at the same time; one failing data source must not stop the
+        # audit. Each one that finishes moves the progress bar and the message shows
+        # what is still running (usually the slow PageSpeed test).
+        # Fixed order for messages: quick probes, then the browser, then PageSpeed (slowest).
+        order = list(COLLECTOR_LABELS)
+        pending = sorted(
+            (getattr(c, "__name__", "") for c in collectors),
+            key=lambda n: order.index(n) if n in order else len(order),
+        )
+
+        async def run_collector(collector: Collector) -> None:
+            try:
+                await collector(ctx, fetcher, config)
+            finally:
+                name = getattr(collector, "__name__", "")
+                if name in pending:
+                    pending.remove(name)
+                done = len(collectors) - len(pending)
+                percent = COLLECT_START + round(
+                    (COLLECT_END - COLLECT_START) * done / max(len(collectors), 1)
+                )
+                waiting = [COLLECTOR_LABELS.get(n, "Taking vital signs") for n in pending]
+                await progress(percent, f"{waiting[0]}…" if waiting else "Vital signs taken")
+
+        if collectors:
+            first = [COLLECTOR_LABELS.get(n, "Taking vital signs") for n in pending]
+            await progress(COLLECT_START + 1, f"{first[0]}…")
         outcomes = await asyncio.gather(
-            *(collector(ctx, fetcher, config) for collector in collectors),
+            *(run_collector(collector) for collector in collectors),
             return_exceptions=True,
         )
         for collector, outcome in zip(collectors, outcomes, strict=True):
@@ -111,10 +155,10 @@ async def _run(
     results: list[CheckResult] = []
     groups = [(category, list(items)) for category, items in groupby(checks, lambda c: c.category)]
     for index, (category, group) in enumerate(groups):
-        await progress(40 + round(50 * index / max(len(groups), 1)), f"Checking {category.label}")
+        await progress(CHECKS_START + CHECKS_STEP * index, f"Checking {category.label}")
         results.extend(run_check(check, ctx) for check in group)
 
-    await progress(95, "Preparing your report")
+    await progress(REPORT_START, "Preparing your report")
     categories = score_categories(results)
     overall = health_score(categories)
 

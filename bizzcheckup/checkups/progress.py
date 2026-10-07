@@ -2,14 +2,18 @@
 
 from dataclasses import dataclass
 
+from bizzcheckup.engine import runner
 from bizzcheckup.engine.types import Category
 
-# (progress % at which the step starts, label). See engine/runner.py.
+# (progress % at which the step starts, label). Same milestones as engine/runner.py.
 STEPS: list[tuple[int, str]] = [
     (0, "Visiting your website"),
-    (25, "Taking your website's vital signs"),
-    *[(40 + 10 * index, f"Checking {category.label}") for index, category in enumerate(Category)],
-    (95, "Preparing your report"),
+    (runner.COLLECT_START, "Taking your website's vital signs"),
+    *[
+        (runner.CHECKS_START + runner.CHECKS_STEP * index, f"Checking {category.label}")
+        for index, category in enumerate(Category)
+    ],
+    (runner.REPORT_START, "Preparing your report"),
 ]
 
 
@@ -17,6 +21,8 @@ STEPS: list[tuple[int, str]] = [
 class Step:
     label: str
     state: str  # "done" | "active" | "pending"
+    start: int  # progress % where this step begins
+    end: int  # progress % where the next one begins (the page animates between them)
 
 
 def steps_for(progress: int) -> list[Step]:
@@ -29,5 +35,5 @@ def steps_for(progress: int) -> list[Step]:
             state = "active"
         else:
             state = "pending"
-        result.append(Step(label, state))
+        result.append(Step(label, state, start, end))
     return result

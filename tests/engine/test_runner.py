@@ -145,8 +145,8 @@ async def test_full_audit_scores_and_handles_skips_and_crashes(site: respx.Route
 
     percents = [p for p, _ in steps]
     assert percents == sorted(percents)
-    assert steps[0] == (5, "Visiting your website")
-    assert steps[-1] == (95, "Preparing your report")
+    assert steps[0] == (3, "Visiting your website")
+    assert steps[-1] == (90, "Preparing your report")
 
 
 async def test_collectors_add_capabilities(site: respx.Router) -> None:
@@ -245,3 +245,32 @@ async def test_skip_note_says_no_key_only_when_there_is_no_key(site: respx.Route
 
     assert "no PageSpeed API key" in await run("")
     assert "couldn't measure your site this time" in await run("a-real-key")
+
+
+async def test_each_finished_data_source_moves_the_progress_bar(site: respx.Router) -> None:
+    steps: list[tuple[int, str]] = []
+
+    async def on_progress(percent: int, step: str) -> None:
+        steps.append((percent, step))
+
+    async def collect_probes(ctx: AuditContext, fetcher: Fetcher, cfg: EngineConfig) -> None:
+        pass
+
+    async def collect_pagespeed(ctx: AuditContext, fetcher: Fetcher, cfg: EngineConfig) -> None:
+        await asyncio.sleep(0.05)  # the slow one finishes last
+
+    await run_audit(
+        "https://shop.test/",
+        EngineConfig(retries=0),
+        registry=registry_with(HasTitle),
+        collectors=[collect_probes, collect_pagespeed],
+        guard=NetGuard(fake_resolver),
+        transport=httpx.MockTransport(site.async_handler),
+        on_progress=on_progress,
+    )
+
+    messages = [step for _, step in steps]
+    assert "Measuring speed with Google PageSpeed…" in messages  # what we're waiting for
+    assert (45, "Measuring speed with Google PageSpeed…") in steps  # 1 of 2 finished
+    assert (70, "Vital signs taken") in steps  # 2 of 2 finished
+    assert [p for p, _ in steps] == sorted(p for p, _ in steps)  # never goes backwards

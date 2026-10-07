@@ -132,10 +132,8 @@ def save_report(checkup: Checkup, report: AuditReport) -> None:
         checkup.health_score = report.health_score
         checkup.raw_results = report.model_dump(mode="json")
         checkup.screenshot = report.screenshot_jpeg
-        checkup.status = Checkup.Status.DONE
-        checkup.progress = 100
-        checkup.current_step = "Your report is ready"
-        checkup.finished_at = timezone.now()
+        checkup.progress = 94
+        checkup.current_step = "Preparing your PDF"
         checkup.save()
 
         checkup.findings.all().delete()
@@ -154,6 +152,15 @@ def save_report(checkup: Checkup, report: AuditReport) -> None:
             )
             for f in report.findings
         )
+
+
+def mark_done(checkup: Checkup) -> None:
+    """The report (and its PDF) is ready: the progress page now shows it."""
+    checkup.status = Checkup.Status.DONE
+    checkup.progress = 100
+    checkup.current_step = "Your report is ready"
+    checkup.finished_at = timezone.now()
+    checkup.save(update_fields=["status", "progress", "current_step", "finished_at"])
 
 
 def mark_failed(checkup: Checkup, message: str) -> None:

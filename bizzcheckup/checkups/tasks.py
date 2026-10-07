@@ -61,11 +61,12 @@ def run_checkup(checkup_id: str) -> None:
     checkup.refresh_from_db()
     services.save_report(checkup, report)
 
-    # Make the PDF now, so "Download PDF" is instant. If it fails, the download
-    # view simply tries again later.
+    # Make the PDF now, so "Download PDF" is instant when the report appears. If it
+    # fails, the report still opens and the download view tries again later.
     try:
         from bizzcheckup.reports.pdf import ensure_pdf
 
         ensure_pdf(checkup)
     except Exception:
         logger.exception("PDF for check-up %s failed", checkup.pk)
+    services.mark_done(checkup)
