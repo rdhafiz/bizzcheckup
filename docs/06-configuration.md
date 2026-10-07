@@ -40,6 +40,16 @@ what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variab
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | prod only | empty | e.g. `https://bizzcheckup.example.com` |
 | `WORKER_CONCURRENCY` | compose only | `3` | How many check-ups run at once |
 
+### Getting a PageSpeed API key (free)
+
+1. Go to <https://developers.google.com/speed/docs/insights/v5/get-started> and click
+   **Get a Key**.
+2. Choose or create a Google Cloud project. The key is created for you.
+3. Put it in `.env` as `PSI_API_KEY=...` and restart the server and the worker.
+
+The free quota is about 25,000 tests a day (each check-up uses 2). Keep the key secret:
+`.env` is never committed.
+
 ## How `base.py` reads them
 
 ```python

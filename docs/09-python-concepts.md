@@ -568,3 +568,73 @@ screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
 
 The field exists on the object, but `model_dump()` (the JSON saved to the database)
 leaves it out, and `print()` doesn't show 80 KB of binary data.
+
+---
+
+# Phase 5: concepts in performance and agentic checks
+
+## Methods on a dataclass (`performance.py`)
+
+```python
+@dataclass(frozen=True)
+class _Metric:
+    good: float
+    poor: float
+
+    def rating(self, value: float) -> float:
+        return 1.0 if value <= self.good else 0.5 if value <= self.poor else 0.0
+```
+
+Dataclasses are normal classes, so they can have methods. `a if x else b if y else c`
+chains two conditions, like `if / elif / else` in one line.
+
+## Default arguments capture a value *now* (`pagespeed.py`)
+
+```python
+for key in ("loadingExperience", "originLoadingExperience"):
+    metrics = ...
+    def percentile(name: str, metrics: dict[str, Any] = metrics) -> float | None:
+        ...
+```
+
+A function defined inside a loop sees the loop variable as it is **when the function
+runs**, not when it was defined. That's a classic bug (Ruff rule B023). Passing it as a
+default argument freezes the current value.
+
+## `getattr` with a computed name
+
+```python
+test = getattr(ctx.pagespeed, self.strategy)   # self.strategy is "mobile" or "desktop"
+```
+
+This is the same as `ctx.pagespeed.mobile` or `ctx.pagespeed.desktop`, picked at runtime.
+It lets `MobileSpeed` and `DesktopSpeed` share one `run()` method.
+
+## Reading deeply nested JSON safely
+
+```python
+lighthouse.get("categories", {}).get("performance", {}).get("score")
+```
+
+Each `.get(key, {})` returns an empty dict if the key is missing, so a missing piece
+gives `None` at the end instead of a crash.
+
+## `asyncio.gather(..., return_exceptions=True)`
+
+```python
+mobile, desktop = await asyncio.gather(
+    run_test(..., "mobile"), run_test(..., "desktop"), return_exceptions=True
+)
+if isinstance(mobile, SpeedTest): ...
+```
+
+Normally one failure cancels everything. With `return_exceptions=True`, each result is
+either the value or the exception object, so one failed test still leaves the other.
+
+## `model_copy(update=...)` (Pydantic)
+
+```python
+FAST.model_copy(update={"score": 0.3})   # a copy with one field changed
+```
+
+The tests use this to make variations of one sample object.

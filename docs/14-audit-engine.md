@@ -88,9 +88,24 @@ need. When it succeeds, it adds its **capability** name. Checks that list that n
 
 | Collector | Capability | Adds | Used by |
 |-----------|------------|------|---------|
-| `collect_probes` (`collectors/probes.py`) | `PROBES` | `ctx.probes.http_final_url` (where `http://` ends up); `ctx.probes.link_status` (internal link to HTTP status, 0 = unreachable); `ctx.probes.link_sources` (which pages contain each link) | `seo.broken_links`, `best_practices.http_redirect` |
+| `collect_probes` (`collectors/probes.py`) | `PROBES` | `ctx.probes.http_final_url` (where `http://` ends up); `link_status` (internal link to HTTP status, 0 = unreachable); `link_sources` (which pages contain each link); `llms_txt_text`; `as_ai_agent` / `as_browser` (the homepage fetched with a GPTBot and a Chrome User-Agent: status, length, challenge page?) | `seo.broken_links`, `best_practices.http_redirect`, `agentic.llms_txt`, `agentic.bot_blocking` |
 | `collect_render` (`collectors/render.py`) | `RENDER` | `ctx.render`: rendered HTML, visible text length, JPEG screenshot, console errors, cookies (first- or third-party), library versions, axe-core violations and passes, blocked requests | `accessibility.axe_scan`, `best_practices.console_errors`, `best_practices.third_party_cookies`, `best_practices.outdated_libraries`, and all accessibility checks (through `ctx.dom()`) |
-| PageSpeed (phase 5) | `PAGESPEED` | Lighthouse scores and Core Web Vitals | Performance checks |
+| `collect_pagespeed` (`collectors/pagespeed.py`) | `PAGESPEED` | `ctx.pagespeed.mobile` / `.desktop`: Lighthouse score, LCP, CLS, TBT, FCP, speed index, page weight, render-blocking files, off-screen and unsized images, plus real-visitor field data | All performance checks |
+
+**All collectors run at the same time** (`asyncio.gather`), because PageSpeed alone can
+take 20–30 seconds. If one fails, its error is logged and the others carry on.
+
+### PageSpeed Insights
+
+`collect_pagespeed` runs Google's mobile and desktop tests in parallel. Notes:
+
+- The API key goes in the `X-Goog-Api-Key` **header**, never the URL. URLs end up in
+  logs and error messages, and a key there would leak.
+- These requests use `polite=False`, so they don't take one of the two
+  "requests at once" slots meant for the audited site.
+- They get a longer timeout (`psi_timeout`, 90 s) because Lighthouse runs a full page load.
+- With no key, the collector simply does nothing, and the performance checks that need
+  it are skipped with a clear note.
 
 Link probing uses cheap `HEAD` requests, falling back to `GET` when a server refuses
 `HEAD` (403/405/501). It checks at most `max_link_checks` (50) same-origin links that

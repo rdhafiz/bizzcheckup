@@ -45,5 +45,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - Best-practice checks for JavaScript errors and third-party cookies; the outdated
   libraries check also uses versions detected in the running page.
 - Chromium installed in the Docker image, CI and `start.sh`.
+- PageSpeed Insights collector (mobile + desktop in parallel; the key is sent in a header,
+  never in the URL). Performance is skipped cleanly without `PSI_API_KEY`.
+- 7 performance checks: mobile and desktop scores, Core Web Vitals (real-visitor data
+  first, lab fallback), page weight, image dimensions, lazy loading, render-blocking files.
+- 7 agentic browsing checks: llms.txt, AI crawlers in robots.txt (search vs training
+  bots), firewall/CDN blocking of AI agents, JSON-LD, landmarks, named controls, content
+  without JavaScript.
+- Collectors run in parallel.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).

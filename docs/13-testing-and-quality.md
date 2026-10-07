@@ -236,3 +236,14 @@ CI installs Chromium, so it always runs there.
 
 Browser-only *checks* (axe scan, console errors, cookies) are tested without a browser
 by building a `RenderResult` by hand. See `rendered()` in `test_accessibility.py`.
+
+---
+
+## Performance and agentic tests (phase 5)
+
+- `tests/fixtures/pagespeed/mobile.json` is a **trimmed real PageSpeed answer**. Tests
+  parse it exactly as the collector would, so there's no API key and no network.
+- `test_collector_calls_api_with_key_in_header` fakes Google's API with respx and checks
+  that the key is sent in the header and **never** appears in the URL.
+- Agentic tests build `AgentProbe` results by hand: an AI agent refused with 403, shown
+  a challenge, or given half the page, compared with a normal browser.

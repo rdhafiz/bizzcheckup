@@ -81,9 +81,53 @@ penalties are critical 1.0, serious 0.7, moderate 0.3 and minor 0.1.
 Not applicable: `image_alt` with no images, `heading_order` with no headings,
 `form_labels` with no form fields, and `accessible_names` with no links or buttons.
 
-## Performance, Agentic browsing
+## Performance (`bizzcheckup/engine/checks/performance.py`)
 
-Added in phase 5.
+The first four need PageSpeed Insights (`PSI_API_KEY`). Without a key they're
+**skipped**, the category says "Speed wasn't measured because no PageSpeed API key is
+configured", and the Business Health Score re-balances without it. The last three
+also work from the HTML alone, and use PageSpeed's more precise data when it's there.
+
+| Id | Title | Weight | Looks at | Pass | Warn | Fail |
+|----|-------|--------|----------|------|------|------|
+| `performance.mobile_speed` | Speed on phones | 10 | Lighthouse mobile score (the score *is* the check score) | ≥ 90 | 50–89 | < 50 (high impact) |
+| `performance.desktop_speed` | Speed on computers | 5 | Lighthouse desktop score | ≥ 90 | 50–89 | < 50 (high impact) |
+| `performance.core_web_vitals` | Core Web Vitals | 8 | **Real-visitor** data (Chrome UX Report, 28 days) when Google has it, otherwise the lab test (partial) | All good | Any "needs improvement" | Any "poor" (high impact) |
+| `performance.page_weight` | Page weight | 4 | Total bytes downloaded (mobile) | ≤ 2 MB | ≤ 4 MB | > 4 MB |
+| `performance.image_dimensions` | Image sizes declared | 3 | `<img>` without both `width` and `height` (partial) | All sized | Any unsized | — |
+| `performance.lazy_images` | Images load when needed | 3 | PageSpeed's off-screen images, or pages with 4+ images and no `loading="lazy"` | Fine | Images load too early | — |
+| `performance.render_blocking` | Files that block the first screen | 4 | PageSpeed's render-blocking files, or `<head>` scripts without `defer`/`async`/`type="module"` | None | Any (medium impact if they cost ≥ 0.5 s) | — |
+
+Core Web Vitals thresholds (Google's own):
+
+| Metric | Means | Good | Poor |
+|--------|-------|------|------|
+| LCP | Main content visible | ≤ 2.5 s | > 4 s |
+| CLS | Page jumping around | ≤ 0.1 | > 0.25 |
+| INP | Reaction to taps (real visitors only) | ≤ 200 ms | > 500 ms |
+| TBT | Page frozen by scripts (lab stand-in for INP) | ≤ 200 ms | > 600 ms |
+| FCP | Anything visible at all | ≤ 1.8 s | > 3 s |
+
+## Agentic browsing (`bizzcheckup/engine/checks/agentic.py`)
+
+Can AI assistants (ChatGPT, Claude, Perplexity, Google's AI answers) find, read and
+recommend the business?
+
+| Id | Title | Weight | Looks at | Pass | Warn | Fail |
+|----|-------|--------|----------|------|------|------|
+| `agentic.llms_txt` | AI guide (llms.txt) | 5 | `/llms.txt` as real text, not an HTML soft-404 (needs PROBES) | Present (plus **info** if it lacks a `# Name` heading) | Missing | — |
+| `agentic.ai_crawlers` | AI crawlers allowed | 8 | robots.txt rules for OAI-SearchBot, PerplexityBot, GPTBot, ClaudeBot | All allowed, or no robots.txt | — (blocking **training** bots GPTBot/ClaudeBot gives **info**: a valid choice) | Blocking **search** bots (high impact) |
+| `agentic.bot_blocking` | Not blocked by firewall | 8 | The homepage fetched as an AI agent vs as a normal browser (needs PROBES) | Same page | Everyone blocked, or AI gets < 50 % of the page | AI refused, unanswered, or challenged while browsers get through (high impact) |
+| `agentic.structured_data` | Machine-readable business facts | 5 | JSON-LD with an `@type` on the homepage | Present | Missing | — |
+| `agentic.landmarks` | Clear page structure | 4 | `main`, `nav`, `header`, `footer` (or ARIA roles) (partial) | All four | Some missing (medium impact if `main` is missing) | — |
+| `agentic.named_controls` | Buttons AI agents can use | 4 | Homepage links and buttons with an accessible name (partial) | All named | Any nameless | — |
+| `agentic.content_without_js` | Content readable without JavaScript | 8 | Raw-HTML text ÷ rendered text (needs RENDER) (partial) | ≥ 70 % | 30–69 % | < 30 % (high impact) |
+
+**Bot-protection detection:** a response counts as a "challenge" when Cloudflare sends
+`cf-mitigated: challenge`, or when a short page or an error page (403/429/503)
+contains phrases like "Just a moment..." or "verify you are human". A normal homepage
+that mentions "captcha" (for example on a contact form) doesn't count. Even then, the
+check only fails when the AI agent is treated **differently** from a browser.
 
 ---
 
