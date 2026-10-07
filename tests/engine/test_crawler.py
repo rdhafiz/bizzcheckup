@@ -1,4 +1,5 @@
 import httpx
+import pytest
 import respx
 
 from bizzcheckup.engine.config import EngineConfig
@@ -147,3 +148,37 @@ async def test_extra_page_with_error_status_is_left_out(
 
     assert len(result.pages) == 1
     assert result.errors == {"https://shop.test/old": "HTTP 404"}
+
+
+async def test_firewall_challenge_gives_a_clear_message(
+    fetcher: Fetcher, router: respx.Router
+) -> None:
+    from bizzcheckup.engine.crawler import UnusableHomepageError
+
+    router.get("https://shop.test/").respond(
+        429, headers={"x-vercel-mitigated": "challenge"}, html="<p>Vercel Security Checkpoint</p>"
+    )
+    with pytest.raises(UnusableHomepageError, match=r"security firewall \(Vercel\)"):
+        await crawl(fetcher, "https://shop.test/")
+
+
+@pytest.mark.parametrize(
+    ("status", "headers", "html", "expected"),
+    [
+        (429, {"x-vercel-mitigated": "challenge"}, "", "Vercel"),
+        (403, {"cf-mitigated": "challenge"}, "", "Cloudflare"),
+        (503, {}, "<script src='/cdn-cgi/challenge-platform/x.js'></script>", "Cloudflare"),
+        (403, {}, "<title>sgcaptcha</title>", "SiteGround"),
+        (429, {}, "<h1>Please verify you are human</h1>", ""),
+        (500, {}, "<h1>Internal error</h1>", None),  # a real error, not a firewall
+        (200, {}, "<p>captcha on a contact form</p>", None),  # normal page
+    ],
+)
+def test_firewall_name(
+    status: int, headers: dict[str, str], html: str, expected: str | None
+) -> None:
+    from bizzcheckup.engine.crawler import firewall_name
+
+    from .factories import make_page
+
+    assert firewall_name(make_page(html, status_code=status, headers=headers)) == expected

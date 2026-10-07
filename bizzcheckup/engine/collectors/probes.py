@@ -14,6 +14,7 @@ from ..config import AI_AGENT_USER_AGENT, BROWSER_USER_AGENT, ROBOTS_AGENT_NAME,
 from ..context import PROBES, AuditContext
 from ..crawler import extract_links
 from ..fetcher import Fetcher, FetchError
+from ..firewall import checkpoint_provider
 from ..netguard import BlockedURLError
 from ..types import AgentProbe
 from ..urls import same_origin
@@ -31,20 +32,6 @@ async def collect_probes(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
 
 
 LLMS_TXT_KEEP = 4000  # characters kept for the report
-
-# Phrases that bot-protection pages (Cloudflare, Akamai, Imperva, ...) typically contain.
-CHALLENGE_MARKERS = (
-    "cf-challenge",
-    "challenge-platform",
-    "just a moment...",
-    "attention required! | cloudflare",
-    "verify you are human",
-    "are you a robot",
-    "captcha",
-    "_incapsula_resource",
-    "pardon our interruption",
-    "access denied",
-)
 
 
 async def probe_llms_txt(ctx: AuditContext, fetcher: Fetcher) -> None:
@@ -65,14 +52,7 @@ async def probe_as(fetcher: Fetcher, url: str, user_agent: str) -> AgentProbe:
         page = await fetcher.get(url, user_agent=user_agent)
     except (FetchError, BlockedURLError):
         return AgentProbe()
-    if page.headers.get("cf-mitigated", "").lower() == "challenge":
-        challenge = True
-    else:
-        # Real pages may mention "captcha" (e.g. a contact form), so the phrases only
-        # count on error answers or short pages, which is what challenge pages are.
-        suspicious = page.status_code in (403, 429, 503) or len(page.text) < 15000
-        head = page.text[:20000].lower()
-        challenge = suspicious and any(marker in head for marker in CHALLENGE_MARKERS)
+    challenge = checkpoint_provider(page.status_code, page.headers, page.text) is not None
     return AgentProbe(status_code=page.status_code, text_length=len(page.text), challenge=challenge)
 
 

@@ -17,6 +17,7 @@ from selectolax.lexbor import LexborHTMLParser
 
 from .config import ROBOTS_AGENT_NAME
 from .fetcher import Fetcher, FetchError
+from .firewall import blocked_message, checkpoint_provider
 from .netguard import BlockedURLError
 from .types import CrawlResult, Page, RobotsInfo, SitemapInfo
 from .urls import absolute, normalize_url, origin, same_origin
@@ -37,6 +38,9 @@ class UnusableHomepageError(FetchError):
 async def crawl(fetcher: Fetcher, start_url: str) -> CrawlResult:
     """Crawl the site. Raises BlockedURLError/FetchError if the homepage fails."""
     homepage = await fetcher.get(start_url)
+    blocker = firewall_name(homepage)
+    if blocker is not None:
+        raise UnusableHomepageError(blocked_message(blocker, "check-up"))
     if homepage.status_code >= 400:
         raise UnusableHomepageError(
             f"Your website answered with an error (HTTP {homepage.status_code}), "
@@ -73,6 +77,11 @@ async def crawl(fetcher: Fetcher, start_url: str) -> CrawlResult:
         skipped_by_robots=skipped,
         errors=errors,
     )
+
+
+def firewall_name(page: Page) -> str | None:
+    """The firewall's name if `page` is a bot-protection checkpoint ("" if unknown)."""
+    return checkpoint_provider(page.status_code, page.headers, page.text)
 
 
 async def fetch_robots(fetcher: Fetcher, base: str) -> RobotsInfo:

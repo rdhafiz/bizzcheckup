@@ -24,6 +24,7 @@ from playwright.async_api import Page as BrowserPage
 from ..config import EngineConfig
 from ..context import RENDER, AuditContext
 from ..fetcher import REDIRECT_CODES, Fetcher
+from ..firewall import blocked_message, checkpoint_provider
 from ..netguard import BlockedURLError, NetGuard
 from ..types import AxeRule, Cookie, RenderResult
 from ..urls import same_site
@@ -143,8 +144,21 @@ async def collect_render(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
             page.on("console", on_console)
             page.on("pageerror", on_page_error)
 
-            await page.goto(url, wait_until="load", timeout=timeout_ms)
+            response = await page.goto(url, wait_until="load", timeout=timeout_ms)
             await _wait_until_quiet(page)
+
+            # A firewall checkpoint ("We're verifying your browser")? Some clear by
+            # themselves after a few seconds; if this one doesn't, we must not report
+            # on the checkpoint page as if it were the website.
+            status = response.status if response else 200
+            headers = {k.lower(): v for k, v in (response.headers if response else {}).items()}
+            provider = checkpoint_provider(status, headers, await page.content())
+            if provider is not None:
+                provider = await _wait_for_checkpoint_to_clear(page)
+            if provider is not None:
+                ctx.unavailable[RENDER] = blocked_message(provider, "browser")
+                logger.info("Browser checks skipped for %s: %s checkpoint", url, provider or "a")
+                return
 
             html = (await page.content())[: config.max_page_bytes]
             text_length = int(
@@ -178,6 +192,18 @@ async def collect_render(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
         screenshot_jpeg=screenshot,
     )
     ctx.capabilities.add(RENDER)
+
+
+async def _wait_for_checkpoint_to_clear(page: BrowserPage, seconds: float = 10) -> str | None:
+    """Give a checkpoint page a few seconds; returns the provider if it's still there."""
+    provider: str | None = None
+    for _ in range(int(seconds * 2)):
+        await page.wait_for_timeout(500)
+        provider = checkpoint_provider(200, {}, await page.content())
+        if provider is None:
+            await _wait_until_quiet(page)  # the real site is loading now
+            return None
+    return provider
 
 
 async def _refuse_websocket(ws: WebSocketRoute) -> None:

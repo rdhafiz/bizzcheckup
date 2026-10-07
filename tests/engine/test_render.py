@@ -38,6 +38,9 @@ PAGE = """<!doctype html>
   <script>undefinedFunction();</script>
 </body></html>
 """
+CHECKPOINT = """<!doctype html><title>Vercel Security Checkpoint</title>
+<p>We're verifying your browser</p>"""
+
 # The smallest valid GIF image (1x1 pixel).
 GIF = bytes.fromhex(
     "47494638396101000100800000000000ffffff21f90401000000002c00000000010001000002024401003b"
@@ -51,7 +54,12 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def do_GET(self) -> None:  # the method name is required by http.server
-        if self.path == "/sneaky-redirect":
+        if self.path == "/checkpoint":
+            self.send_response(429)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(CHECKPOINT.encode())
+        elif self.path == "/sneaky-redirect":
             self.send_response(302)
             self.send_header("Location", "http://10.0.0.1/admin")  # internal address!
             self.end_headers()
@@ -135,3 +143,32 @@ async def test_render_collects_browser_data_safely(server_port: int) -> None:
     # axe-core ran: the first image has no alt text
     assert "image-alt" in {v.id for v in render.axe_violations}
     assert render.axe_passes
+
+
+async def test_firewall_checkpoint_is_not_reported_as_the_website(
+    server_port: int, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """If the browser only sees "We're verifying your browser", discard what it saw."""
+    import functools
+
+    from bizzcheckup.engine.collectors import render
+
+    monkeypatch.setattr(  # don't wait the full 10 seconds in tests
+        render,
+        "_wait_for_checkpoint_to_clear",
+        functools.partial(render._wait_for_checkpoint_to_clear, seconds=1),
+    )
+    url = f"http://127.0.0.1:{server_port}/checkpoint"
+    ctx = make_context(make_page("", url=url))
+    config = EngineConfig(render_timeout=20)
+
+    try:
+        await collect_render(ctx, Fetcher(config, guard=LocalTestGuard(server_port)), config)
+    except Exception as error:
+        if "Executable doesn't exist" in str(error):
+            pytest.skip("Chromium isn't installed")
+        raise
+
+    assert not ctx.has(RENDER)  # browser checks will be skipped, not fed the checkpoint
+    assert ctx.render is None  # no checkpoint screenshot in the report
+    assert "security firewall (Vercel)" in ctx.unavailable[RENDER]
