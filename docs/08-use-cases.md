@@ -52,7 +52,22 @@ UUID address. Only people with the link can see the report.
 
 ## 5. Same site checked again within 24 hours
 
-The finished report is reused instantly, with no new crawl.
+Submitting the same address from the landing page within `CHECKUP_REUSE_HOURS` (24 by
+default) shows the existing report instantly, with no new crawl. The report says how old
+it is ("Checked 3 hours, 12 minutes ago").
+
+## 5b. Check again now
+
+Changed something on the website? The report (and the "couldn't finish" page) has a
+**Check again now** button. It starts a **fresh** check-up of the same address straight
+away, ignoring the reuse window, and opens its live progress page. To keep it fair:
+
+- if a check-up of that site is already running, you're taken to it instead;
+- it counts towards the hourly limit (5 per visitor in production);
+- the address goes through the SSRF check again (its DNS may have changed), and through
+  Cloudflare Turnstile if that's on.
+
+If one of these stops it, you're sent back to the report with a message explaining why.
 
 ## 6. Admin reviews check-ups and leads
 

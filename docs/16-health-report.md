@@ -78,6 +78,18 @@ downloads are instant. If that failed, `ensure_pdf()` makes it on the first down
 If Chromium is missing or crashes, the visitor sees a friendly "The PDF isn't available
 right now" page (HTTP 503), never an error page.
 
+## Actions above the report
+
+| Button | Does |
+|--------|------|
+| **Download PDF** | `/checkups/<uuid>/report.pdf`, ready straight away because the PDF is made before the report appears |
+| **Copy share link** | Copies the report's address (`static/js/report.js`) |
+| **Check again now** | A fresh check-up of the same site, skipping report reuse (`checkups/_recheck_form.html`, `views.recheck`; rules in [Security](17-security.md)) |
+
+Below the buttons, the report says how old it is: `{{ checkup.finished_at|timesince }}`
+gives "2 hours, 18 minutes". The buttons and this note are hidden in the PDF and when
+printing (`no-print`).
+
 ## Share link and privacy
 
 The report address contains the check-up's random UUID. **Anyone with the link can view

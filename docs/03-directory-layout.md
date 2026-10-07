@@ -49,7 +49,7 @@ bizzcheckup/
 │   │   ├── tasks.py          Celery job run_checkup: runs the engine in the worker
 │   │   ├── progress.py       Steps shown on the progress page
 │   │   ├── views.py          CONTROLLER: start, detail, progress (HTMX), screenshot
-│   │   └── urls.py           /checkups/new/, /checkups/<uuid>/, .../progress/, .../screenshot.jpg
+│   │   └── urls.py           /checkups/new/, /checkups/<uuid>/, .../progress/, .../recheck/, .../screenshot.jpg
 │   └── reports/              Django app: the Health Report (docs/16-health-report.md)
 │       ├── apps.py           Registers the branding.yaml system check
 │       ├── branding.py       Reads and validates branding.yaml (Pydantic)
@@ -71,7 +71,7 @@ bizzcheckup/
 │   ├── base.html             Page skeleton every page extends: header, footer, theme
 │   ├── partials/             Small reusable pieces: logo, score ring
 │   ├── core/                 home (landing page + form), privacy, styleguide
-│   ├── checkups/             progress.html, _progress.html (HTMX box), failed.html
+│   ├── checkups/             progress.html, _progress_data.html (HTMX data), _recheck_form.html, failed.html
 │   └── reports/              report.html (web), report_pdf.html (PDF), _sections.html (shared), ...
 ├── frontend/tailwind.css     Design system source (colours, fonts, components)
 ├── static/                   Files sent to the browser as they are

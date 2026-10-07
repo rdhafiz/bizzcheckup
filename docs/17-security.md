@@ -47,6 +47,14 @@ When a finished check-up of the **same normalised URL** exists from the last 24 
 running, they go to its progress page. Reused reports **don't count** toward the
 rate limit.
 
+### "Check again now" (`checkups/views.py::recheck`)
+
+The button on reports skips **only** the reuse rule. It's a POST with CSRF protection.
+It sends you to a check-up of the same site that's already running, runs the SSRF guard
+again, applies Turnstile if it's on, counts towards the rate limit, and respects the
+global cap. If it's refused, you're sent back to the report with a message (Django's
+`messages` framework, shown in `base.html`).
+
 ## 4. Global capacity
 
 - At most 3 check-ups run at the same time: per web process in `immediate` mode

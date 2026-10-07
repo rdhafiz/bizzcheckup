@@ -6,6 +6,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Added
+- **Check again now** button on reports and on the "couldn't finish" page: a fresh
+  check-up of the same site that skips report reuse but keeps every other protection
+  (an already-running check-up is reused, SSRF check, Turnstile, rate limit, capacity).
+- Reports show how old they are ("Checked 2 hours, 18 minutes ago").
+- Messages (for example "rate limit reached") are shown at the top of any page.
+
 ### Fixed
 - Sites behind CDNs that reject requests without browser `Accept` headers (for example
   Hostinger's) failed with "HTTP 403". The fetcher now sends `Accept` and
