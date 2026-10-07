@@ -10,8 +10,9 @@
 
 ## 1. Start a check-up
 
-1. The visitor opens the landing page: "BizzCheckup — Check your business's online
-   health", with the five vital signs explained and a three-step "How it works".
+1. The visitor opens the landing page: "Is your business website healthy?", with the
+   check-up form next to a report preview, the five vital signs explained and a
+   three-step "How it works".
 2. They enter their website address. **Name and email are optional.**
 3. They tick the **required** consent box: "I agree to the privacy note. If I leave my
    email, I'm happy to be contacted about my report."

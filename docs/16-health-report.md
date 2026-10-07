@@ -32,7 +32,7 @@ Every finding shows its severity ("Needs treatment", "Worth fixing", "Good to kn
 | **Problem → cost → solution** cards | Top risks | Answers "what's wrong and what do I do" without scrolling |
 | **Expandable rows** (`<details>`) | `reports/_issue.html` | 40+ findings at full length make a wall of text. One line each, details on demand. `<details>` is native HTML: keyboard and screen-reader friendly, no JavaScript. In the PDF they are always `open` |
 | **Checklist** | `reports/_plan_item.html`, `static/js/report.js` | Turns the report into a to-do list. Ticks are saved in the visitor's browser (`localStorage`, key `bizzcheckup-plan-<uuid>`), never on the server. If storage is blocked it still works, it just forgets. The progress bar only appears when JavaScript runs. The PDF prints empty boxes |
-| **One icon set** | `reports/_icon.html` | SVG line icons (2 px stroke), `aria-hidden` because the text next to them says the same thing. No emoji |
+| **One icon set** | `partials/icon.html` | SVG line icons (2 px stroke), `aria-hidden` because the text next to them says the same thing. No emoji |
 
 Responsive: one column on phones (bars go under the names, the nav scrolls sideways),
 two on tablets, the full grid on desktop. Long CSS selectors and URLs in the fix text use

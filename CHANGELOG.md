@@ -7,6 +7,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **New homepage**: "Is your business website healthy?" with a live-looking report
+  preview on a laptop next to the form, colourful cards for the five vital signs, a
+  "How it works" strip with numbered steps, and a closing "More visibility. More trust.
+  More growth." section with an illustration. Works in dark mode and on phones.
+- Privacy link and version in the header.
 - **Redesigned report page**, easier to act on: a sticky bar with the score and jump
   links; an overview with a score gauge, a one-sentence verdict, counters and the five
   vital signs as bars against the "Healthy" line; the top risks as problem, cost and

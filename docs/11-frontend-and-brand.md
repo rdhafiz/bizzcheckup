@@ -50,6 +50,25 @@ same class names (`bg-paper`, `text-ink`) in both themes.
 **Rule:** a band colour always comes with its text label, because some people can't
 tell red from green.
 
+### Accent tones (homepage only)
+
+The homepage gives each vital sign and step its own colour, like the reference design.
+These **tones** are only used for icons, tiles and soft backgrounds, never for body text,
+and they are *not* health bands (green here doesn't mean "Healthy").
+
+| Class | Light | Dark | Used for |
+|-------|-------|------|----------|
+| `tone-green` | `#15803d` | `#4ade80` | Performance, "Free, no account" |
+| `tone-blue` | `#2563eb` | `#60a5fa` | Accessibility, step 02 |
+| `tone-rose` | `#e11d48` | `#fb7185` | Best practices, "Build more trust" |
+| `tone-violet` | `#7c3aed` | `#a78bfa` | SEO, step 03 |
+| `tone-amber` | `#d97706` | `#fbbf24` | AI readiness |
+| `tone-teal` | brand `primary` | | Step 01, "Attract more customers" |
+
+A `tone-*` class sets two variables, `--tone` and `--tone-soft`; components such as
+`tone-tile` (the coloured icon square or circle) read them. Same idea as the bands: one
+component, many colours, no copy-pasted CSS.
+
 ## Fonts
 
 | Font | Use | Why |
@@ -65,11 +84,33 @@ requests go to Google, which is better for privacy, speed and PDF output.
 
 | Class | What |
 |-------|------|
-| `container-page` | Centred page width with side padding |
+| `container-page` | Centred page width with side padding (64 rem: reports, forms) |
+| `container-wide` | A wider page (72 rem) for the homepage |
+| `btn-pill` | The big round call-to-action button on the homepage |
 | `btn-primary` / `btn-secondary` | Buttons at least 44 px tall (a good touch target) |
 | `card` | Rounded bordered panel |
 | `eyebrow` | Small uppercase label above headings |
 | `band-urgent` / `band-attention` / `band-healthy` / `band-none` + `band-pill` | Health band badge |
+
+## The homepage (`templates/core/home.html`)
+
+Four sections, top to bottom:
+
+| Section | What | How |
+|---------|------|-----|
+| **Hero** | Headline with "healthy" underlined, three perks, a report preview on a laptop, the check-up form | On large screens a 12-column grid where the laptop (columns 6–9) slides *under* the form (columns 9–12). On phones and tablets: text, then the form, then the laptop |
+| **Five vital signs** | One pastel card per sign, each with its tone | The whole card is a link to the form (`#start`); it lifts on hover |
+| **How it works** | Three numbered steps with dashed arrows and a handwritten "Simple. Fast. Actionable." | Arrows and the note are decorative (`aria-hidden`) and only shown on wide screens |
+| **A healthier website means** | Three benefits and a second call to action, next to an illustration | `static/img/healthier-website.svg`, loaded lazily because it is below the fold |
+
+Why the laptop is **HTML, not a photo**: text stays sharp at any size, it follows dark
+mode, and it costs a few hundred bytes instead of a large image. The tilt is a CSS
+`transform: rotateY(-16deg)` inside `perspective`. The handwriting uses a cursive system
+font (`Segoe Print` on Windows, `Bradley Hand` on Mac), so no extra font file is needed.
+
+The page-wide warm glow is a `radial-gradient` on `body.page-home`. `base.html` has small
+blocks (`body_class`, `header_class`, `header_container`) so one page can change the
+header without copying it.
 
 ## Template pieces
 
@@ -78,7 +119,7 @@ requests go to Google, which is better for privacy, speed and PDF output.
 | `templates/base.html` | Skeleton: `<head>`, skip link, header with logo and theme button, footer |
 | `templates/partials/logo.html` | Wordmark: pulse mark + **Bizz** (teal) + **Checkup** (ink) |
 | `templates/partials/score_ring.html` | Circular score gauge (see below) |
-| `templates/reports/_icon.html` | The report's SVG icons: severities, the five vital signs, why/fix/where |
+| `templates/partials/icon.html` | One SVG icon set for the whole site: severities, vital signs, form fields, homepage |
 | `templates/reports/_gauge.html` | Half-circle gauge for the Business Health Score |
 | `templates/reports/_bullet.html` | One vital sign as a bar against the "Healthy" line at 90 |
 | `templates/reports/_issue.html` | One finding as an expandable `<details>` row |
