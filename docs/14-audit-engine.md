@@ -158,6 +158,16 @@ If the browser fails (timeout, crash), the collector's error is logged, `RENDER`
 added, and browser-only checks are **skipped** with "We couldn't open your site in a
 browser". They aren't failed.
 
+**Skip messages say what really happened.** `ctx.unavailable[capability]` holds the
+reason a data source is missing. For PageSpeed, "no PageSpeed API key is configured"
+appears **only** when there's no key. If a key exists but Google's test failed (timeout,
+quota), the note says "Google PageSpeed couldn't measure your site this time".
+
+**Where Chromium lives:** `start.sh` installs it into `.playwright/` inside the project,
+and `config/settings/base.py` points Playwright there (`PLAYWRIGHT_BROWSERS_PATH`)
+whenever that folder exists. Every process (your terminal, an editor, `start.sh`) then
+uses the same browser. The Docker image sets its own path (`/ms-playwright`).
+
 ## Crawling rules (`crawler.py`)
 
 1. Fetch the homepage. If it answers with an error (HTTP 400 or higher) or isn't

@@ -80,9 +80,24 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 
 - `BASE_DIR` goes up three `.parent`s because the file is now at
   `config/settings/base.py`.
-- Real environment variables (for example, set by Docker) **win** over `.env`.
+- **Which wins, `.env` or the environment?**
+  - On your computer (`config.settings.dev`): **`.env` wins**. A terminal can hold old
+    copies of variables. For example, an editor may have loaded `PSI_API_KEY=` (empty)
+    into it before you added your key. Making `.env` win means editing `.env` and
+    restarting is always enough.
+  - On a server (`prod`, Docker): **real environment variables win**, which is how
+    servers and containers are normally configured.
+  - In tests: `.env` is **not read at all**, so your personal settings can't change
+    test results.
 - A required variable that's missing stops Django with a clear message. That's better
   than running with a bad configuration.
+
+## Log file (development)
+
+`config/settings/dev.py` writes warnings and errors, with full tracebacks, from
+BizzCheckup's code to **`.run/bizzcheckup.log`** as well as the terminal. If a check-up
+skips something unexpectedly (for example, "We couldn't open your site in a browser"),
+the reason is in that file.
 
 ## Production security (`prod.py`)
 

@@ -12,7 +12,7 @@ It does everything below automatically, skipping steps that are already done:
 
 | Step | What happens | Skipped when |
 |------|--------------|--------------|
-| 1 | Checks for Python 3.12+ and creates `.venv` | `.venv` exists |
+| 1 | Checks for Python 3.12+ and creates `.venv`, and installs headless Chromium into the project's `.playwright/` folder | Already done |
 | 2 | Installs `requirements/dev.txt` | The requirements haven't changed since last time |
 | 3 | Creates `.env` with a fresh secret key | `.env` exists |
 | 4 | Starts PostgreSQL and Redis in Docker | Docker isn't running (it then switches `.env` to SQLite; check-ups still run immediately) |
@@ -148,6 +148,13 @@ celery -A config worker --loglevel=info --pool=solo     # --pool=solo is needed 
 ---
 
 ## Common problems
+
+| Problem | Fix |
+|---------|-----|
+| Report says "No screenshot available" and skips browser checks | Chromium is missing for your server. Run `start.sh` once, or `PLAYWRIGHT_BROWSERS_PATH=.playwright python -m playwright install --only-shell chromium`, then restart. The browser lives in `.playwright/` inside the project, so every process finds it. |
+| Report says "no PageSpeed API key is configured" although it's in `.env` | Restart the server after editing `.env`. Check that the line is `PSI_API_KEY=AIza...` with no spaces or quotes. |
+| A check-up skipped something and you want to know why | Read `.run/bizzcheckup.log` |
+
 
 | Problem | Fix |
 |---------|-----|

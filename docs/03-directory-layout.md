@@ -125,5 +125,6 @@ Our apps sit inside the `bizzcheckup/` package, which gives clean imports like
 | `db.sqlite3` | Local test data |
 | `.bin/`, `static/css/app.css` | Downloaded tool and its build output. Rebuilt anywhere. |
 | `staticfiles/` | Output of `collectstatic` |
-| `.run/` | Logs and markers written by `start.sh` |
+| `.run/` | Logs (`bizzcheckup.log`, `tailwind.log`, ...) and markers written by `start.sh` |
+| `.playwright/` | Headless Chromium, downloaded by `start.sh` (about 150 MB) |
 | `__pycache__/` | Compiled Python, recreated automatically |
