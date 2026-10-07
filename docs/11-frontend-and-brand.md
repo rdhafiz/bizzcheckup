@@ -65,7 +65,7 @@ and they are *not* health bands (green here doesn't mean "Healthy").
 | `tone-amber` | `#d97706` | `#fbbf24` | AI readiness |
 | `tone-teal` | brand `primary` | | Step 01, "Attract more customers" |
 
-A `tone-*` class sets two variables, `--tone` and `--tone-soft`; components such as
+A `tone-*` class sets two variables, `--tone` and `--tone-soft`. `color-mix(in srgb, var(--tone) 22%, var(--card))` mixes a tone with the card colour, so tints and glows work in light and dark mode without extra colours; components such as
 `tone-tile` (the coloured icon square or circle) read them. Same idea as the bands: one
 component, many colours, no copy-pasted CSS.
 
@@ -99,7 +99,7 @@ Four sections, top to bottom:
 | Section | What | How |
 |---------|------|-----|
 | **Hero** | Full screen height. A background image, a dark backdrop on top of it, then two columns: headline, paragraph and three perks on the left, the check-up form on the right | `.hero-full` (`min-height: 100dvh`, so phones use the visible height); the backdrop is a `::before` gradient, darker on the left where the text is; the header is laid over the hero. On phones the form goes under the text |
-| **Five vital signs** | One pastel card per sign, each with its tone | The whole card is a link to the form (`#start`); it lifts on hover |
+| **Five vital signs** | Heading with "healthy" highlighted and underlined (`.text-highlight`), a divider before the intro, five cards on a soft background (coloured shapes, dot grids, sparkle strokes) | Each card: its tone as a light gradient, a wave in the top-right corner (a small SVG), a glossy round badge with a solid icon (`.sign-badge`), and a coloured glow underneath (`box-shadow` with `color-mix()`). The whole card is a link to the form (`#start`) and lifts on hover. The decoration is `aria-hidden` and the dots and sparkles only show on wide screens |
 | **How it works** | Three numbered steps with dashed arrows and a handwritten "Simple. Fast. Actionable." | Arrows and the note are decorative (`aria-hidden`) and only shown on wide screens |
 | **A healthier website means** | Three benefits and a second call to action, next to an illustration | `static/img/healthier-website.svg`, loaded lazily because it is below the fold |
 
