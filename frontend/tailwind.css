@@ -377,9 +377,6 @@
   .tone-tile--round {
     @apply size-12 rounded-full;
   }
-  .sign-card .tone-tile--round {
-    @apply size-14;
-  }
 
   .pill-eyebrow {
     @apply inline-flex rounded-full bg-primary-soft px-3 py-1 font-mono text-xs font-semibold
@@ -446,16 +443,76 @@
     @apply mt-0 pl-12;
   }
 
-  /* Vital-sign cards: one pastel tone each, a lift on hover. */
+  /* Vital signs section: soft coloured shapes behind, dot grids, sparkle strokes. */
+  .signs {
+    @apply relative isolate overflow-hidden bg-card py-16 sm:py-24;
+  }
+  .signs::before,
+  .signs::after {
+    @apply pointer-events-none absolute -z-10 rounded-full;
+    content: "";
+    filter: blur(10px);
+  }
+  .signs::before {
+    @apply -bottom-40 -left-48 h-[34rem] w-[46rem] rotate-[-12deg];
+    background: radial-gradient(closest-side, var(--tone-green-soft), transparent);
+  }
+  .signs::after {
+    @apply -top-10 -right-56 h-[36rem] w-[44rem];
+    background: radial-gradient(closest-side, var(--tone-violet-soft), transparent);
+  }
+  .signs__dots {
+    @apply pointer-events-none absolute hidden size-24 opacity-60 xl:block;
+    background: radial-gradient(circle, var(--line) 2px, transparent 2.5px) 0 0 / 1.5rem 1.5rem;
+  }
+  .signs__dots--left { @apply top-[42%] left-8; }
+  .signs__dots--right { @apply right-8 bottom-24; }
+  .signs__spark {
+    @apply pointer-events-none absolute hidden size-10 xl:block;
+  }
+  .signs__spark--left { @apply top-[34%] left-[8%]; color: var(--tone-green); }
+  .signs__spark--right { @apply top-[36%] right-[8%]; color: var(--tone-violet); }
+
+  .signs__intro {
+    @apply max-w-md text-muted lg:justify-self-end lg:border-l lg:border-line lg:py-2 lg:pl-10;
+  }
+
+  /* A word marked with a highlighter and underlined. */
+  .text-highlight {
+    @apply relative inline-block text-primary;
+    background: linear-gradient(transparent 55%, var(--primary-soft) 55%, var(--primary-soft) 92%, transparent 92%);
+  }
+
+  /* Vital-sign cards: one pastel tone each, a coloured glow underneath, a lift on hover. */
   .sign-card {
-    @apply relative flex flex-col rounded-3xl border border-line p-6 text-ink no-underline
-      transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-1
-      hover:no-underline;
-    background: linear-gradient(170deg, var(--tone-soft), var(--card) 75%);
+    @apply relative isolate flex flex-col overflow-hidden rounded-3xl p-6 text-ink no-underline
+      transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:no-underline;
+    border: 1px solid color-mix(in srgb, var(--tone) 12%, transparent);
+    background: linear-gradient(165deg, var(--card) 35%, var(--tone-soft));
+    box-shadow:
+      0 1px 2px rgb(14 27 30 / 0.04),
+      0 26px 40px -28px color-mix(in srgb, var(--tone) 55%, transparent);
   }
   .sign-card:hover {
-    border-color: var(--tone);
-    box-shadow: 0 20px 40px -28px var(--tone);
+    box-shadow:
+      0 1px 2px rgb(14 27 30 / 0.04),
+      0 32px 50px -26px color-mix(in srgb, var(--tone) 70%, transparent);
+  }
+  .sign-card__wave {
+    @apply pointer-events-none absolute top-0 right-0 -z-10 h-24 w-40;
+    fill: var(--tone-soft);
+  }
+  /* Glossy round badge: light highlight top-left, tone below, soft coloured shadow. */
+  .sign-badge {
+    @apply inline-flex size-16 items-center justify-center rounded-full;
+    color: var(--tone);
+    background: radial-gradient(circle at 32% 28%, var(--card) 0, color-mix(in srgb, var(--tone) 22%, var(--card)) 75%);
+    box-shadow:
+      inset 0 0 0 4px color-mix(in srgb, var(--card) 60%, transparent),
+      0 12px 22px -10px color-mix(in srgb, var(--tone) 60%, transparent);
+  }
+  .sign-badge svg {
+    stroke-width: 2.4;
   }
   .sign-card__go {
     @apply mt-auto inline-flex size-9 items-center justify-center self-start rounded-full

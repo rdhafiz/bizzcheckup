@@ -11,7 +11,7 @@ VITAL_SIGNS = [
     {
         "title": "Performance",
         "text": "How fast your pages load on phones and computers, using Google's own speed test.",
-        "icon": "chart",
+        "icon": "chart-solid",
         "tone": "green",
     },
     {
@@ -23,7 +23,7 @@ VITAL_SIGNS = [
     {
         "title": "Best practices",
         "text": "Security and modern standards that protect your customers and reputation.",
-        "icon": "shield",
+        "icon": "shield-solid",
         "tone": "rose",
     },
     {
@@ -35,7 +35,7 @@ VITAL_SIGNS = [
     {
         "title": "AI readiness",
         "text": "Whether ChatGPT, Claude and AI search can read and recommend your business.",
-        "icon": "sparkles",
+        "icon": "sparkles-solid",
         "tone": "amber",
     },
 ]
