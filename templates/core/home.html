@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block head %}
+  {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
+{% endblock %}
+
 {% block content %}
   <section class="container-page py-14 sm:py-24">
     <p class="eyebrow">Free website check-up</p>
@@ -25,6 +29,19 @@
       </div>
       {% if form.url.errors %}
         <p id="url-error" class="mt-2 text-sm font-semibold text-urgent" role="alert">{{ form.url.errors.0 }}</p>
+      {% endif %}
+      {% for error in form.non_field_errors %}
+        <p class="mt-2 text-sm font-semibold text-urgent" role="alert">{{ error }}</p>
+      {% endfor %}
+
+      {# Honeypot: invisible to people, tempting for bots. Must stay empty. #}
+      <div class="honeypot" aria-hidden="true">
+        <label for="id_website">Leave this field empty</label>
+        <input type="text" name="website" id="id_website" tabindex="-1" autocomplete="off">
+      </div>
+
+      {% if turnstile_site_key %}
+        <div class="cf-turnstile mt-4" data-sitekey="{{ turnstile_site_key }}"></div>
       {% endif %}
     </form>
   </section>

@@ -198,6 +198,15 @@
   }
   .progress-bar::-moz-progress-bar { background: var(--primary); border-radius: 9999px; }
 
+  /* Moved off-screen (not display:none, which some bots detect and skip). */
+  .honeypot {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
   .score-ring__track { stroke: var(--line); }
   .score-ring__value {
     stroke: var(--band);
