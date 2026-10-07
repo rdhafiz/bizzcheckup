@@ -74,7 +74,36 @@ A function that adds values to **every** template.
 
 ### Models
 
-Coming in phase 6 (`Checkup`, `Finding`, `Lead`). See [Database](07-database.md).
+`bizzcheckup/checkups/models.py`: `Checkup`, `Finding`, `Lead`. See
+[Database](07-database.md).
+
+## A full check-up through all the layers
+
+```
+POST /checkups/new/            checkups/views.py:start          (CONTROLLER)
+   │  CheckupForm validates and normalises the URL             (checkups/forms.py)
+   │  services.create_checkup() saves a Checkup (QUEUED)       (MODEL, services.py)
+   │  after the save is committed: run_checkup.delay(id) ─────▶ Redis queue
+   ▼
+302 redirect to /checkups/<uuid>/   (instant: no waiting for the audit)
+
+GET /checkups/<uuid>/          views.detail → progress.html     (TEMPLATE)
+   │  every 2 s, HTMX: GET /checkups/<uuid>/progress/ → _progress.html (just the box)
+   │                                                       ▲
+   │      Celery worker: tasks.run_checkup(id)             │ updates progress
+   │        status RUNNING → engine.run_audit(...) ────────┘ and current_step
+   │        services.save_report() → status DONE
+   ▼
+progress view sees DONE → answers 204 + "HX-Refresh: true"
+   ▼
+HTMX reloads the page → views.detail now renders report.html (same URL)
+```
+
+### `services.py`: where the business logic lives
+
+Views stay thin and call `services.create_checkup()`, `save_report()` and
+`mark_failed()`. The Celery task uses the same functions. This is the "services
+layer" from section *Where business logic goes* below.
 
 ## Where business logic goes
 

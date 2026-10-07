@@ -51,6 +51,53 @@ ping.delay()    # queues it. A worker runs it.
 In tests, `CELERY_TASK_ALWAYS_EAGER = True` runs tasks immediately, so no worker is
 needed.
 
+## The real task: `checkups/tasks.py::run_checkup`
+
+1. Load the check-up, but only if it's still `queued` (so it never runs twice).
+2. Set `running` and `started_at`.
+3. Run the async engine with `async_to_sync(run_audit)(...)`.
+4. On success, `services.save_report()` stores the scores, findings, JSON and
+   screenshot, and sets status `done`.
+5. On failure, `services.mark_failed()` sets status `failed` with a **friendly**
+   message:
+
+| Problem | Message shown |
+|---------|---------------|
+| `AuditError` from the engine | The engine's own friendly text ("We couldn't reach your website…") |
+| Over the time limit (`SoftTimeLimitExceeded`) | "Your website took too long to check…" |
+| Any other crash | A generic "Something went wrong on our side…". The real error goes to the log, **never** to the visitor. |
+
+### Async engine, sync Django: `async_to_sync` and `sync_to_async`
+
+The engine is `async`, but Django's database calls are normal (sync) code. Two helpers
+from `asgiref` (which comes with Django) bridge the two worlds:
+
+```python
+report = async_to_sync(run_audit)(url, config, on_progress=on_progress)   # sync → async
+
+async def on_progress(percent, step):                                      # async → sync
+    await sync_to_async(Checkup.objects.filter(pk=pk).update)(progress=percent, current_step=step)
+```
+
+`async_to_sync` makes sure that `sync_to_async` calls run **back on the task's own
+thread**, which uses the task's database connection. Using plain `asyncio.run()` instead
+sent the database calls to a different thread, which broke in tests ("database table is
+locked").
+
+### Time limits
+
+| Setting | Value | Effect |
+|---------|-------|--------|
+| `CHECKUP_TIMEOUT_SECONDS` | 180 | The engine cancels itself (friendly "took too long") |
+| `CELERY_TASK_SOFT_TIME_LIMIT` | timeout + 30 s | Celery raises `SoftTimeLimitExceeded` in the task, as a backup |
+| `CELERY_TASK_TIME_LIMIT` | timeout + 60 s | Celery kills the worker process, as a last resort |
+
+### When Redis is down
+
+`services.enqueue()` catches the error and marks the check-up `failed` with "Our
+check-up service is busy or temporarily unavailable". The visitor sees a friendly page,
+not a crash. `CELERY_TASK_PUBLISH_RETRY_POLICY` makes it give up within about a second.
+
 ## Running a worker
 
 ```bash

@@ -88,6 +88,38 @@ requests go to Google, which is better for privacy, speed and PDF output.
 `pathLength="100"` tells the browser that the circle's length is 100. A score of 72
 then draws exactly 72 % of the ring, with no maths needed in the template.
 
+## HTMX: live updates without writing JavaScript
+
+`static/vendor/htmx.min.js` (htmx 2.0.11, Zero-Clause BSD licence, stored in the repo)
+lets plain HTML attributes fetch and swap content:
+
+```html
+<div id="progress"
+     hx-get="/checkups/<uuid>/progress/"   <!-- ask the server for new HTML -->
+     hx-trigger="every 2s"                  <!-- ...every 2 seconds -->
+     hx-swap="outerHTML">                   <!-- ...and replace this whole div with it -->
+```
+
+The server answers with the updated box (`templates/checkups/_progress.html`). When the
+check-up is finished, it answers `204 No Content` with the header `HX-Refresh: true`, and
+HTMX reloads the page, which now shows the report.
+
+Partial templates start with `_` (`_progress.html`) to show they're pieces, not pages.
+
+### No inline styles
+
+The progress bar is a native `<progress>` element styled in `frontend/tailwind.css`
+(`.progress-bar`), not a `<div style="width: 60%">`. Inline `style` attributes would
+force a weaker Content Security Policy in phase 8.
+
+### Template filters (`bizzcheckup/core/templatetags/bizz.py`)
+
+```django
+{% load bizz %}
+<span class="band-{{ score|band }} band-pill">{{ score|band_label }}</span>
+{# 72 → class "band-attention", text "Needs attention"; empty → "none" / "Not checked" #}
+```
+
 ## Dark mode (`static/js/theme.js`)
 
 1. By default, the site follows the system setting (`prefers-color-scheme`).

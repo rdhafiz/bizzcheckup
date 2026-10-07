@@ -37,7 +37,15 @@ bizzcheckup/
 │   │       ├── accessibility.py   6 accessibility checks
 │   │       ├── performance.py     7 speed checks
 │   │       └── agentic.py         7 AI-readiness checks
-│   ├── checkups/             (phase 6) Checkup / Finding / Lead models, Celery task
+│   ├── checkups/             Django app: check-ups
+│   │   ├── models.py         MODEL: Checkup, Finding, Lead
+│   │   ├── migrations/       Database changes (0001_initial.py)
+│   │   ├── forms.py          CheckupForm: the URL field
+│   │   ├── services.py       Business logic: create_checkup, save_report, mark_failed
+│   │   ├── tasks.py          Celery job run_checkup: runs the engine in the worker
+│   │   ├── progress.py       Steps shown on the progress page
+│   │   ├── views.py          CONTROLLER: start, detail, progress (HTMX), screenshot
+│   │   └── urls.py           /checkups/new/, /checkups/<uuid>/, .../progress/, .../screenshot.jpg
 │   └── reports/              (phase 7) Report page, branding loader, PDF
 ├── config/                   Django project configuration
 │   ├── __init__.py           Loads the Celery app when Django starts
@@ -52,13 +60,15 @@ bizzcheckup/
 ├── templates/                HTML templates (VIEW layer)
 │   ├── base.html             Page skeleton every page extends: header, footer, theme
 │   ├── partials/             Small reusable pieces: logo, score ring
-│   └── core/                 Templates of the core app: home, styleguide
+│   ├── core/                 Templates of the core app: home (with form), styleguide
+│   └── checkups/             progress.html, _progress.html (HTMX box), report.html, failed.html
 ├── frontend/tailwind.css     Design system source (colours, fonts, components)
 ├── static/                   Files sent to the browser as they are
 │   ├── css/app.css           BUILT by Tailwind (not in git)
 │   ├── fonts/                Self-hosted fonts + their licences
 │   ├── img/favicon.svg       Browser tab icon
-│   └── js/theme.js           Light/dark mode switch
+│   ├── js/theme.js           Light/dark mode switch
+│   └── vendor/htmx.min.js    htmx 2.0.11 (+ licence)
 ├── tests/                    pytest tests, mirroring the package layout
 │   ├── core/                 Tests for the core app
 │   └── engine/               Engine tests (fake DNS + fake internet, no network)

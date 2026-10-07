@@ -638,3 +638,81 @@ FAST.model_copy(update={"score": 0.3})   # a copy with one field changed
 ```
 
 The tests use this to make variations of one sample object.
+
+---
+
+# Phase 6: concepts in the check-up app
+
+## Django models in one minute (`checkups/models.py`)
+
+```python
+class Checkup(models.Model):
+    url = models.URLField(max_length=2048)           # a column
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.QUEUED)
+    lead = models.ForeignKey(Lead, null=True, on_delete=models.SET_NULL, related_name="checkups")
+
+    class Meta:                                      # settings for the table itself
+        ordering = ["-created_at"]                   # newest first
+```
+
+- Each class attribute that is a `models.XxxField` becomes a database column.
+- `null=True` means the database may store NULL (empty). `blank=True` means forms may
+  leave it empty.
+- `ForeignKey` links rows: `checkup.lead` gives the lead, and `lead.checkups.all()` gives
+  all its check-ups (named by `related_name`).
+- `models.TextChoices` is an enum for a field's allowed values.
+
+## Querying
+
+```python
+Checkup.objects.create(url=..., domain=...)            # INSERT
+Checkup.objects.filter(pk=id, status="queued").first() # SELECT ... LIMIT 1 (or None)
+Checkup.objects.filter(pk=id).update(progress=60)      # UPDATE in one query
+checkup.findings.all().delete()                        # DELETE the related findings
+Finding.objects.bulk_create([...])                     # INSERT many rows in one query
+await Checkup.objects.aget(pk=id)                      # async version (used in tests)
+```
+
+## Transactions (`services.py`)
+
+```python
+with transaction.atomic():      # everything inside succeeds together, or nothing is saved
+    checkup.save()
+    Finding.objects.bulk_create(...)
+
+transaction.on_commit(lambda: enqueue(checkup))   # run AFTER the save is final
+```
+
+`on_commit` matters: if the job went to the worker *before* the row was committed, the
+worker might look for a check-up that doesn't exist yet.
+
+## `lambda`
+
+`lambda: enqueue(checkup)` is a tiny nameless function. It's used where a function must be
+passed in to be called later.
+
+## Imports inside a function
+
+```python
+def enqueue(checkup):
+    from .tasks import run_checkup   # avoids a circular import (tasks.py imports services.py)
+```
+
+## `getattr` / `setattr` with built names
+
+```python
+setattr(checkup, f"score_{category.value}", score)    # checkup.score_seo = score
+getattr(self, f"score_{category.value}")              # read it back
+```
+
+One loop handles all five score columns.
+
+## `unittest.mock.patch` (tests)
+
+```python
+with patch.object(tasks, "run_audit", fake_engine(report)):
+    tasks.run_checkup(id)        # inside the block, the task uses the fake engine
+```
+
+`patch.object` swaps something out for the length of the `with` block and puts it back
+afterwards.

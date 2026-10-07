@@ -49,8 +49,8 @@ offering the consultant's services. All of that content comes from `branding.yam
 | 3 | SEO and Best Practices checks | Done |
 | 4 | Playwright rendering, screenshots, accessibility checks | Done |
 | 5 | PageSpeed performance + Agentic Browsing checks | Done |
-| 6 | Models, Celery task, live progress page | Next |
-| 7 | Report page, treatment plan, proposal, PDF | Planned |
+| 6 | Models, Celery task, live progress page | Done |
+| 7 | Report page, treatment plan, proposal, PDF | Next |
 | 8 | Security & abuse protection | Planned |
 | 9 | Landing page, lead capture, admin, privacy | Planned |
 | 10 | Final docs, sample report, release tag | Planned |

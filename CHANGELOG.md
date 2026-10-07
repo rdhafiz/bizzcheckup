@@ -53,5 +53,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   bots), firewall/CDN blocking of AI agents, JSON-LD, landmarks, named controls, content
   without JavaScript.
 - Collectors run in parallel.
+- `Checkup`, `Finding` and `Lead` models with UUID share links, indexes for report reuse
+  and rate limiting, and the screenshot stored in the database.
+- Celery task `run_checkup` with the status flow queued → running → done/failed, friendly
+  error messages, and soft and hard time limits.
+- Check-up form on the landing page, an instant redirect, and a live HTMX progress page
+  (polling every 2 s) that turns into the result at the same URL.
+- Check-ups fail politely when the job queue is unavailable.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).

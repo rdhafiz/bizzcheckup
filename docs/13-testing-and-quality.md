@@ -247,3 +247,18 @@ by building a `RenderResult` by hand. See `rendered()` in `test_accessibility.py
   that the key is sent in the header and **never** appears in the URL.
 - Agentic tests build `AgentProbe` results by hand: an AI agent refused with 403, shown
   a challenge, or given half the page, compared with a normal browser.
+
+---
+
+## Check-up app tests (phase 6)
+
+| File | Covers |
+|------|--------|
+| `tests/checkups/test_checkups.py` | URL normalising and queueing (`django_capture_on_commit_callbacks` runs `on_commit` code), the queue-down failure, the full task with a **fake engine** (status flow queued → running → done, scores, findings, screenshot, JSON), friendly versus hidden errors, and progress steps |
+| `tests/checkups/test_views.py` | Form on home, instant redirect, bad URL error, HTMX polling attributes, the partial, `HX-Refresh` when finished, report at the same URL, failure page, 404, screenshot |
+
+- `pytestmark = pytest.mark.django_db` at the top of a file gives every test in it a
+  database (wiped after each test).
+- The fake engine is an `async` function with the same signature as `run_audit`. It
+  reports progress, checks the status is `running`, and returns a ready-made report from
+  `tests/checkups/conftest.py`.
