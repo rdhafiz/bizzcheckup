@@ -30,9 +30,22 @@ NON_PAGE_EXTENSIONS = (
 )  # fmt: skip
 
 
+class UnusableHomepageError(FetchError):
+    """The homepage answered, but with an error or something that isn't a web page."""
+
+
 async def crawl(fetcher: Fetcher, start_url: str) -> CrawlResult:
     """Crawl the site. Raises BlockedURLError/FetchError if the homepage fails."""
     homepage = await fetcher.get(start_url)
+    if homepage.status_code >= 400:
+        raise UnusableHomepageError(
+            f"Your website answered with an error (HTTP {homepage.status_code}), "
+            "so it couldn't be checked."
+        )
+    if not homepage.is_html:
+        raise UnusableHomepageError(
+            "That address doesn't show a web page, so it couldn't be checked."
+        )
     base = origin(homepage.final_url)
 
     robots = await fetch_robots(fetcher, base)

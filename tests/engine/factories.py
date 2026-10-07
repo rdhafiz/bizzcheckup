@@ -1,13 +1,53 @@
 """Tiny helpers that build engine objects for tests with sensible defaults."""
 
+from bizzcheckup.engine.context import AuditContext
 from bizzcheckup.engine.types import (
     Category,
     CheckResult,
     CheckStatus,
+    CrawlResult,
     Finding,
     Level,
+    Page,
+    RobotsInfo,
     Severity,
+    SitemapInfo,
 )
+
+
+def make_page(
+    html: str = "<html><head><title>Shop</title></head><body></body></html>",
+    *,
+    url: str = "https://shop.test/",
+    status_code: int = 200,
+    headers: dict[str, str] | None = None,
+) -> Page:
+    return Page(
+        url=url,
+        final_url=url,
+        status_code=status_code,
+        headers={"content-type": "text/html; charset=utf-8", **(headers or {})},
+        text=html,
+        size_bytes=len(html.encode()),
+    )
+
+
+def make_context(
+    *pages: Page,
+    robots: RobotsInfo | None = None,
+    sitemap: SitemapInfo | None = None,
+    capabilities: set[str] | None = None,
+) -> AuditContext:
+    """An AuditContext built from local pages: no network involved."""
+    all_pages = list(pages) or [make_page()]
+    crawl = CrawlResult(
+        start_url=all_pages[0].url,
+        final_url=all_pages[0].final_url,
+        pages=all_pages,
+        robots=robots or RobotsInfo(url="https://shop.test/robots.txt", exists=False),
+        sitemap=sitemap or SitemapInfo(),
+    )
+    return AuditContext(crawl=crawl, capabilities=capabilities or set())
 
 
 def make_finding(

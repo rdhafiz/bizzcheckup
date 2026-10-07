@@ -38,7 +38,7 @@ def router() -> respx.Router:
 
 @pytest.fixture
 async def fetcher(config: EngineConfig, router: respx.Router) -> AsyncIterator[Fetcher]:
-    transport = httpx.MockTransport(router.handler)
+    transport = httpx.MockTransport(router.async_handler)
     async with Fetcher(
         config,
         guard=NetGuard(resolver=fake_resolver),

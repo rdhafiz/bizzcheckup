@@ -63,7 +63,7 @@ async def test_crawl_respects_max_pages(router: respx.Router) -> None:
     router.get(url__regex=r"https://shop\.test/p\d+").mock(return_value=html("page"))
 
     config = EngineConfig(max_pages=4)
-    transport = httpx.MockTransport(router.handler)
+    transport = httpx.MockTransport(router.async_handler)
     async with Fetcher(config, NetGuard(fake_resolver), transport, retry_backoff=0) as f:
         result = await crawl(f, "https://shop.test/")
 
