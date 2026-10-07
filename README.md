@@ -14,6 +14,11 @@ get a report like Google Lighthouse, explained in plain business language:
 
 > Status: in development towards **v0.1.0-alpha**.
 
+## Quick start (development)
+
+Double-click `start.sh`, or run `./start.sh` in Git Bash. It sets up everything and
+opens the dev server. See [docs/02-installation.md](docs/02-installation.md).
+
 ## Quick start (Docker)
 
 ```bash

@@ -58,6 +58,7 @@ bizzcheckup/
 │       ├── factories.py      make_page(), make_context(), fixture_html()...
 │       └── checks/           One test file per check module
 │   └── fixtures/html/        healthy.html and neglected.html test pages
+├── start.sh                  One-click local start (see 02-installation.md)
 ├── scripts/get_tailwind.py   Downloads the Tailwind CLI into .bin/
 ├── docker/Dockerfile         How to build the app image
 ├── compose.yaml              Runs web, worker, postgres and redis together
@@ -94,4 +95,5 @@ Our apps sit inside the `bizzcheckup/` package, which gives clean imports like
 | `db.sqlite3` | Local test data |
 | `.bin/`, `static/css/app.css` | Downloaded tool and its build output. Rebuilt anywhere. |
 | `staticfiles/` | Output of `collectstatic` |
+| `.run/` | Logs and markers written by `start.sh` |
 | `__pycache__/` | Compiled Python, recreated automatically |

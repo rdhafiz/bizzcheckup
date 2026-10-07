@@ -23,3 +23,6 @@ Thumbs.db
 # Tailwind CLI binary and its built output
 .bin/
 static/css/app.css
+
+# start.sh logs and markers
+.run/

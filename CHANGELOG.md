@@ -36,3 +36,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   X-Content-Type-Options, frame protection, Referrer-Policy, outdated jQuery, Bootstrap,
   AngularJS and Lodash, doctype, charset, viewport.
 - Healthy and neglected HTML fixtures, with a test for every check.
+- `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
+  Tailwind watcher, migrations, worker, dev server).

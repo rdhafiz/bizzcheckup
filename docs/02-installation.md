@@ -1,6 +1,38 @@
 # 2. Installation
 
-There are two ways to run BizzCheckup:
+## Quickest: `start.sh` (one click)
+
+Double-click **`start.sh`** in the project folder, or run it in Git Bash:
+
+```bash
+./start.sh
+```
+
+It does everything below automatically, skipping steps that are already done:
+
+| Step | What happens | Skipped when |
+|------|--------------|--------------|
+| 1 | Checks for Python 3.12+ and creates `.venv` | `.venv` exists |
+| 2 | Installs `requirements/dev.txt` | The requirements haven't changed since last time |
+| 3 | Creates `.env` with a fresh secret key | `.env` exists |
+| 4 | Starts PostgreSQL and Redis in Docker | Docker isn't running (it then switches `.env` to SQLite so pages still work) |
+| 5 | Downloads Tailwind, builds the CSS, and keeps rebuilding while you edit | — |
+| 6 | Runs database migrations | — |
+| 7 | Starts the Celery worker | Redis isn't available |
+| 8 | Starts the Django server, on the next free port if 8000 is busy | — |
+
+**Ctrl+C** stops everything (the server, CSS watcher and worker). Logs from the
+background programs are in `.run/` (`tailwind.log`, `worker.log`). To use a different
+port, run `PORT=8001 ./start.sh`.
+
+> **Double-click opens a text editor instead?** Right-click `start.sh`, choose
+> **Open with**, then **Git Bash**, and tick "Always use this app".
+
+The sections below explain each step, so you know what the script does for you.
+
+---
+
+There are two ways to run BizzCheckup by hand:
 
 - **A. Everything in Docker.** This is easiest and closest to a live server.
 - **B. Django from your virtual environment, with only PostgreSQL and Redis in Docker.**
