@@ -9,14 +9,17 @@ DEBUG = env.bool("DJANGO_DEBUG", default=True)
 CHECKUP_RATE_LIMIT_PER_HOUR = env.int("CHECKUP_RATE_LIMIT_PER_HOUR", default=50)
 
 # Write warnings and errors (with tracebacks) to .run/bizzcheckup.log as well as the
-# terminal, so problems in check-ups can be read after they happened.
-(BASE_DIR / ".run").mkdir(exist_ok=True)
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {"plain": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"}},
-    "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "plain"},
+# terminal, so problems in check-ups can be read after they happened. Skipped where the
+# folder can't be created (e.g. inside the Docker image, which runs as a non-root user).
+_handlers = ["console"]
+_file_handler: dict[str, object] = {}
+try:
+    (BASE_DIR / ".run").mkdir(exist_ok=True)
+except OSError:
+    pass
+else:
+    _handlers.append("file")
+    _file_handler = {
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
             "filename": BASE_DIR / ".run" / "bizzcheckup.log",
@@ -24,10 +27,19 @@ LOGGING = {
             "backupCount": 2,
             "encoding": "utf-8",
             "formatter": "plain",
-        },
+        }
+    }
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"plain": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"}},
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "plain"},
+        **_file_handler,
     },
     "loggers": {
-        "bizzcheckup": {"handlers": ["console", "file"], "level": "INFO", "propagate": False},
+        "bizzcheckup": {"handlers": _handlers, "level": "INFO", "propagate": False},
         "django": {"handlers": ["console"], "level": "INFO"},
     },
 }
