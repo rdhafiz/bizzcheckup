@@ -10,7 +10,7 @@ from bizzcheckup.core import security
 
 from . import protection, services
 from .forms import CheckupForm
-from .models import Checkup
+from .models import Checkup, Lead
 from .progress import steps_for
 
 BOT_ERROR = "We couldn't start your check-up. Please reload the page and try again."
@@ -40,6 +40,9 @@ def start(request: HttpRequest) -> HttpResponse:
     # Same site checked recently (or right now)? Show that instead of starting again.
     existing = protection.recent_report(url) or protection.in_progress(url)
     if existing is not None:
+        lead = _save_lead(form)
+        if lead is not None and existing.lead_id is None:
+            Checkup.objects.filter(pk=existing.pk).update(lead=lead)
         return redirect("checkups:detail", checkup_id=existing.pk)
 
     ip_hash = security.hash_ip(ip)
@@ -48,8 +51,16 @@ def start(request: HttpRequest) -> HttpResponse:
     if protection.too_busy():
         return _form_error(request, form, BUSY_ERROR, status=503)
 
-    checkup = services.create_checkup(url, ip_hash=ip_hash)
+    checkup = services.create_checkup(url, ip_hash=ip_hash, lead=_save_lead(form))
     return redirect("checkups:detail", checkup_id=checkup.pk)
+
+
+def _save_lead(form: CheckupForm) -> Lead | None:
+    return services.save_lead(
+        name=form.cleaned_data["name"],
+        email=form.cleaned_data["email"],
+        consent=form.cleaned_data["consent"],
+    )
 
 
 def _form_error(

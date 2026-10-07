@@ -30,7 +30,7 @@ def no_real_queue() -> Iterator[None]:
 
 def start(client: Client, url: str = "shop.test", ip: str = "203.0.113.9", **fields: str):  # type: ignore[no-untyped-def]
     """Submit the landing-page form as a visitor from `ip`."""
-    return client.post(START, {"url": url, **fields}, REMOTE_ADDR=ip)
+    return client.post(START, {"url": url, "consent": "on", **fields}, REMOTE_ADDR=ip)
 
 
 # --- SSRF: internal addresses are refused before anything is queued -----------------

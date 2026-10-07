@@ -38,6 +38,13 @@ def make_guard() -> NetGuard:
     return NetGuard()
 
 
+def save_lead(*, name: str, email: str, consent: bool) -> Lead | None:
+    """Save the visitor's contact details, but only if they left an email."""
+    if not email:
+        return None
+    return Lead.objects.create(name=name, email=email.lower(), consent=consent)
+
+
 def create_checkup(raw_url: str, *, ip_hash: str = "", lead: Lead | None = None) -> Checkup:
     """Save a new queued check-up and send it to the worker.
 

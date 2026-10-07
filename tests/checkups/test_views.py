@@ -26,7 +26,7 @@ def test_home_has_the_checkup_form(client: Client) -> None:
 
 def test_start_redirects_instantly_to_the_checkup_page(client: Client) -> None:
     with patch.object(tasks.run_checkup, "delay"):
-        response = client.post(reverse("checkups:start"), {"url": "shop.test"})
+        response = client.post(reverse("checkups:start"), {"url": "shop.test", "consent": "on"})
 
     checkup = Checkup.objects.get()
     assert response.status_code == 302
@@ -34,7 +34,7 @@ def test_start_redirects_instantly_to_the_checkup_page(client: Client) -> None:
 
 
 def test_start_shows_friendly_error_for_bad_url(client: Client) -> None:
-    response = client.post(reverse("checkups:start"), {"url": "ftp://shop.test"})
+    response = client.post(reverse("checkups:start"), {"url": "ftp://shop.test", "consent": "on"})
     assert response.status_code == 400
     assert "Only http:// and https:// addresses can be checked." in response.content.decode()
     assert Checkup.objects.count() == 0

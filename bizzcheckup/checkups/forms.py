@@ -8,10 +8,16 @@ from . import services
 
 
 class CheckupForm(forms.Form):
-    """The landing-page form. (Name, email and consent arrive in phase 9.)"""
+    """The landing-page form: website address, optional contact details, consent."""
 
     # A CharField, not URLField: visitors type "myshop.com" without https://.
     url = forms.CharField(label="Your website address", max_length=2048)
+    name = forms.CharField(label="Your name", max_length=120, required=False)
+    email = forms.EmailField(label="Your email", required=False)
+    consent = forms.BooleanField(
+        label="I agree to the privacy note",
+        error_messages={"required": "Please agree to the privacy note to start your check-up."},
+    )
 
     # Honeypot: hidden from people with CSS, but bots that fill in every field fill this
     # one too. A real visitor leaves it empty.
@@ -28,6 +34,9 @@ class CheckupForm(forms.Form):
         except BlockedURLError as error:
             raise forms.ValidationError(str(error)) from error
         return url
+
+    def clean_name(self) -> str:
+        return " ".join(self.cleaned_data["name"].split())  # tidy extra spaces
 
     @property
     def is_bot(self) -> bool:
