@@ -165,3 +165,44 @@ check tests build their contexts with `make_context(make_page(html))`.
 | `test_treatment.py` | Quick wins and ordering |
 | `test_runner.py` | A full audit with fake checks: skips, crashes, progress, timeouts, errors |
 | `test_no_django.py` | The engine never imports Django or Celery |
+
+---
+
+## Testing checks (phase 3)
+
+### Healthy vs neglected fixtures
+
+`tests/fixtures/html/` holds two complete pages:
+
+| File | What it is |
+|------|------------|
+| `healthy.html` | Does everything right: title, description, one H1, canonical, social tags, valid JSON-LD, viewport, doctype, secure files, modern jQuery |
+| `neglected.html` | Does almost everything wrong: noindex, no title, two H1s, broken JSON-LD, `http://` files, jQuery 1.12.4, Bootstrap 3.3.7, no viewport, no doctype |
+
+Every check is tested twice with them, using `@pytest.mark.parametrize`:
+
+```python
+@pytest.mark.parametrize("check", SEO_CHECKS, ids=lambda c: c.id)
+def test_healthy_page_passes(check):
+    assert severities(check, healthy_context()) == [Severity.PASS]
+```
+
+```python
+(seo.Title, [Severity.FAIL]),        # neglected.html has no <title>
+(seo.Indexable, [Severity.FAIL]),    # neglected.html says noindex
+```
+
+Then smaller tests cover the edge cases with tiny inline HTML. Examples: a 61-character
+title, a canonical pointing at a competitor, `<!DOCTYPE HTML>` with a byte order mark,
+and eleven jQuery/Bootstrap/AngularJS/Lodash script addresses.
+
+Security headers are tested by passing `headers={...}` to `make_page()`. No web server
+is needed.
+
+### Check test files
+
+| File | Tests |
+|------|-------|
+| `tests/engine/checks/test_seo.py` | All 11 SEO checks |
+| `tests/engine/checks/test_best_practices.py` | All 12 best-practice checks |
+| `tests/engine/test_probes.py` | Link statuses, http→https probe, HEAD→GET fallback, link limit |

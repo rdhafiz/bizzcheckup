@@ -39,7 +39,9 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 | `fetcher.py` | The only code that makes HTTP requests |
 | `crawler.py` | Picks and fetches pages |
 | `context.py` | `AuditContext`, which checks read from |
+| `collectors/probes.py` | Extra requests: internal link statuses, http→https redirect |
 | `checks/base.py` | The `Check` base class |
+| `checks/seo.py`, `checks/best_practices.py` | The checks: see [Checks reference](15-checks-reference.md) |
 | `registry.py` | The list of all checks |
 | `scoring.py` | The scoring formula |
 | `treatment.py` | Treatment-plan ordering and quick wins |
@@ -78,6 +80,23 @@ looks the name up again. A malicious DNS server could change the answer in betwe
 (this is called "DNS rebinding"). Running the worker in a network with no access to
 internal services removes that risk. See the deployment notes in phase 10.
 
+## Collectors
+
+A collector runs after the crawl and adds data to the `AuditContext` that some checks
+need. When it succeeds, it adds its **capability** name. Checks that list that name in
+`requires` are skipped (not failed) when the data is missing.
+
+| Collector | Capability | Adds | Used by |
+|-----------|------------|------|---------|
+| `collect_probes` (`collectors/probes.py`) | `PROBES` | `ctx.probes.http_final_url` (where `http://` ends up); `ctx.probes.link_status` (internal link to HTTP status, 0 = unreachable); `ctx.probes.link_sources` (which pages contain each link) | `seo.broken_links`, `best_practices.http_redirect` |
+| Browser (phase 4) | `RENDER` | Rendered HTML, screenshot, console errors, cookies, axe results | Accessibility checks |
+| PageSpeed (phase 5) | `PAGESPEED` | Lighthouse scores and Core Web Vitals | Performance checks |
+
+Link probing uses cheap `HEAD` requests, falling back to `GET` when a server refuses
+`HEAD` (403/405/501). It checks at most `max_link_checks` (50) same-origin links that
+robots.txt allows. `run_audit()` uses `DEFAULT_COLLECTORS` unless you pass
+`collectors=()`.
+
 ## Crawling rules (`crawler.py`)
 
 1. Fetch the homepage. If it answers with an error (HTTP 400 or higher) or isn't
@@ -89,8 +108,8 @@ internal services removes that risk. See the deployment notes in phase 10.
 4. Candidate pages are sitemap URLs first, then links on the homepage. Each one must
    be on the same origin, not a file (`.pdf`, `.jpg`, ...), not already chosen, and
    allowed by robots.txt for `BizzCheckup`.
-5. Fetch the chosen pages two at a time. A page that fails is noted in `errors`. It
-   doesn't stop the crawl.
+5. Fetch the chosen pages two at a time. A page that fails, or answers with HTTP 400
+   or higher, is noted in `errors` instead of being analysed. It doesn't stop the crawl.
 
 The homepage is fetched even if robots.txt disallows it, because the owner asked for
 it. Discovering extra pages always respects robots.txt.
@@ -140,7 +159,8 @@ in `checks/`, so every class gets defined.
 | Write `message` for a business owner, not a developer | It's what the report shows first |
 | `why_it_matters` is the business impact. `how_to_fix` is the technical fix. | This is the brief's tone rule |
 | Use `requires = frozenset({RENDER})` if you need the browser | The check is skipped cleanly when that data is missing |
-| Override `score()` for partial credit | e.g. 18 of 20 images with alt text gives 0.9 |
+| Set `self.partial` in `run()` for partial credit | e.g. 18 of 20 images with alt text gives 0.9 (`share_score()` helps) |
+| Use `on_pages(count, total, has, have)` for messages | "Your homepage has…" or "2 of the 5 pages we checked have…" |
 
 A check that crashes is recorded as `error` and left out of the score. The audit
 carries on.

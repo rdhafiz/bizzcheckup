@@ -368,3 +368,132 @@ finally:                         # always runs (used to close the response)
 | `logging` | Writing errors to the worker log | `runner.py` |
 | `math` | `floor` for rounding | `scoring.py` |
 | `ast` | Reading Python code as data (the no-Django test) | `tests/engine/test_no_django.py` |
+
+---
+
+# Phase 3: concepts in the checks
+
+## Regular expressions: `re` (`best_practices.py`)
+
+A regular expression is a small pattern language for finding text:
+
+```python
+match = re.search(r"jquery[.-](\d+\.\d+(?:\.\d+)?)(?:\.min)?\.js", src)
+if match:
+    version = match.group(1)      # the text inside the first ( ) group, e.g. "1.12.4"
+```
+
+| Piece | Means |
+|-------|-------|
+| `r"..."` | A *raw* string: backslashes are kept as they are (needed for `\d`, `\.`) |
+| `\d+` | One or more digits |
+| `\.` | A real dot (a plain `.` means "any character") |
+| `[.-]` | One character: a dot or a dash |
+| `( ... )` | A group we want to read back with `.group(1)` |
+| `(?: ... )` | A group just for structure, not saved |
+| `?` | The thing before it is optional |
+| `re.IGNORECASE` / `re.I` | Upper and lower case count as the same |
+| `re.S` | `.` also matches line breaks |
+
+`re.search` looks anywhere in the text. `re.match` only matches at the start, which is
+why the doctype check uses it.
+
+## `json` (`seo.py`)
+
+```python
+data = json.loads(node.text())   # text → Python dict/list; raises ValueError if invalid
+json.dumps({"@type": "Bakery"})  # Python → text (used in tests)
+```
+
+## `@staticmethod`
+
+```python
+@staticmethod
+def has_noindex(robots_value: str | None) -> bool:
+```
+
+A method that doesn't need `self`. It lives in the class because it belongs there
+logically.
+
+## Frozen dataclasses as small records (`best_practices.py`)
+
+```python
+@dataclass(frozen=True)
+class _Library:
+    name: str
+    patterns: tuple[str, ...]   # a tuple of any length
+    safe_from: str
+```
+
+`frozen=True` makes them read-only. They're good for tables of fixed data like the
+`LIBRARIES` list. A leading `_` in a name means "internal to this module".
+
+## Class attributes vs instance attributes (`checks/base.py`)
+
+```python
+class Check(ABC):
+    partial: float | None = None    # class default, shared by everyone...
+
+    # ...until one object assigns its own:
+    self.partial = 0.75             # now only THIS object has 0.75
+```
+
+That's how a check remembers its partial score between `run()` and `score()`, without
+affecting other checks.
+
+## An abstract "helper" base class (`_SecurityHeader`)
+
+```python
+class _SecurityHeader(Check):   # no run() → still abstract → not registered
+    category = Category.BEST_PRACTICES
+    def header(self, page, name): ...
+
+class NoSniff(_SecurityHeader):  # has run() → registered
+```
+
+Shared code lives in one place, and the abstract middle class never shows up in
+reports.
+
+## Dictionaries, the deeper parts
+
+```python
+sources.setdefault(link, []).append(page)   # get the list, creating it first if missing
+by_title = defaultdict(list)                # a dict that makes an empty list on first use
+by_title[text].append(url)
+page.headers.get("x-frame-options", "")     # value, or "" if the key is missing
+dict(zip(urls, statuses, strict=True))      # pair two lists into a dict; strict = same length
+```
+
+## Sets for "unique" collections
+
+```python
+active: set[str] = set()
+active.add(url)                    # adding the same URL twice keeps one copy
+sorted(active | passive)           # | = union (everything in either set)
+policies & self.UNSAFE             # & = intersection (in both). Empty means "no unsafe policy"
+```
+
+## Strings, the deeper parts
+
+```python
+error.removeprefix("HTTP ")        # "HTTP 404" → "404"
+code.isdigit()                     # True if every character is a digit
+text.lstrip("﻿")              # remove an invisible "byte order mark" at the start
+"; ".join(parts)                   # glue a list of strings together with "; "
+value.split(",")                   # the opposite: cut a string into a list
+```
+
+Long strings are split across lines by placing them next to each other inside
+brackets. Python joins them automatically:
+
+```python
+WHY = (
+    "The title is the blue headline people click in Google results "
+    "and the name on the browser tab."
+)
+```
+
+## `getattr(obj, "name", default)`
+
+This reads an attribute whose name is in a variable, or returns a default. The tests
+use it to name parametrized cases: `ids=lambda value: getattr(value, "id", "")`.

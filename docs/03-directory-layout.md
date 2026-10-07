@@ -22,7 +22,13 @@ bizzcheckup/
 │   │   ├── scoring.py        Category scores, Business Health Score, bands
 │   │   ├── treatment.py      Treatment plan ordering, quick wins
 │   │   ├── runner.py         run_audit(): ties it all together
-│   │   └── checks/           One module per category (phase 3+); base.py = Check class
+│   │   ├── collectors/       Extra data gathered after the crawl
+│   │   │   └── probes.py     Internal link statuses + does http:// redirect to https://
+│   │   └── checks/           One module per category (docs/15-checks-reference.md)
+│   │       ├── base.py       The Check base class
+│   │       ├── _helpers.py   meta_content(), on_pages(), share_score()...
+│   │       ├── seo.py        11 SEO checks
+│   │       └── best_practices.py  12 security & standards checks
 │   ├── checkups/             (phase 6) Checkup / Finding / Lead models, Celery task
 │   └── reports/              (phase 7) Report page, branding loader, PDF
 ├── config/                   Django project configuration
@@ -49,7 +55,9 @@ bizzcheckup/
 │   ├── core/                 Tests for the core app
 │   └── engine/               Engine tests (fake DNS + fake internet, no network)
 │       ├── conftest.py       Shared fixtures: router (respx), fetcher, fake_resolver
-│       └── factories.py      make_page(), make_context(), make_finding()...
+│       ├── factories.py      make_page(), make_context(), fixture_html()...
+│       └── checks/           One test file per check module
+│   └── fixtures/html/        healthy.html and neglected.html test pages
 ├── scripts/get_tailwind.py   Downloads the Tailwind CLI into .bin/
 ├── docker/Dockerfile         How to build the app image
 ├── compose.yaml              Runs web, worker, postgres and redis together

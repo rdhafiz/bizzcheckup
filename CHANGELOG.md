@@ -27,3 +27,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   - weighted scoring with health bands, a high-impact cap and the Business Health Score
   - treatment plan with quick wins
   - `run_audit()` with progress callbacks, a 3-minute total timeout and friendly errors
+- Probes collector: internal link statuses (HEAD with GET fallback, max 50) and an
+  http-to-https redirect probe.
+- 11 SEO checks: titles, meta descriptions, single H1, canonical, robots.txt, sitemap,
+  noindex, Open Graph/Twitter tags, JSON-LD validity, broken internal links, duplicate
+  titles.
+- 12 best-practice checks: HTTPS, http-to-https redirect, mixed content, HSTS, CSP,
+  X-Content-Type-Options, frame protection, Referrer-Policy, outdated jQuery, Bootstrap,
+  AngularJS and Lodash, doctype, charset, viewport.
+- Healthy and neglected HTML fixtures, with a test for every check.
