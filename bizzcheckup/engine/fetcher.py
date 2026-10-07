@@ -64,22 +64,36 @@ class Fetcher:
             await self._client.aclose()
             self._client = None
 
-    async def get(self, url: str, *, user_agent: str | None = None, method: str = "GET") -> Page:
+    async def get(
+        self,
+        url: str,
+        *,
+        user_agent: str | None = None,
+        method: str = "GET",
+        headers: dict[str, str] | None = None,
+        timeout: float | None = None,
+        polite: bool = True,
+    ) -> Page:
         """Fetch `url`, following redirects safely. Raises BlockedURLError or FetchError.
 
         method="HEAD" asks only for the status and headers (no page body).
+        timeout overrides the per-request timeout (e.g. for slow APIs).
+        polite=False skips the "max 2 requests at once" limit; only for requests that
+        don't go to the audited site (e.g. Google's PageSpeed API).
         """
         if self._client is None:
             raise RuntimeError("Use Fetcher inside 'async with'.")
 
-        headers = {"User-Agent": user_agent} if user_agent else {}
+        headers = dict(headers or {})
+        if user_agent:
+            headers["User-Agent"] = user_agent
         chain: list[str] = []
         current = url
         started = time.perf_counter()
 
         for _ in range(self.config.max_redirects + 1):
             await self.guard.check_url(current)  # every hop, not just the first
-            response = await self._send_with_retries(method, current, headers)
+            response = await self._send_with_retries(method, current, headers, timeout, polite)
             try:
                 location = response.headers.get("location")
                 if response.status_code in REDIRECT_CODES and location:
@@ -122,15 +136,25 @@ class Fetcher:
         return page.status_code
 
     async def _send_with_retries(
-        self, method: str, url: str, headers: dict[str, str]
+        self,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        timeout: float | None = None,
+        polite: bool = True,
     ) -> httpx.Response:
         assert self._client is not None  # noqa: S101 (checked in get())
         attempts = self.config.retries + 1
         for attempt in range(attempts):
             last_try = attempt == attempts - 1
             try:
-                async with self._semaphore:
-                    request = self._client.build_request(method, url, headers=headers)
+                request = self._client.build_request(
+                    method, url, headers=headers, timeout=timeout or self.config.request_timeout
+                )
+                if polite:
+                    async with self._semaphore:
+                        response = await self._client.send(request, stream=True)
+                else:
                     response = await self._client.send(request, stream=True)
             except httpx.TransportError as error:  # timeouts, refused connections, DNS
                 if last_try:

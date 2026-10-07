@@ -95,11 +95,15 @@ async def _run(
 
         ctx = AuditContext(crawl=result)
         await progress(25, "Taking your website's vital signs")
-        for collector in collectors:
-            try:
-                await collector(ctx, fetcher, config)
-            except Exception:  # one failing data source must not stop the audit
-                logger.exception("Collector %s failed", getattr(collector, "__name__", collector))
+        # Collectors run at the same time; one failing data source must not stop the audit.
+        outcomes = await asyncio.gather(
+            *(collector(ctx, fetcher, config) for collector in collectors),
+            return_exceptions=True,
+        )
+        for collector, outcome in zip(collectors, outcomes, strict=True):
+            if isinstance(outcome, BaseException):
+                name = getattr(collector, "__name__", repr(collector))
+                logger.error("Collector %s failed: %r", name, outcome, exc_info=outcome)
 
     results: list[CheckResult] = []
     groups = [(category, list(items)) for category, items in groupby(checks, lambda c: c.category)]
