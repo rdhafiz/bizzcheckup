@@ -33,7 +33,7 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 | File | What it does |
 |------|--------------|
 | `types.py` | Data models: `Category`, `Severity`, `Level`, `Band`, `Finding`, `Page`, `RobotsInfo`, `SitemapInfo`, `CrawlResult`, `CheckResult`, `CategoryScore`, `AuditReport` |
-| `config.py` | `EngineConfig` (limits) and our User-Agent `BizzCheckup/0.1 (+https://ridwanulhafiz.me)` |
+| `config.py` | `EngineConfig` (limits) and our User-Agent: a browser identity ending in `BizzCheckup/0.1 (+https://ridwanulhafiz.me)` (see below) |
 | `urls.py` | `normalize_url()`, `origin()`, `same_origin()`, `absolute()` |
 | `netguard.py` | SSRF protection |
 | `fetcher.py` | The only code that makes HTTP requests |
@@ -55,6 +55,23 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 | `max_concurrency` | 2 | Polite: never hammer a small business's server |
 | `request_timeout` | 15 s | One slow page shouldn't hold everything up |
 | (headers) | `Accept`, `Accept-Language` like a browser | Some CDNs (for example Hostinger's) answer **403** to requests without them, even with an honest User-Agent. We still identify as `BizzCheckup/0.1`. |
+| User-Agent | `Mozilla/5.0 (…) Chrome/141.0.0.0 Safari/537.36 BizzCheckup/0.1 (+https://ridwanulhafiz.me)` | Bot protection on many hosts (for example Vercel's) answers **429** with a challenge page to a bare `BizzCheckup/0.1`. With a browser identity first and ours at the end (as Google's Lighthouse does), the real site loads, and the owner's logs still show who visited. robots.txt rules for `BizzCheckup` still apply. |
+
+**When a firewall still blocks us**, the check-up fails with a clear message instead of a
+bare "HTTP 429". `crawler.firewall_name()` recognises Vercel (`x-vercel-mitigated`),
+Cloudflare (`cf-mitigated`, challenge pages), SiteGround and Imunify360 challenge pages,
+and the message names the provider and explains what to allow.
+
+**The browser can be stopped too**, even when the crawler got through. Vercel, for
+example, may show headless Chromium a "We're verifying your browser" page.
+`collect_render` checks for that (the same `engine/firewall.py` detector), waits up to 10
+seconds in case it clears, and otherwise **discards** what the browser saw. There's no
+checkpoint screenshot, and nothing is scored on the checkpoint page.
+`ctx.unavailable[RENDER]` holds the explanation, which appears on the report cover
+(`AuditReport.browser_note`), in the notes, and as the skip reason of browser checks.
+
+We **don't** try to disguise the browser to get past these checks. The site owner
+switched them on, and BizzCheckup stays an identifiable visitor.
 | `retries` | 2 | Retry temporary failures (timeouts, 429, 502, 503, 504) with growing waits |
 | `max_redirects` | 5 | Stop redirect loops |
 | `max_page_bytes` | 5 MB | Huge pages are cut off (`truncated=True`) so they can't exhaust memory |

@@ -193,7 +193,8 @@ server (gunicorn) and, with `CHECKUP_RUNNER=celery`, as the Celery worker.
 
 - Only check websites you own or have permission to check.
 - BizzCheckup behaves like a polite visitor. It identifies itself
-  (`BizzCheckup/0.1 (+https://ridwanulhafiz.me)`), makes at most 2 requests to a site at
+  (a browser User-Agent ending in `BizzCheckup/0.1 (+https://ridwanulhafiz.me)`), makes
+  at most 2 requests to a site at
   a time, reads at most 10 public pages, and **respects robots.txt** when finding pages.
 - It never logs in, submits forms or tries to break anything. It only reads what any
   visitor can see.

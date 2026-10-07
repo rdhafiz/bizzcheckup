@@ -10,10 +10,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - **Check again now** button on reports and on the "couldn't finish" page: a fresh
   check-up of the same site that skips report reuse but keeps every other protection
   (an already-running check-up is reused, SSRF check, Turnstile, rate limit, capacity).
-- Reports show how old they are ("Checked 2 hours, 18 minutes ago").
+- Reports show how old they are ("Checked just now", "Checked 2 hours, 18 minutes ago").
 - Messages (for example "rate limit reached") are shown at the top of any page.
 
 ### Fixed
+- Sites behind Vercel's bot protection (and similar) answered "HTTP 429" with a challenge
+  page. The User-Agent is now a browser identity with `BizzCheckup/0.1
+  (+https://ridwanulhafiz.me)` at the end (as Lighthouse does). If a firewall still blocks
+  the visit, the message says so, names the provider, and explains what to allow.
+- When a firewall shows the **browser** a "verifying your browser" checkpoint, its
+  screenshot and browser-based results are discarded instead of being reported as the
+  website. The cover and notes explain why (`engine/firewall.py`, shared by the crawler,
+  the browser and the AI-agent probe).
 - Sites behind CDNs that reject requests without browser `Accept` headers (for example
   Hostinger's) failed with "HTTP 403". The fetcher now sends `Accept` and
   `Accept-Language` like a browser, and still identifies itself as BizzCheckup.
