@@ -60,3 +60,20 @@ def test_origin_domain_and_same_origin() -> None:
 )
 def test_absolute(href: str, expected: str | None) -> None:
     assert absolute("https://shop.com/products/item", href) == expected
+
+
+@pytest.mark.parametrize(
+    ("host", "site"),
+    [
+        ("www.shop.com", "shop.com"),
+        ("shop.com", "shop.com"),
+        ("a.b.shop.com", "shop.com"),
+        ("www.shop.co.uk", "shop.co.uk"),
+        ("shop.com.bd", "shop.com.bd"),
+        (".facebook.com", "facebook.com"),
+    ],
+)
+def test_site_domain(host: str, site: str) -> None:
+    from bizzcheckup.engine.urls import site_domain
+
+    assert site_domain(host) == site

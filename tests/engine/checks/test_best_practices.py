@@ -192,3 +192,46 @@ def test_charset_from_header_counts() -> None:
 def test_viewport_without_device_width_warns() -> None:
     page = make_page('<head><meta name="viewport" content="width=1024"></head>')
     assert severities(bp.Viewport, make_context(page)) == [Severity.WARN]
+
+
+# --- checks that need the browser --------------------------------------------
+
+
+def browser_context(**fields: object) -> AuditContext:
+    from bizzcheckup.engine.context import RENDER
+    from bizzcheckup.engine.types import RenderResult
+
+    ctx = make_context(capabilities={RENDER})
+    data: dict[str, object] = {"url": HOME, "html": "", "text_length": 0}
+    data.update(fields)
+    ctx.render = RenderResult.model_validate(data)
+    return ctx
+
+
+def test_console_errors() -> None:
+    ctx = browser_context(console_errors=["TypeError: x is undefined", "TypeError: x is undefined"])
+    finding = bp.ConsoleErrors().run(ctx)[0]
+    assert finding.severity is Severity.WARN
+    assert "1 JavaScript error(s)" in finding.message  # duplicates counted once
+    assert severities(bp.ConsoleErrors, browser_context()) == [Severity.PASS]
+
+
+def test_third_party_cookies() -> None:
+    cookies = [
+        {"name": "session", "domain": "shop.test", "third_party": False},
+        {"name": "_fbp", "domain": "facebook.com", "third_party": True},
+        {"name": "IDE", "domain": "doubleclick.net", "third_party": True},
+    ]
+    finding = bp.ThirdPartyCookies().run(browser_context(cookies=cookies))[0]
+    assert finding.severity is Severity.WARN
+    assert "2 other companies set cookies" in finding.message
+    assert "doubleclick.net, facebook.com" in finding.message
+    assert severities(bp.ThirdPartyCookies, browser_context()) == [Severity.PASS]
+
+
+def test_outdated_library_detected_by_browser() -> None:
+    ctx = browser_context(libraries={"jQuery": "2.2.4", "Lodash": "4.17.21"})
+    finding = bp.OutdatedLibraries().run(ctx)[0]
+    assert finding.severity is Severity.FAIL
+    assert "jQuery 2.2.4" in finding.message
+    assert "Lodash" not in finding.message  # 4.17.21 is safe

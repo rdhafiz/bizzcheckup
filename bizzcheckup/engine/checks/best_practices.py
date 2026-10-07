@@ -3,7 +3,7 @@
 import re
 from dataclasses import dataclass
 
-from ..context import PROBES, AuditContext
+from ..context import PROBES, RENDER, AuditContext
 from ..types import Category, Finding, Level, Page, Severity
 from ._helpers import meta_content, meta_http_equiv, on_pages, version_tuple
 from .base import Check
@@ -428,6 +428,15 @@ class OutdatedLibraries(Check):
                         key = f"{library.name} {version}"
                         found.setdefault(key, (library, version, set()))[2].add(page.final_url)
 
+        # The browser also reports versions of libraries bundled under other file names.
+        if ctx.render is not None:
+            by_name = {library.name: library for library in LIBRARIES}
+            for name, version in ctx.render.libraries.items():
+                known = by_name.get(name)
+                if known and version_tuple(version) < version_tuple(known.safe_from):
+                    key = f"{name} {version}"
+                    found.setdefault(key, (known, version, set()))[2].add(ctx.homepage.final_url)
+
         if not found:
             return [
                 self.passed(
@@ -569,3 +578,73 @@ class Viewport(Check):
                 )
             ]
         return [self.passed("Your homepage adapts to phone screens.", self.WHY)]
+
+
+class ConsoleErrors(Check):
+    id = "best_practices.console_errors"
+    category = Category.BEST_PRACTICES
+    title = "JavaScript errors"
+    weight = 4
+    requires = frozenset({RENDER})
+
+    WHY = (
+        "JavaScript errors are signs that something on the page is broken. They often mean a "
+        "menu, form, chat widget or checkout button silently doesn't work for some visitors."
+    )
+    MAX_SHOWN = 3
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        assert ctx.render is not None  # noqa: S101 (guaranteed by `requires`)
+        errors = list(dict.fromkeys(ctx.render.console_errors))  # unique, in order
+        if not errors:
+            return [self.passed("Your homepage ran without JavaScript errors.", self.WHY)]
+        examples = "; ".join(e[:160] for e in errors[: self.MAX_SHOWN])
+        return [
+            self.finding(
+                Severity.WARN,
+                f"Your homepage shows {len(errors)} JavaScript error(s) in the browser, "
+                f"for example: {examples}",
+                self.WHY,
+                "Open the page, press F12 and look at the Console tab. Fix or remove the "
+                "scripts that cause these errors (often an outdated plugin or a removed "
+                "third-party service).",
+                effort=Level.MEDIUM,
+                impact=Level.MEDIUM,
+                urls=[ctx.homepage.final_url],
+            )
+        ]
+
+
+class ThirdPartyCookies(Check):
+    id = "best_practices.third_party_cookies"
+    category = Category.BEST_PRACTICES
+    title = "Third-party cookies"
+    weight = 3
+    requires = frozenset({RENDER})
+
+    WHY = (
+        "Cookies from other companies (ad networks, trackers) follow your visitors around the "
+        "web. Privacy laws such as GDPR require consent first, and browsers increasingly "
+        "block them, which can break the features that rely on them."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        assert ctx.render is not None  # noqa: S101 (guaranteed by `requires`)
+        domains = sorted({c.domain for c in ctx.render.cookies if c.third_party})
+        if not domains:
+            return [
+                self.passed("No other companies set cookies when your homepage loads.", self.WHY)
+            ]
+        return [
+            self.finding(
+                Severity.WARN,
+                f"{len(domains)} other compan{'y sets' if len(domains) == 1 else 'ies set'} "
+                f"cookies as soon as your homepage loads: {', '.join(domains)}.",
+                self.WHY,
+                "Load trackers and ads only after visitors agree in a cookie banner, and "
+                "remove services you no longer use.",
+                effort=Level.MEDIUM,
+                impact=Level.MEDIUM,
+                urls=[ctx.homepage.final_url],
+            )
+        ]
