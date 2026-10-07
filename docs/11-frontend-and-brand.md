@@ -103,11 +103,15 @@ Four sections, top to bottom:
 | **How it works** | Three numbered steps with dashed arrows and a handwritten "Simple. Fast. Actionable." | Arrows and the note are decorative (`aria-hidden`) and only shown on wide screens |
 | **A healthier website means** | Three benefits and a second call to action, next to an illustration | `static/img/healthier-website.svg`, loaded lazily because it is below the fold |
 
-**The background image** is `static/img/hero-bg.svg`, a softly blurred desk scene drawn
-in SVG (small, and sharp on any screen). To use a real photo, save it as
-`static/img/hero-bg.jpg` (about 1920×1080, under 300 KB) and change the `url()` in
-`.hero-full` in `frontend/tailwind.css`. It is preloaded in the page `<head>` because
-it is the first thing visitors see.
+**The background image** is `static/img/hero-bg.webp` (1448×1086, 186 KB): a sunny desk
+in front of a city skyline, with a laptop showing a health score. WebP keeps it small. It
+is preloaded in the page `<head>` with `fetchpriority="high"` because it is the first
+thing visitors see. To change it, replace the file (keep it under ~300 KB) or change the
+`url()` in `.hero-full` in `frontend/tailwind.css`.
+
+On top of it, `.hero-full::before` adds the **dark backdrop**: a gradient (darkest on the
+left, behind the text) plus `backdrop-filter: blur(3px)`, so the photo's own text (book
+titles, the laptop screen) doesn't compete with ours.
 
 **Text on a photo** needs light text. Instead of new colours, the hero text and the header
 get the class `on-dark`, which switches *just that area* to the dark-mode palette (the
