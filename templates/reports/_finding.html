@@ -1,0 +1,30 @@
+{% load bizz %}
+<article class="finding band-{{ finding.severity|severity_band }}">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="band-pill text-xs">{{ finding.severity|severity_label }}</span>
+    <span class="chip">Impact: {{ finding.impact }}</span>
+    <span class="chip">Effort: {{ finding.effort }}</span>
+  </div>
+  <h4 class="mt-3 font-semibold text-ink">{{ finding.message }}</h4>
+  <dl class="mt-3 space-y-3 text-sm">
+    <div>
+      <dt class="font-semibold">Why it matters for your business</dt>
+      <dd class="mt-1 text-muted">{{ finding.why_it_matters }}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold">How to fix it</dt>
+      <dd class="mt-1 text-muted break-words">{{ finding.how_to_fix|urlize }}</dd>
+    </div>
+    {% if finding.affected_urls %}
+      <div>
+        <dt class="font-semibold">Where</dt>
+        <dd class="mt-1">
+          <ul class="space-y-0.5 font-mono text-xs text-muted">
+            {% for url in finding.affected_urls|first_items:5 %}<li class="break-all">{{ url }}</li>{% endfor %}
+            {% if finding.affected_urls|remaining:5 %}<li>and {{ finding.affected_urls|remaining:5 }} more</li>{% endif %}
+          </ul>
+        </dd>
+      </div>
+    {% endif %}
+  </dl>
+</article>

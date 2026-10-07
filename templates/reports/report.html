@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ view.checkup.domain }}: {{ view.branding.report_title }} — {{ product_name }}{% endblock %}
+{% block description %}Website health check-up of {{ view.checkup.domain }}: scores, diagnosis and treatment plan.{% endblock %}
+
+{% block head %}
+  <meta name="robots" content="noindex">
+  <script src="{% static 'js/report.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+  <div class="container-page py-8 sm:py-12">
+    <div class="report-actions no-print flex flex-wrap gap-3">
+      <a class="btn-primary" href="{% url 'reports:pdf' view.checkup.pk %}">Download PDF</a>
+      <button type="button" class="btn-secondary" data-copy-link="{{ share_url }}">Copy share link</button>
+      <span class="self-center text-sm text-muted" data-copy-status aria-live="polite"></span>
+    </div>
+    <div class="report mt-8">
+      {% include "reports/_sections.html" with pdf=False %}
+    </div>
+  </div>
+{% endblock %}

@@ -28,7 +28,9 @@ def detail(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     if checkup.status == Checkup.Status.FAILED:
         return render(request, "checkups/failed.html", {"checkup": checkup})
     if checkup.status == Checkup.Status.DONE:
-        return render(request, "checkups/report.html", {"checkup": checkup})
+        from bizzcheckup.reports.views import report_page
+
+        return report_page(request, checkup)
     return render(request, "checkups/progress.html", progress_context(checkup))
 
 

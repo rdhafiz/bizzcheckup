@@ -211,6 +211,86 @@
   background: var(--band-soft);
 }
 
+/* --- Report ------------------------------------------------------------------ */
+
+@utility chip {
+  @apply inline-flex items-center rounded-full border border-line px-2.5 py-0.5 text-xs
+    font-medium text-muted;
+}
+
+@layer components {
+  .report-section {
+    @apply mt-16 first:mt-0;
+  }
+  .finding {
+    @apply rounded-2xl border border-line bg-card p-5;
+    border-left: 4px solid var(--band);
+  }
+  .treatment-list {
+    @apply space-y-3;
+    counter-reset: treatment;
+  }
+  .treatment-item {
+    @apply flex gap-4 rounded-xl border border-line bg-card p-4;
+    counter-increment: treatment;
+  }
+  .treatment-item::before {
+    @apply font-mono text-xl font-bold;
+    content: counter(treatment);
+    color: var(--band);
+    min-width: 1.5rem;
+  }
+  .healthy-item {
+    @apply relative pl-6;
+  }
+  .healthy-item::before {
+    @apply absolute left-0 font-bold;
+    content: "✓";
+    color: var(--healthy);
+  }
+  .cta {
+    background: var(--primary-soft);
+    border-color: transparent;
+  }
+  .qr svg {
+    @apply block h-auto w-36;
+  }
+}
+
+/* The PDF (and printing from the browser): light colours, one section per page. */
+@media print {
+  :root {
+    color-scheme: light;
+  }
+  body > header,
+  body > footer,
+  .no-print,
+  .report-actions {
+    display: none !important;
+  }
+  .report-section {
+    break-before: page;
+    margin-top: 0;
+  }
+  .report-section:first-child {
+    break-before: auto;
+  }
+  .finding,
+  .treatment-item,
+  .card {
+    break-inside: avoid;
+  }
+  a {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+}
+
+.report-pdf {
+  @apply bg-white;
+  font-size: 11pt;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     transition-duration: 0.01ms !important;

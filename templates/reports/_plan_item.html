@@ -1,0 +1,11 @@
+{% load bizz %}
+<li class="treatment-item band-{{ finding.severity|severity_band }}">
+  <div class="flex-1">
+    <p class="font-semibold">{{ finding.message }}</p>
+    <p class="mt-1 flex flex-wrap gap-2 text-xs">
+      <span class="chip">{{ finding.category.label }}</span>
+      <span class="chip">Impact: {{ finding.impact }}</span>
+      <span class="chip">Effort: {{ finding.effort }}</span>
+    </p>
+  </div>
+</li>
