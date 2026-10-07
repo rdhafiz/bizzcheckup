@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block head %}
-  <link rel="preload" href="{% static 'img/hero-bg.svg' %}" as="image" type="image/svg+xml">
+  <link rel="preload" href="{% static 'img/hero-bg.webp' %}" as="image" type="image/webp" fetchpriority="high">
   {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
