@@ -1,0 +1,219 @@
+"""SEO checks, tested against local HTML only (no network)."""
+
+import json
+
+import pytest
+
+from bizzcheckup.engine.checks import seo
+from bizzcheckup.engine.checks.base import Check
+from bizzcheckup.engine.context import PROBES, AuditContext
+from bizzcheckup.engine.types import RobotsInfo, Severity, SitemapInfo
+
+from ..factories import fixture_html, make_context, make_page
+
+HOME = "https://shop.test/"
+GOOD_ROBOTS = RobotsInfo(
+    url=f"{HOME}robots.txt",
+    exists=True,
+    text=f"User-agent: *\nAllow: /\nSitemap: {HOME}sitemap.xml\n",
+    sitemaps=[f"{HOME}sitemap.xml"],
+)
+GOOD_SITEMAP = SitemapInfo(checked=[f"{HOME}sitemap.xml"], found=True, urls=[HOME])
+
+
+def severities(check: type[Check], ctx: AuditContext) -> list[Severity]:
+    return [finding.severity for finding in check().run(ctx)]
+
+
+def healthy_context() -> AuditContext:
+    ctx = make_context(
+        make_page(fixture_html("healthy")),
+        robots=GOOD_ROBOTS,
+        sitemap=GOOD_SITEMAP,
+        capabilities={PROBES},
+    )
+    ctx.probes.link_status = {HOME: 200, f"{HOME}about": 200, f"{HOME}order": 200}
+    return ctx
+
+
+def neglected_context() -> AuditContext:
+    ctx = make_context(make_page(fixture_html("neglected")), capabilities={PROBES})
+    ctx.probes.link_status = {HOME: 200, f"{HOME}old-offer": 404, f"{HOME}contact": 200}
+    ctx.probes.link_sources = {f"{HOME}old-offer": [HOME]}
+    return ctx
+
+
+SEO_CHECKS: list[type[Check]] = [
+    seo.Title,
+    seo.MetaDescription,
+    seo.SingleH1,
+    seo.Canonical,
+    seo.RobotsTxt,
+    seo.Sitemap,
+    seo.Indexable,
+    seo.SocialTags,
+    seo.StructuredData,
+    seo.BrokenLinks,
+]
+
+
+@pytest.mark.parametrize("check", SEO_CHECKS, ids=lambda c: c.id)
+def test_healthy_page_passes(check: type[Check]) -> None:
+    assert severities(check, healthy_context()) == [Severity.PASS]
+
+
+@pytest.mark.parametrize(
+    ("check", "expected"),
+    [
+        (seo.Title, [Severity.FAIL]),
+        (seo.MetaDescription, [Severity.WARN]),
+        (seo.SingleH1, [Severity.WARN]),
+        (seo.Canonical, [Severity.WARN]),
+        (seo.RobotsTxt, [Severity.WARN]),
+        (seo.Sitemap, [Severity.WARN]),
+        (seo.Indexable, [Severity.FAIL]),
+        (seo.SocialTags, [Severity.WARN]),
+        (seo.StructuredData, [Severity.FAIL]),
+        (seo.BrokenLinks, [Severity.FAIL]),
+    ],
+    ids=lambda value: getattr(value, "id", ""),
+)
+def test_neglected_page_has_problems(check: type[Check], expected: list[Severity]) -> None:
+    assert severities(check, neglected_context()) == expected
+
+
+def test_every_finding_explains_business_impact_and_fix() -> None:
+    for ctx in (healthy_context(), neglected_context()):
+        for check in SEO_CHECKS:
+            for finding in check().run(ctx):
+                assert finding.why_it_matters
+                assert finding.how_to_fix
+                assert finding.check_id == check.id
+
+
+# --- edge cases --------------------------------------------------------------
+
+
+def page_with_head(head: str, body: str = "<h1>x</h1>") -> str:
+    return f"<!doctype html><html><head>{head}</head><body>{body}</body></html>"
+
+
+@pytest.mark.parametrize(
+    ("title", "expected"),
+    [
+        ("Sweet Moments Bakery | Cakes", Severity.PASS),
+        ("Home", Severity.WARN),  # too short
+        ("A" * 61, Severity.WARN),  # too long
+        ("", Severity.FAIL),
+    ],
+)
+def test_title_lengths(title: str, expected: Severity) -> None:
+    ctx = make_context(make_page(page_with_head(f"<title>{title}</title>")))
+    assert severities(seo.Title, ctx) == [expected]
+
+
+def test_title_gives_partial_credit_across_pages() -> None:
+    good = page_with_head("<title>Sweet Moments Bakery | Cakes</title>")
+    pages = [make_page(good, url=f"{HOME}p{i}") for i in range(3)]
+    pages.append(make_page(page_with_head(""), url=f"{HOME}missing"))
+    check = seo.Title()
+    findings = check.run(make_context(*pages))
+
+    assert findings[0].message == "1 of the 4 pages we checked has no title."
+    assert findings[0].affected_urls == [f"{HOME}missing"]
+    assert check.score(findings) == 0.75
+
+
+def test_canonical_pointing_to_another_site_fails() -> None:
+    html = page_with_head('<link rel="canonical" href="https://competitor.test/">')
+    findings = seo.Canonical().run(make_context(make_page(html)))
+    assert findings[0].severity is Severity.FAIL
+    assert "competitor.test" in findings[0].message
+
+
+def test_relative_canonical_warns() -> None:
+    html = page_with_head('<link rel="canonical" href="/">')
+    assert severities(seo.Canonical, make_context(make_page(html))) == [Severity.WARN]
+
+
+def test_robots_blocking_google_fails() -> None:
+    robots = RobotsInfo(url=f"{HOME}robots.txt", exists=True, text="User-agent: *\nDisallow: /\n")
+    assert severities(seo.RobotsTxt, make_context(robots=robots)) == [Severity.FAIL]
+
+
+def test_sitemap_without_robots_reference_adds_info() -> None:
+    robots = RobotsInfo(url=f"{HOME}robots.txt", exists=True, text="User-agent: *\nAllow: /\n")
+    ctx = make_context(robots=robots, sitemap=GOOD_SITEMAP)
+    assert severities(seo.Sitemap, ctx) == [Severity.PASS, Severity.INFO]
+
+
+def test_empty_sitemap_warns() -> None:
+    sitemap = SitemapInfo(checked=[f"{HOME}sitemap.xml"], found=True, urls=[])
+    assert severities(seo.Sitemap, make_context(sitemap=sitemap)) == [Severity.WARN]
+
+
+def test_noindex_header_on_homepage_fails() -> None:
+    page = make_page(page_with_head(""), headers={"x-robots-tag": "noindex"})
+    assert severities(seo.Indexable, make_context(page)) == [Severity.FAIL]
+
+
+def test_noindex_on_other_page_is_only_info() -> None:
+    home = make_page(page_with_head(""))
+    thanks = make_page(page_with_head('<meta name="robots" content="noindex">'), url=f"{HOME}t")
+    assert severities(seo.Indexable, make_context(home, thanks)) == [Severity.INFO]
+
+
+def test_partial_social_tags_lists_whats_missing() -> None:
+    html = page_with_head('<meta property="og:title" content="Shop">')
+    finding = seo.SocialTags().run(make_context(make_page(html)))[0]
+    assert finding.severity is Severity.WARN
+    assert "og:description" in finding.message
+    assert "twitter:card" in finding.message
+
+
+@pytest.mark.parametrize(
+    ("json_ld", "expected"),
+    [
+        (json.dumps({"@context": "https://schema.org", "@type": "Bakery"}), Severity.PASS),
+        (json.dumps({"@graph": [{"@type": "Organization"}, {"@type": "WebSite"}]}), Severity.PASS),
+        (json.dumps([{"@type": "Product"}]), Severity.PASS),
+        (json.dumps({"@context": "https://schema.org"}), Severity.WARN),  # no @type
+        ('{"@type": "Bakery",}', Severity.FAIL),  # trailing comma = invalid JSON
+    ],
+)
+def test_structured_data_variants(json_ld: str, expected: Severity) -> None:
+    html = page_with_head(f'<script type="application/ld+json">{json_ld}</script>')
+    assert severities(seo.StructuredData, make_context(make_page(html))) == [expected]
+
+
+def test_no_structured_data_is_info_only() -> None:
+    assert severities(seo.StructuredData, make_context()) == [Severity.INFO]
+
+
+def test_broken_links_not_applicable_without_links() -> None:
+    ctx = make_context(capabilities={PROBES})
+    ctx.probes.link_status = {HOME: 200}
+    assert seo.BrokenLinks().run(ctx) == []
+
+
+def test_broken_links_partial_score() -> None:
+    ctx = neglected_context()
+    check = seo.BrokenLinks()
+    findings = check.run(ctx)
+    assert findings[0].affected_urls == [f"{HOME}old-offer"]
+    assert check.score(findings) == pytest.approx(2 / 3)
+
+
+def test_duplicate_titles() -> None:
+    same = page_with_head("<title>Sweet Moments Bakery</title>")
+    pages = [make_page(same, url=f"{HOME}a"), make_page(same, url=f"{HOME}b")]
+    unique = make_page(page_with_head("<title>Contact Sweet Moments</title>"), url=f"{HOME}c")
+
+    findings = seo.DuplicateTitles().run(make_context(*pages, unique))
+
+    assert findings[0].severity is Severity.WARN
+    assert findings[0].affected_urls == [f"{HOME}a", f"{HOME}b"]
+
+
+def test_duplicate_titles_not_applicable_for_single_page() -> None:
+    assert seo.DuplicateTitles().run(make_context()) == []
