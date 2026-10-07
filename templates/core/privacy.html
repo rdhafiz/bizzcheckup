@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy note — {{ product_name }}{% endblock %}
+{% block description %}How {{ product_name }} handles the website address and contact details you give it.{% endblock %}
+
+{% block content %}
+  <article class="container-page prose-page max-w-3xl py-12 sm:py-16">
+    <p class="eyebrow">Privacy note</p>
+    <h1 class="mt-2 text-4xl font-bold">Your data, in plain words</h1>
+    <p class="lead">
+      {{ product_name }} is run by {{ branding.name }}. We collect as little as possible, and
+      only to give you your report and, if you ask, to follow up on it.
+    </p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><strong>The website address you enter</strong>, and what we find on its public pages
+        (the same pages any visitor can see).</li>
+      <li><strong>Your name and email, only if you give them.</strong> They're optional.</li>
+      <li><strong>A scrambled fingerprint of your IP address</strong> (a salted hash). We use it only
+        to stop the same visitor starting too many check-ups. Your actual IP address is never stored.</li>
+    </ul>
+
+    <h2>Why</h2>
+    <ul>
+      <li>To run the check-up and show you the report and PDF.</li>
+      <li>To keep the service fair: limits per visitor, and protection against bots.</li>
+      <li>If you left your email and agreed: so {{ branding.first_name }} can contact you about your
+        report. No newsletters, and we never sell or share your details.</li>
+    </ul>
+
+    <h2>Who can see your report</h2>
+    <p>
+      Each report has a long, random link that can't be guessed. <strong>Anyone you share that link
+      with can open the report</strong>, and nobody else can find it. Reports are hidden from search
+      engines. If someone checks the same website within {{ reuse_hours }} hours, they're shown the
+      same report.
+    </p>
+
+    <h2>Other services involved</h2>
+    <ul>
+      <li><strong>Google PageSpeed Insights</strong> receives the website address to measure its speed.</li>
+      {% if turnstile %}<li><strong>Cloudflare Turnstile</strong> checks that you're a person, not a bot, when you start a check-up.</li>{% endif %}
+    </ul>
+
+    <h2>Cookies</h2>
+    <p>
+      We set only one cookie: a security cookie that protects the form (CSRF). If you switch
+      between light and dark mode, your browser remembers that choice locally. There are no
+      trackers and no advertising cookies.
+    </p>
+
+    <h2>Your choices</h2>
+    <p>
+      To have a report or your contact details deleted, email
+      <a href="mailto:{{ branding.email }}">{{ branding.email }}</a> with the report link.
+    </p>
+  </article>
+{% endblock %}

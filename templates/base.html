@@ -38,7 +38,7 @@
 
   <footer class="border-t border-line py-6 text-sm text-muted">
     <div class="container-page flex flex-col gap-1 sm:flex-row sm:justify-between">
-      <p>{{ product_name }} — {{ tagline }}</p>
+      <p>{{ product_name }} — {{ tagline }} · <a href="{% url 'core:privacy' %}">Privacy</a></p>
       <p class="font-mono text-xs">v{{ app_version }}</p>
     </div>
   </footer>
