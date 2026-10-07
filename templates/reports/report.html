@@ -11,12 +11,29 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container-page py-8 sm:py-12">
-    <div class="report-actions no-print flex flex-wrap gap-3">
+  {# Sticky bar: where am I (domain + score), jump links, and the actions. #}
+  <div class="report-bar no-print">
+    <div class="container-page flex items-center gap-3 py-2">
+      <p class="flex min-w-0 shrink-0 items-center gap-2 font-semibold band-{{ view.report.health_score|band }}">
+        <span class="report-bar__score">{{ view.report.health_score|default:"–" }}</span>
+        <span class="hidden truncate sm:inline">{{ view.checkup.domain }}</span>
+      </p>
+      <nav class="report-nav" aria-label="Report sections">
+        <a href="#overview">Overview</a>
+        {% if view.top_risks %}<a href="#top-issues">Top issues</a>{% endif %}
+        <a href="#plan">Action plan</a>
+        <a href="#details">Details</a>
+        <a href="#help">Get help</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="container-page py-8 sm:py-10">
+    <div class="report-actions no-print flex flex-wrap items-center gap-3">
       <a class="btn-primary" href="{% url 'reports:pdf' view.checkup.pk %}">Download PDF</a>
       <button type="button" class="btn-secondary" data-copy-link="{{ share_url }}">Copy share link</button>
       {% include "checkups/_recheck_form.html" with checkup=view.checkup %}
-      <span class="self-center text-sm text-muted" data-copy-status aria-live="polite"></span>
+      <span class="text-sm text-muted" data-copy-status aria-live="polite"></span>
     </div>
     <p class="no-print mt-3 text-sm text-muted">
       Checked {{ view.checkup.finished_at|ago }}. Changed something on your website?

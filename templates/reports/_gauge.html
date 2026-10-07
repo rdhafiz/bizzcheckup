@@ -1,0 +1,17 @@
+{% load bizz %}
+{% comment %}
+  Half-circle gauge for the Business Health Score. pathLength="100" lets the score be
+  used directly as the stroke length; the number and band label are real text.
+{% endcomment %}
+<figure class="gauge band-{{ score|band }}" aria-label="Business Health Score: {% if score is not None %}{{ score }} out of 100, {{ score|band_label }}{% else %}not available{% endif %}">
+  <svg viewBox="0 0 120 68" class="w-full" aria-hidden="true">
+    <path class="gauge__track" d="M 10 60 A 50 50 0 0 1 110 60" fill="none" stroke-width="10" stroke-linecap="round" pathLength="100"/>
+    {% if score is not None %}
+      <path class="gauge__value" d="M 10 60 A 50 50 0 0 1 110 60" fill="none" stroke-width="10" stroke-linecap="round" pathLength="100" stroke-dasharray="{{ score }} 100"/>
+    {% endif %}
+  </svg>
+  <figcaption class="gauge__label">
+    <span class="gauge__number">{{ score|default:"–" }}</span>
+    <span class="gauge__of">/ 100</span>
+  </figcaption>
+</figure>

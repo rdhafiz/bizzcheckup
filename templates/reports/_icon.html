@@ -1,0 +1,22 @@
+{% comment %}
+  Line icons in one consistent style (24px grid, 2px stroke), decorative only (aria-hidden):
+  the text next to them always says the same thing, so meaning never depends on the icon.
+  Usage: {% include "reports/_icon.html" with name="fail" css="size-5" %}
+{% endcomment %}<svg class="{{ css|default:'size-5' }} shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == "fail" %}<circle cx="12" cy="12" r="9.5"/><path d="m15 9-6 6M9 9l6 6"/>
+{% elif name == "warn" %}<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>
+{% elif name == "info" %}<circle cx="12" cy="12" r="9.5"/><path d="M12 16v-4M12 8h.01"/>
+{% elif name == "pass" %}<circle cx="12" cy="12" r="9.5"/><path d="m8.5 12 2.5 2.5 4.5-5"/>
+{% elif name == "performance" %}<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+{% elif name == "accessibility" %}<circle cx="12" cy="4.5" r="2"/><path d="M5 8.5 12 10l7-1.5M12 10v5l-3 6M12 15l3 6"/>
+{% elif name == "best_practices" %}<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/>
+{% elif name == "seo" %}<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>
+{% elif name == "agentic" %}<path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/><circle cx="12" cy="12" r="3"/>
+{% elif name == "why" %}<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+{% elif name == "fix" %}<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/>
+{% elif name == "where" %}<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>
+{% elif name == "chevron" %}<path d="m6 9 6 6 6-6"/>
+{% elif name == "bolt" %}<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+{% elif name == "list" %}<path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/>
+{% elif name == "arrow" %}<path d="M5 12h14M13 6l6 6-6 6"/>
+{% endif %}</svg>

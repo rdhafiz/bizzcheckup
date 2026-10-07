@@ -86,6 +86,21 @@ def test_build_report(finished: Checkup) -> None:
     assert "<svg" in view.qr_svg
 
 
+def test_overview_numbers_and_verdict(finished: Checkup) -> None:
+    view = build_report(finished)
+    assert (view.needs_treatment, view.worth_fixing) == (1, 0)
+    assert view.healthy_count == sum(len(s.healthy) for s in view.vital_signs)
+    assert view.verdict == (
+        "Your website works, but 1 serious problem is holding your business back."
+    )
+    assert [s.category for s in view.problem_categories] == [Category.SEO]
+
+    performance, seo = view.vital_signs[0], view.vital_signs[3]
+    assert seo.anchor == "sign-seo"
+    assert seo.headline == "1 issue found; 1 needs treatment."
+    assert performance.headline == "Not checked this time."
+
+
 def test_recommendations_map_each_failing_area_to_a_service(finished: Checkup) -> None:
     view = build_report(finished)
     # 72 accessibility, 48 SEO, 60 agentic need care; 95 best practices doesn't;
@@ -148,6 +163,16 @@ def test_report_page_has_all_six_sections(client: Client, finished: Checkup) -> 
     assert 'data-copy-link="http://testserver/checkups/' in html
     assert "This vital sign wasn't checked." in html  # performance has no score
     assert "<svg" in html  # QR code
+
+
+def test_report_page_helps_find_issues_and_solutions(client: Client, finished: Checkup) -> None:
+    html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
+    for anchor in ["#overview", "#top-issues", "#plan", "#details", "#help", "#sign-seo"]:
+        assert f'href="{anchor}"' in html, anchor
+    assert "The solution" in html  # top risks show the fix next to the problem
+    assert '<details class="issue band-urgent"' in html  # issues expand on demand
+    assert f'data-plan="{finished.pk}"' in html  # the checklist
+    assert 'data-plan-key="qseo.title-1"' in html
 
 
 def test_report_contact_links_come_from_branding(client: Client, finished: Checkup) -> None:

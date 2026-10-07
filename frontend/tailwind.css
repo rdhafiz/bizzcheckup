@@ -351,25 +351,218 @@
 
 @layer components {
   .report-section {
-    @apply mt-16 first:mt-0;
+    @apply mt-16 scroll-mt-24 first:mt-0;
   }
-  .finding {
-    @apply rounded-2xl border border-line bg-card p-5;
+  #details {
+    @apply scroll-mt-24;
+  }
+
+  /* Sticky bar: domain, score and jump links stay in view while reading. */
+  .report-bar {
+    @apply sticky top-0 z-20 border-b border-line backdrop-blur;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+  }
+  .report-bar__score {
+    @apply inline-flex h-7 min-w-9 items-center justify-center rounded-lg px-1.5 font-mono text-sm font-bold;
+    color: var(--band);
+    background: var(--band-soft);
+  }
+  .report-nav {
+    @apply flex min-w-0 grow gap-1 overflow-x-auto text-sm sm:justify-end;
+    scrollbar-width: none;
+  }
+  .report-nav a {
+    @apply inline-flex min-h-11 shrink-0 items-center rounded-lg px-3 font-semibold whitespace-nowrap
+      text-muted no-underline transition-colors hover:bg-primary-soft hover:text-primary hover:no-underline;
+  }
+
+  /* Overview: score card + screenshot, then counters and the vital-sign bars. */
+  .overview {
+    @apply grid items-stretch gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)];
+  }
+  .overview__shot {
+    @apply self-center;
+  }
+  .verdict {
+    @apply text-center text-lg leading-snug font-semibold text-balance;
+    font-family: var(--font-display);
+  }
+  .gauge {
+    @apply relative;
+  }
+  .gauge__track {
+    stroke: var(--line);
+  }
+  .gauge__value {
+    stroke: var(--band);
+    animation: gauge-fill 900ms ease-out;
+  }
+  .gauge__label {
+    @apply absolute inset-x-0 bottom-0 flex items-baseline justify-center gap-1;
+  }
+  .gauge__number {
+    @apply font-mono text-6xl leading-none font-bold;
+    color: var(--band);
+  }
+  .gauge__of {
+    @apply font-mono text-sm text-muted;
+  }
+
+  .stats {
+    @apply grid grid-cols-2 gap-3 sm:grid-cols-4;
+  }
+  .stat {
+    @apply grid grid-cols-[auto_1fr] items-center gap-x-3 rounded-2xl border border-line bg-card p-4;
+  }
+  .stat__icon {
+    @apply row-span-2 rounded-xl p-2;
+    box-sizing: content-box;
+    color: var(--band);
+    background: var(--band-soft);
+  }
+  .stat--primary {
+    --band: var(--primary);
+    --band-soft: var(--primary-soft);
+  }
+  .stat__number {
+    @apply font-mono text-3xl leading-none font-bold;
+  }
+  .stat__label {
+    @apply text-sm text-muted;
+  }
+
+  /* Bullet bars: score vs. the "Healthy" line at 90. */
+  .bullet {
+    @apply grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 py-3 text-ink no-underline
+      hover:no-underline sm:grid-cols-[11rem_1fr_3rem_13rem];
+  }
+  .bullet:hover .bullet__name {
+    @apply text-primary;
+  }
+  .bullet__name {
+    @apply flex items-center gap-2 font-semibold transition-colors;
+  }
+  .bullet__bar {
+    @apply col-span-2 row-start-2 sm:col-span-1 sm:row-start-auto;
+  }
+  .bullet__track {
+    fill: var(--line);
+  }
+  .bullet__fill {
+    fill: var(--band);
+  }
+  .bullet__target {
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+  .bullet-legend {
+    @apply inline-block h-3 w-0.5 bg-ink;
+  }
+  .bullet__score {
+    @apply text-right font-mono text-xl font-bold;
+    color: var(--band);
+  }
+  .bullet__status {
+    @apply col-span-2 flex items-center gap-2 sm:col-span-1;
+  }
+  .bullet__status .band-pill {
+    @apply whitespace-nowrap;
+  }
+  .bullet__issues {
+    @apply text-xs whitespace-nowrap text-muted;
+  }
+
+  /* Top risks: problem, cost, solution. */
+  .risk {
+    @apply flex min-w-0 flex-col rounded-2xl border border-line bg-card p-5;
+    overflow-wrap: anywhere; /* long CSS selectors and URLs in the fix text */
+    border-top: 4px solid var(--band);
+  }
+  .risk__rank {
+    @apply font-mono text-3xl leading-none font-bold;
+    color: var(--band);
+  }
+  .risk__part {
+    @apply mt-4 border-t border-line pt-3;
+  }
+  .risk__part--fix {
+    @apply mt-auto rounded-xl border-0 bg-primary-soft p-3;
+  }
+  .risk__part--fix:not(:first-child) {
+    margin-top: 1rem;
+  }
+
+  /* Issues: one line per problem, details on demand (<details>). */
+  .issue {
+    @apply rounded-2xl border border-line bg-card;
     border-left: 4px solid var(--band);
   }
-  .treatment-list {
-    @apply space-y-3;
-    counter-reset: treatment;
+  .issue__summary {
+    @apply flex min-h-11 cursor-pointer list-none items-start gap-3 rounded-2xl p-4 sm:items-center;
   }
-  .treatment-item {
-    @apply flex gap-4 rounded-xl border border-line bg-card p-4;
-    counter-increment: treatment;
+  .issue__summary::-webkit-details-marker {
+    display: none;
   }
-  .treatment-item::before {
-    @apply font-mono text-xl font-bold;
-    content: counter(treatment);
+  .issue__summary:hover .issue__message {
+    @apply text-primary;
+  }
+  .issue__icon {
+    @apply mt-0.5 sm:mt-0;
     color: var(--band);
-    min-width: 1.5rem;
+  }
+  .issue__main {
+    @apply flex min-w-0 flex-1 flex-col;
+  }
+  .issue__severity {
+    @apply text-xs font-bold tracking-wide uppercase;
+    color: var(--band);
+  }
+  .issue__message {
+    @apply font-semibold transition-colors;
+  }
+  .issue__chips {
+    @apply hidden shrink-0 gap-2 md:flex;
+  }
+  .issue__chevron {
+    @apply mt-0.5 text-muted transition-transform duration-200 sm:mt-0;
+  }
+  details[open] > summary .issue__chevron {
+    @apply rotate-180;
+  }
+  .issue__body {
+    @apply grid grid-cols-[minmax(0,1fr)] gap-4 border-t border-line p-4 text-sm sm:grid-cols-2;
+    overflow-wrap: anywhere;
+  }
+  .issue[open] .issue__body {
+    animation: fade-up 200ms ease-out;
+  }
+  .issue__part p {
+    @apply mt-1 text-muted;
+  }
+  .issue__part--fix {
+    @apply rounded-xl bg-primary-soft p-3;
+  }
+  .issue__part--fix p {
+    @apply text-ink;
+  }
+  .issue__heading {
+    @apply flex items-center gap-1.5 text-sm font-semibold text-ink;
+  }
+
+  .sign-head {
+    @apply flex flex-wrap items-start justify-between gap-6;
+  }
+  .healthy-group {
+    @apply rounded-2xl border border-line bg-card p-4;
+  }
+  .healthy-group__summary {
+    @apply flex min-h-11 cursor-pointer list-none items-center gap-2 font-bold;
+  }
+  .healthy-group__summary::-webkit-details-marker {
+    display: none;
+  }
+  .healthy-group__summary .issue__chevron {
+    @apply ml-auto;
   }
   .healthy-item {
     @apply relative pl-6;
@@ -379,9 +572,37 @@
     content: "✓";
     color: var(--healthy);
   }
+
+  /* Treatment plan checklist. */
+  .plan-list {
+    @apply space-y-3;
+  }
+  .plan-item {
+    @apply flex items-start gap-4 rounded-2xl border border-line bg-card p-4 transition-colors;
+  }
+  .plan-item__check {
+    @apply mt-0.5 size-6 shrink-0 cursor-pointer rounded-md;
+    accent-color: var(--healthy);
+  }
+  .plan-item__box {
+    @apply mt-0.5 size-5 shrink-0 rounded border-2 border-muted;
+  }
+  .plan-item__label {
+    @apply cursor-pointer font-semibold;
+  }
+  .plan-item__link {
+    @apply ml-auto inline-flex min-h-8 items-center font-semibold;
+  }
+  .plan-item:has(.plan-item__check:checked) {
+    @apply border-healthy bg-healthy-soft;
+  }
+  .plan-item:has(.plan-item__check:checked) .plan-item__label {
+    @apply text-muted line-through;
+  }
+
   .cta {
-    background: var(--primary-soft);
-    border-color: transparent;
+    @apply flex flex-col gap-5 rounded-2xl bg-primary-soft p-6 sm:flex-row sm:items-center
+      sm:justify-between sm:p-8;
   }
   .qr svg {
     @apply block h-auto w-36;
@@ -406,10 +627,19 @@
   .report-section:first-child {
     break-before: auto;
   }
-  .finding,
-  .treatment-item,
+  .issue,
+  .risk,
+  .plan-item,
+  .stat,
   .card {
     break-inside: avoid;
+  }
+  .report-section,
+  #details {
+    scroll-margin-top: 0;
+  }
+  .gauge__value {
+    animation: none;
   }
   a {
     color: var(--ink);
@@ -424,6 +654,9 @@
 
 @keyframes draw {
   to { stroke-dashoffset: 0; }
+}
+@keyframes gauge-fill {
+  from { stroke-dasharray: 0 100; }
 }
 @keyframes pop-in {
   from { transform: scale(0.4); opacity: 0; }

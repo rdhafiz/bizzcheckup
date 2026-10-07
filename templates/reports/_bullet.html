@@ -1,0 +1,24 @@
+{% load bizz %}
+{% comment %}
+  One vital sign as a bullet bar: the score against the "Healthy" line at 90.
+  An SVG (not a styled div) because the bar length is data and our CSP forbids inline styles.
+  A jump link on the web; plain text in the PDF.
+{% endcomment %}
+{% if pdf %}<div class="bullet band-{{ sign.score.score|band }}">{% else %}<a href="#{{ sign.anchor }}" class="bullet band-{{ sign.score.score|band }}">{% endif %}
+  <span class="bullet__name">
+    {% include "reports/_icon.html" with name=sign.category.value css="size-5 text-primary" %}
+    {{ sign.label }}
+  </span>
+  <span class="bullet__bar">
+    <svg viewBox="0 0 100 10" preserveAspectRatio="none" class="h-3 w-full" aria-hidden="true">
+      <rect class="bullet__track" x="0" y="0" width="100" height="10" rx="5"/>
+      {% if sign.score.score is not None %}<rect class="bullet__fill" x="0" y="0" width="{{ sign.score.score }}" height="10" rx="5"/>{% endif %}
+      <line class="bullet__target" x1="90" y1="-2" x2="90" y2="12" vector-effect="non-scaling-stroke"/>
+    </svg>
+  </span>
+  <span class="bullet__score">{{ sign.score.score|default:"–" }}</span>
+  <span class="bullet__status">
+    <span class="band-pill text-xs">{{ sign.score.score|band_label }}</span>
+    <span class="bullet__issues">{% if sign.score.score is None %}Not checked{% elif sign.problems %}{{ sign.problems|length }} issue{{ sign.problems|length|pluralize }}{% else %}All clear{% endif %}</span>
+  </span>
+{% if pdf %}</div>{% else %}</a>{% endif %}

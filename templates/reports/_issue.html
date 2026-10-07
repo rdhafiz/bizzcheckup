@@ -1,0 +1,39 @@
+{% load bizz %}
+{% comment %}
+  One finding as an expandable row: the problem in one line first (scannable), the
+  business impact and the fix one tap away. Native <details>: keyboard and screen reader
+  friendly, no JavaScript. Always open in the PDF.
+{% endcomment %}
+<details class="issue band-{{ finding.severity|severity_band }}" {% if pdf or open %}open{% endif %}>
+  <summary class="issue__summary">
+    <span class="issue__icon">{% include "reports/_icon.html" with name=finding.severity css="size-5" %}</span>
+    <span class="issue__main">
+      <span class="issue__severity">{{ finding.severity|severity_label }}</span>
+      <span class="issue__message">{{ finding.message }}</span>
+    </span>
+    <span class="issue__chips">
+      <span class="chip">Impact: {{ finding.impact }}</span>
+      <span class="chip">Effort: {{ finding.effort }}</span>
+    </span>
+    <span class="issue__chevron no-print">{% include "reports/_icon.html" with name="chevron" css="size-5" %}</span>
+  </summary>
+  <div class="issue__body">
+    <div class="issue__part">
+      <h4 class="issue__heading">{% include "reports/_icon.html" with name="why" css="size-4" %} Why it matters for your business</h4>
+      <p>{{ finding.why_it_matters }}</p>
+    </div>
+    <div class="issue__part issue__part--fix">
+      <h4 class="issue__heading">{% include "reports/_icon.html" with name="fix" css="size-4" %} How to fix it</h4>
+      <p class="break-words">{{ finding.how_to_fix|urlize }}</p>
+    </div>
+    {% if finding.affected_urls %}
+      <div class="issue__part sm:col-span-2">
+        <h4 class="issue__heading">{% include "reports/_icon.html" with name="where" css="size-4" %} Where</h4>
+        <ul class="mt-1 space-y-0.5 font-mono text-xs text-muted">
+          {% for url in finding.affected_urls|first_items:5 %}<li class="break-all">{{ url }}</li>{% endfor %}
+          {% if finding.affected_urls|remaining:5 %}<li>and {{ finding.affected_urls|remaining:5 }} more</li>{% endif %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+</details>
