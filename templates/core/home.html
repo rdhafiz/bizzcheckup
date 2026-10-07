@@ -2,151 +2,118 @@
 {% load static %}
 
 {% block head %}
+  <link rel="preload" href="{% static 'img/hero-bg.svg' %}" as="image" type="image/svg+xml">
   {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
 {% block body_class %}page-home{% endblock %}
-{% block header_class %}relative z-10{% endblock %}
+{% block header_class %}on-dark absolute inset-x-0 top-0 z-20{% endblock %}
 {% block header_container %}container-wide{% endblock %}
 
 {% block content %}
-  {# --- Hero: promise on the left, a report preview in the middle, the form on the right --- #}
-  <section class="hero container-wide" aria-labelledby="hero-title">
-    <div class="hero__text">
-      <p class="pill-eyebrow">Free website check-up</p>
-      <h1 id="hero-title" class="mt-5 text-4xl leading-[1.05] font-bold sm:text-6xl lg:text-[3.6rem]">
-        <span class="sr-only">{{ product_name }}: </span>Is your business website
-        <span class="hero__highlight">healthy<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span>?
-      </h1>
-      <p class="mt-6 max-w-md text-lg text-muted">
-        In just a minute, we analyze your website and explain what's working, what's not,
-        and how to improve it for better visibility, trust and growth.
-      </p>
-      <ul class="hero__perks">
-        <li class="tone-green">
-          <span class="tone-tile">{% include "partials/icon.html" with name="bolt" css="size-5" %}</span>
-          <span>Free, no<br>account</span>
-        </li>
-        <li class="tone-blue">
-          <span class="tone-tile">{% include "partials/icon.html" with name="clock" css="size-5" %}</span>
-          <span>Report in<br>about a minute</span>
-        </li>
-        <li class="tone-rose">
-          <span class="tone-tile">{% include "partials/icon.html" with name="file" css="size-5" %}</span>
-          <span>PDF to keep<br>or share</span>
-        </li>
-      </ul>
-    </div>
+  {# --- Hero: full screen, background image + dark backdrop, text left and form right --- #}
+  <section class="hero-full" aria-labelledby="hero-title">
+    <div class="hero container-wide">
+      <div class="hero__text on-dark">
+        <p class="pill-eyebrow">Free website check-up</p>
+        <h1 id="hero-title" class="mt-5 text-4xl leading-[1.05] font-bold sm:text-6xl lg:text-[3.6rem]">
+          <span class="sr-only">{{ product_name }}: </span>Is your business website
+          <span class="hero__highlight">healthy<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span>?
+        </h1>
+        <p class="mt-6 max-w-md text-lg text-muted">
+          In just a minute, we analyze your website and explain what's working, what's not,
+          and how to improve it for better visibility, trust and growth.
+        </p>
+        <ul class="hero__perks">
+          <li class="tone-green">
+            <span class="tone-tile">{% include "partials/icon.html" with name="bolt" css="size-5" %}</span>
+            <span>Free, no<br>account</span>
+          </li>
+          <li class="tone-blue">
+            <span class="tone-tile">{% include "partials/icon.html" with name="clock" css="size-5" %}</span>
+            <span>Report in<br>about a minute</span>
+          </li>
+          <li class="tone-rose">
+            <span class="tone-tile">{% include "partials/icon.html" with name="file" css="size-5" %}</span>
+            <span>PDF to keep<br>or share</span>
+          </li>
+        </ul>
+      </div>
 
-    {# Decorative preview of a report on a laptop (built in HTML, so it stays sharp and follows dark mode). #}
-    <div class="hero__laptop" aria-hidden="true">
-      <div class="laptop">
-        <div class="laptop__screen">
-          <div class="laptop__display">
-            <div class="mini-report">
-              <div class="mini-report__score">
-                <p class="mini-report__brand">BizzCheckup</p>
-                <svg viewBox="0 0 36 36" class="mt-1 w-full">
-                  <circle cx="18" cy="18" r="15" fill="none" stroke-width="3.5" class="mini-ring__track"/>
-                  <circle cx="18" cy="18" r="15" fill="none" stroke-width="3.5" stroke-linecap="round" pathLength="100" stroke-dasharray="92 100" transform="rotate(-90 18 18)" class="mini-ring__value"/>
-                  <text x="18" y="18" text-anchor="middle" dominant-baseline="central" class="mini-ring__text">92</text>
-                </svg>
-                <p class="mini-report__label">Website Health</p>
-                <span class="mini-report__bar"></span>
-              </div>
-              <ul class="mini-report__list">
-                <li class="tone-green">Performance</li>
-                <li class="tone-blue">Accessibility</li>
-                <li class="tone-rose">Best Practices</li>
-                <li class="tone-violet">SEO</li>
-                <li class="tone-amber">AI Readiness</li>
-              </ul>
+      <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" novalidate>
+        {% csrf_token %}
+        <h2 class="text-2xl font-bold">Start your <span class="text-primary">check-up</span></h2>
+        <label for="id_url" class="mt-1 block text-sm text-muted">Enter your website address to get a free report.</label>
+
+        {% for error in form.non_field_errors %}
+          <p class="alert band-urgent mt-4" role="alert">{{ error }}</p>
+        {% endfor %}
+
+        <div class="mt-5">
+          <div class="input-icon">
+            {% include "partials/icon.html" with name="globe" css="size-5 input-icon__icon" %}
+            <input type="text" name="url" id="id_url" value="{{ form.url.value|default_if_none:'' }}"
+                   placeholder="yourbusiness.com" autocomplete="url" inputmode="url"
+                   autocapitalize="none" spellcheck="false" required
+                   {% if form.url.errors %}aria-invalid="true" aria-describedby="url-error"{% endif %}
+                   class="field-input pl-12! text-lg">
+          </div>
+          {% if form.url.errors %}<p id="url-error" class="field-error" role="alert">{{ form.url.errors.0 }}</p>{% endif %}
+        </div>
+
+        <fieldset class="mt-5">
+          <legend class="text-sm font-semibold">Where should we send follow-up tips? <span class="font-normal text-muted">(optional)</span></legend>
+          <div class="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_3fr]">
+            <div class="input-icon">
+              <label for="id_name" class="sr-only">{{ form.name.label }}</label>
+              {% include "partials/icon.html" with name="user" css="size-5 input-icon__icon" %}
+              <input type="text" name="name" id="id_name" value="{{ form.name.value|default_if_none:'' }}"
+                     placeholder="Your name" autocomplete="name" maxlength="120" class="field-input pl-11! lg:text-sm">
+            </div>
+            <div class="input-icon">
+              <label for="id_email" class="sr-only">{{ form.email.label }}</label>
+              {% include "partials/icon.html" with name="mail" css="size-5 input-icon__icon" %}
+              <input type="email" name="email" id="id_email" value="{{ form.email.value|default_if_none:'' }}"
+                     placeholder="you@business.com" autocomplete="email"
+                     {% if form.email.errors %}aria-invalid="true" aria-describedby="email-error"{% endif %}
+                     class="field-input pl-11! lg:text-sm">
             </div>
           </div>
+          {% if form.email.errors %}<p id="email-error" class="field-error" role="alert">{{ form.email.errors.0 }}</p>{% endif %}
+        </fieldset>
+
+        <div class="mt-5">
+          <label class="flex items-start gap-3 text-sm">
+            <input type="checkbox" name="consent" id="id_consent" required
+                   {% if form.consent.value %}checked{% endif %}
+                   {% if form.consent.errors %}aria-invalid="true" aria-describedby="consent-error"{% endif %}
+                   class="mt-0.5 size-5 shrink-0 accent-[var(--primary)]">
+            <span>
+              I agree to the <a href="{% url 'core:privacy' %}">privacy note</a>. If I leave my email,
+              I'm happy to be contacted about my report.
+            </span>
+          </label>
+          {% if form.consent.errors %}<p id="consent-error" class="field-error" role="alert">{{ form.consent.errors.0 }}</p>{% endif %}
         </div>
-        <div class="laptop__base"></div>
-      </div>
-      <svg class="hero__cup" viewBox="0 0 80 70">
-        <ellipse cx="38" cy="64" rx="34" ry="5" class="cup__saucer"/>
-        <path d="M10 22h52l-5 34a8 8 0 0 1-8 7H23a8 8 0 0 1-8-7z" class="cup__body"/>
-        <path d="M62 28c9 0 12 4 11 9s-6 9-13 9" fill="none" stroke-width="4" class="cup__handle"/>
-        <ellipse cx="36" cy="22" rx="26" ry="5" class="cup__coffee"/>
-      </svg>
+
+        {# Honeypot: invisible to people, tempting for bots. Must stay empty. #}
+        <div class="honeypot" aria-hidden="true">
+          <label for="id_website">Leave this field empty</label>
+          <input type="text" name="website" id="id_website" tabindex="-1" autocomplete="off">
+        </div>
+
+        {% if turnstile_site_key %}
+          <div class="cf-turnstile mt-5" data-sitekey="{{ turnstile_site_key }}"></div>
+        {% endif %}
+
+        <button type="submit" class="btn-pill mt-6 w-full">Start my free check-up {% include "partials/icon.html" with name="arrow" css="size-5" %}</button>
+        <p class="mt-4 flex items-start justify-center gap-3 text-xs text-muted">
+          {% include "partials/icon.html" with name="lock" css="size-5 text-ink" %}
+          <span>We only look at public pages, like a visitor would.<br>
+          <a href="{% url 'core:privacy' %}">How we handle your data</a>.</span>
+        </p>
+      </form>
     </div>
-
-    <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" novalidate>
-      {% csrf_token %}
-      <h2 class="text-2xl font-bold">Start your <span class="text-primary">check-up</span></h2>
-      <label for="id_url" class="mt-1 block text-sm text-muted">Enter your website address to get a free report.</label>
-
-      {% for error in form.non_field_errors %}
-        <p class="alert band-urgent mt-4" role="alert">{{ error }}</p>
-      {% endfor %}
-
-      <div class="mt-5">
-        <div class="input-icon">
-          {% include "partials/icon.html" with name="globe" css="size-5 input-icon__icon" %}
-          <input type="text" name="url" id="id_url" value="{{ form.url.value|default_if_none:'' }}"
-                 placeholder="yourbusiness.com" autocomplete="url" inputmode="url"
-                 autocapitalize="none" spellcheck="false" required
-                 {% if form.url.errors %}aria-invalid="true" aria-describedby="url-error"{% endif %}
-                 class="field-input pl-12! text-lg">
-        </div>
-        {% if form.url.errors %}<p id="url-error" class="field-error" role="alert">{{ form.url.errors.0 }}</p>{% endif %}
-      </div>
-
-      <fieldset class="mt-5">
-        <legend class="text-sm font-semibold">Where should we send follow-up tips? <span class="font-normal text-muted">(optional)</span></legend>
-        <div class="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_3fr]">
-          <div class="input-icon">
-            <label for="id_name" class="sr-only">{{ form.name.label }}</label>
-            {% include "partials/icon.html" with name="user" css="size-5 input-icon__icon" %}
-            <input type="text" name="name" id="id_name" value="{{ form.name.value|default_if_none:'' }}"
-                   placeholder="Your name" autocomplete="name" maxlength="120" class="field-input pl-11! lg:text-sm">
-          </div>
-          <div class="input-icon">
-            <label for="id_email" class="sr-only">{{ form.email.label }}</label>
-            {% include "partials/icon.html" with name="mail" css="size-5 input-icon__icon" %}
-            <input type="email" name="email" id="id_email" value="{{ form.email.value|default_if_none:'' }}"
-                   placeholder="you@business.com" autocomplete="email"
-                   {% if form.email.errors %}aria-invalid="true" aria-describedby="email-error"{% endif %}
-                   class="field-input pl-11! lg:text-sm">
-          </div>
-        </div>
-        {% if form.email.errors %}<p id="email-error" class="field-error" role="alert">{{ form.email.errors.0 }}</p>{% endif %}
-      </fieldset>
-
-      <div class="mt-5">
-        <label class="flex items-start gap-3 text-sm">
-          <input type="checkbox" name="consent" id="id_consent" required
-                 {% if form.consent.value %}checked{% endif %}
-                 {% if form.consent.errors %}aria-invalid="true" aria-describedby="consent-error"{% endif %}
-                 class="mt-0.5 size-5 shrink-0 accent-[var(--primary)]">
-          <span>
-            I agree to the <a href="{% url 'core:privacy' %}">privacy note</a>. If I leave my email,
-            I'm happy to be contacted about my report.
-          </span>
-        </label>
-        {% if form.consent.errors %}<p id="consent-error" class="field-error" role="alert">{{ form.consent.errors.0 }}</p>{% endif %}
-      </div>
-
-      {# Honeypot: invisible to people, tempting for bots. Must stay empty. #}
-      <div class="honeypot" aria-hidden="true">
-        <label for="id_website">Leave this field empty</label>
-        <input type="text" name="website" id="id_website" tabindex="-1" autocomplete="off">
-      </div>
-
-      {% if turnstile_site_key %}
-        <div class="cf-turnstile mt-5" data-sitekey="{{ turnstile_site_key }}"></div>
-      {% endif %}
-
-      <button type="submit" class="btn-pill mt-6 w-full">Start my free check-up {% include "partials/icon.html" with name="arrow" css="size-5" %}</button>
-      <p class="mt-4 flex items-start justify-center gap-3 text-xs text-muted">
-        {% include "partials/icon.html" with name="lock" css="size-5 text-ink" %}
-        <span>We only look at public pages, like a visitor would.<br>
-        <a href="{% url 'core:privacy' %}">How we handle your data</a>.</span>
-      </p>
-    </form>
   </section>
 
   {# --- The five vital signs ------------------------------------------------------- #}

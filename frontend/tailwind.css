@@ -67,7 +67,6 @@
   --tone-violet: #7c3aed; --tone-violet-soft: #efe8fd;
   --tone-amber: #d97706;  --tone-amber-soft: #fdf1dc;
   --on-tone: #ffffff;
-  --hero-glow: #f1e4d0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -94,11 +93,12 @@
     --tone-violet: #a78bfa; --tone-violet-soft: #241a3d;
     --tone-amber: #fbbf24;  --tone-amber-soft: #3a2a12;
     --on-tone: #0c1517;
-    --hero-glow: #1c2a26;
   }
 }
 
-:root[data-theme="dark"] {
+/* .on-dark: the dark palette for one area, e.g. text over the homepage hero photo. */
+:root[data-theme="dark"],
+.on-dark {
   color-scheme: dark;
   --paper: #0c1517;
   --card: #132124;
@@ -121,7 +121,15 @@
   --tone-violet: #a78bfa; --tone-violet-soft: #241a3d;
   --tone-amber: #fbbf24;  --tone-amber-soft: #3a2a12;
   --on-tone: #0c1517;
-  --hero-glow: #1c2a26;
+}
+
+/* Hero text sits on a photo: secondary text a little lighter than the dark palette.
+   (Outside @layer on purpose, so it wins over .on-dark above.) */
+.on-dark {
+  color: var(--ink); /* text colour is inherited, so re-apply it with the dark palette */
+}
+.hero__text {
+  --muted: #c9d6d4;
 }
 
 /* Expose the variables to Tailwind: bg-paper, text-ink, border-line, ... */
@@ -373,14 +381,6 @@
     @apply size-14;
   }
 
-  /* Warm light behind the header and hero, like a sunny desk. */
-  .page-home {
-    background:
-      radial-gradient(60rem 36rem at 85% 0%, var(--hero-glow), transparent 70%),
-      var(--paper);
-    background-repeat: no-repeat;
-  }
-
   .pill-eyebrow {
     @apply inline-flex rounded-full bg-primary-soft px-3 py-1 font-mono text-xs font-semibold
       tracking-widest text-primary uppercase;
@@ -393,28 +393,30 @@
     content: "";
   }
 
-  /* Hero: three overlapping columns on large screens, stacked below. */
+  /* Hero: full screen. Background image, a dark backdrop for contrast, then two columns. */
+  .hero-full {
+    @apply relative isolate flex min-h-screen items-center bg-cover bg-center;
+    min-height: 100dvh; /* phones: the visible height, without the browser bars */
+    background-image: url("../img/hero-bg.svg");
+    background-color: #0c1517; /* shown until the image has loaded */
+  }
+  .hero-full::before {
+    @apply absolute inset-0 -z-10;
+    content: "";
+    background:
+      linear-gradient(100deg, rgb(5 14 16 / 0.92) 0%, rgb(5 14 16 / 0.78) 50%, rgb(5 14 16 / 0.55) 100%),
+      linear-gradient(to top, rgb(5 14 16 / 0.6), transparent 40%);
+  }
   .hero {
-    @apply grid gap-10 pt-8 pb-16 sm:pt-12 lg:grid-cols-12 lg:gap-0 lg:pb-20;
-    overflow-x: clip; /* the tilted laptop may poke out on small screens */
-  }
-  .hero__text {
-    @apply lg:col-span-6 lg:col-start-1 lg:row-start-1 lg:pt-10;
-  }
-  .hero__laptop {
-    @apply relative mx-auto w-full max-w-md lg:col-span-4 lg:col-start-6 lg:row-start-1
-      lg:mt-56 lg:w-[125%] lg:max-w-none lg:self-start;
+    @apply grid w-full items-center gap-10 pt-28 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)]
+      lg:gap-16;
   }
   .hero__form {
-    @apply relative z-10 rounded-3xl border border-line bg-card p-6 sm:p-7 lg:col-span-4
-      lg:col-start-9 lg:row-start-1 lg:mt-4 lg:self-start;
-    box-shadow: 0 30px 70px -35px rgb(14 27 30 / 0.45);
+    @apply relative rounded-3xl border border-line bg-card p-6 sm:p-7;
+    box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.6);
   }
-  .hero__laptop {
-    order: 3;
-  }
-  @media (min-width: 64rem) {
-    .hero__laptop { order: 0; }
+  .page-home .messages {
+    @apply absolute inset-x-0 top-16 z-30;
   }
 
   .hero__highlight {
@@ -429,68 +431,6 @@
   }
   .hero__perks li {
     @apply flex items-center gap-3;
-  }
-
-  /* The laptop: a screen in gentle perspective, a keyboard deck, a coffee cup. */
-  .laptop {
-    perspective: 1400px;
-  }
-  .laptop__screen {
-    @apply rounded-2xl p-2.5;
-    background: #1b2427;
-    transform: rotateY(-16deg) rotateX(3deg);
-    transform-origin: left center;
-    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.6);
-  }
-  .laptop__display {
-    @apply overflow-hidden rounded-lg bg-white p-4;
-    aspect-ratio: 16 / 10;
-    color: #0e1b1e;
-  }
-  .laptop__base {
-    @apply mx-auto -mt-1 h-4 w-[112%] -translate-x-[5%] rounded-b-2xl;
-    background: linear-gradient(#d9dde0, #9aa3a8);
-    clip-path: polygon(3% 0, 97% 0, 100% 100%, 0 100%);
-  }
-  .hero__cup {
-    @apply absolute -bottom-2 -left-6 w-20 sm:-left-10;
-  }
-  .cup__saucer { fill: #e9e4dc; }
-  .cup__body { fill: #f7f4ee; }
-  .cup__handle { stroke: #f0ebe2; }
-  .cup__coffee { fill: #6b4226; }
-
-  .mini-report {
-    @apply grid h-full grid-cols-[2fr_3fr] items-center gap-4;
-  }
-  .mini-report__brand {
-    @apply text-[9px] font-bold;
-    color: #0f6e66;
-  }
-  .mini-report__label {
-    @apply mt-1 text-center text-[9px] font-semibold italic;
-  }
-  .mini-report__bar {
-    @apply mt-1 block h-1 w-full rounded-full;
-    background: linear-gradient(90deg, #0f6e66 70%, #e2ded4 70%);
-  }
-  .mini-ring__track { stroke: #e2ded4; }
-  .mini-ring__value { stroke: #15803d; }
-  .mini-ring__text {
-    @apply font-mono text-[11px] font-bold;
-    fill: #0e1b1e;
-  }
-  .mini-report__list {
-    @apply space-y-1.5 text-[9px] font-semibold;
-  }
-  .mini-report__list li {
-    @apply flex items-center gap-1.5 rounded-md px-1.5 py-1;
-    background: #f7f6f2;
-  }
-  .mini-report__list li::before {
-    @apply size-2 rounded-full;
-    content: "";
-    background: var(--tone);
   }
 
   /* Inputs with a leading icon. */
