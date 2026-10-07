@@ -54,6 +54,15 @@ jobs:
       - name: Install libraries
         run: pip install -r requirements/dev.txt
 
+      - name: Cache Chromium
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('requirements/base.txt') }}
+
+      - name: Install Chromium (for browser tests)
+        run: python -m playwright install --with-deps --only-shell chromium
+
       - name: Ruff (lint)
         run: ruff check .
 

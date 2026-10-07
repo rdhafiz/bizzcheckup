@@ -26,7 +26,8 @@ FROM python:3.12-slim AS app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Never run the app as root inside the container.
 RUN useradd --create-home --uid 1000 app
@@ -35,6 +36,11 @@ WORKDIR /app
 # Install libraries first: Docker caches this layer until requirements change.
 COPY requirements/ requirements/
 RUN pip install -r requirements/base.txt
+
+# Headless Chromium for the browser checks, plus the Linux libraries it needs.
+# --only-shell installs the small headless build (no full desktop browser).
+RUN python -m playwright install --with-deps --only-shell chromium \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --chown=app:app . .
 COPY --from=css --chown=app:app /src/static/css/app.css static/css/app.css

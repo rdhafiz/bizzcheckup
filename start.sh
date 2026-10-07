@@ -3,7 +3,8 @@
 # or run ./start.sh in a terminal. Every step is skipped when already done, so
 # the second start is fast.
 #
-#   1. virtual environment + libraries (re-installed only when requirements change)
+#   1. virtual environment + libraries (re-installed only when requirements change),
+#      and headless Chromium for the browser checks (once per Playwright version)
 #   2. .env with a fresh secret key (first run only)
 #   3. PostgreSQL + Redis in Docker (if Docker is running; otherwise SQLite)
 #   4. Tailwind CSS: download once, then rebuild automatically while you work
@@ -94,6 +95,13 @@ if [ "$(cat "$RUN_DIR/requirements.sha" 2>/dev/null || true)" != "$REQ_HASH" ]; 
   echo "$REQ_HASH" > "$RUN_DIR/requirements.sha"
 else
   info "Libraries are up to date."
+fi
+
+PW_VERSION="$("$PY" -c "from importlib.metadata import version; print(version('playwright'))")"
+if [ "$(cat "$RUN_DIR/playwright.version" 2>/dev/null || true)" != "$PW_VERSION" ]; then
+  step "Installing headless Chromium for the browser checks (one-time, ~150 MB)"
+  "$PY" -m playwright install --only-shell chromium
+  echo "$PW_VERSION" > "$RUN_DIR/playwright.version"
 fi
 
 # --- 2. .env -------------------------------------------------------------------
