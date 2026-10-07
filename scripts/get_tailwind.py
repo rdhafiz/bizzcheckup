@@ -43,7 +43,8 @@ def main() -> None:
 
     BIN_DIR.mkdir(exist_ok=True)
     print(f"Downloading {name} ({TAILWIND_VERSION}) ...")
-    urllib.request.urlretrieve(f"{BASE_URL}/{name}", target)
+    # Fixed https:// URL built from constants above, so S310 (open any scheme) does not apply.
+    urllib.request.urlretrieve(f"{BASE_URL}/{name}", target)  # noqa: S310
 
     # Linux/macOS need the "executable" permission bit; Windows ignores it.
     target.chmod(target.stat().st_mode | stat.S_IEXEC)

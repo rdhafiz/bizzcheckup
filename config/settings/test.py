@@ -9,7 +9,7 @@ import os
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-only-secret-key")
 os.environ.setdefault("DATABASE_URL", "sqlite://:memory:")
 
-from .base import *  # noqa: E402, F403
+from .base import *  # noqa: F403
 
 DEBUG = False
 
@@ -22,7 +22,8 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
-# Don't need collectstatic for tests.
+# Serve static files straight from static/ (no collectstatic needed in tests).
+WHITENOISE_AUTOREFRESH = True
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},

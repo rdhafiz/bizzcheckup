@@ -1,0 +1,60 @@
+# Settings for our code-quality tools. (Dependencies live in requirements/.)
+
+[project]
+name = "bizzcheckup"
+version = "0.1.0a0"
+description = "Check your business's online health"
+requires-python = ">=3.12"
+
+# --- Ruff: linter + formatter ------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["*/migrations/*", "docs"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle: basic style
+    "F",        # pyflakes: unused imports, undefined names
+    "I",        # isort: import order
+    "B",        # bugbear: likely bugs
+    "UP",       # pyupgrade: modern Python syntax
+    "SIM",      # simplify: shorter equivalent code
+    "N",        # pep8-naming
+    "S",        # bandit: security problems
+    "DJ",       # Django-specific rules
+    "PT",       # pytest style
+    "RUF",      # Ruff's own rules
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]   # assert is how pytest tests work
+
+# --- mypy: static type checker -----------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["mypy_django_plugin.main"]
+exclude = ['migrations/', '.venv/']
+
+[[tool.mypy.overrides]]
+module = ["celery.*", "environ.*"]
+ignore_missing_imports = true
+
+# Celery ships without type hints, so its @shared_task decorator is "untyped".
+[[tool.mypy.overrides]]
+module = ["*.tasks"]
+disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+# --- pytest ------------------------------------------------------------------
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+testpaths = ["tests"]
+addopts = "--strict-markers"
