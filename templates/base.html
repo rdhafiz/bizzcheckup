@@ -14,21 +14,28 @@
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
-<body class="flex min-h-dvh flex-col">
+<body class="flex min-h-dvh flex-col {% block body_class %}{% endblock %}">
   <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 btn-primary">Skip to content</a>
 
-  <header class="border-b border-line">
-    <div class="container-page flex h-16 items-center justify-between">
+  <header class="{% block header_class %}border-b border-line{% endblock %}">
+    <div class="{% block header_container %}container-page{% endblock %} flex h-16 items-center justify-between">
       <a href="{% url 'core:home' %}" class="no-underline hover:no-underline" aria-label="{{ product_name }} home">
         {% include "partials/logo.html" %}
       </a>
-      <button type="button" data-theme-toggle aria-pressed="false"
-              class="btn-secondary min-h-10 px-3" aria-label="Dark mode">
-        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
-        </svg>
-      </button>
+      <div class="flex items-center gap-4">
+        <button type="button" data-theme-toggle aria-pressed="false"
+                class="btn-secondary min-h-10 px-3" aria-label="Dark mode">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+          </svg>
+        </button>
+        <nav class="hidden items-center gap-3 text-sm sm:flex" aria-label="Site">
+          <a class="inline-flex min-h-11 items-center font-medium text-muted hover:text-primary" href="{% url 'core:privacy' %}">Privacy</a>
+          <span class="h-4 w-px bg-line" aria-hidden="true"></span>
+          <span class="font-mono text-xs text-muted">v{{ app_version }}</span>
+        </nav>
+      </div>
     </div>
   </header>
 
