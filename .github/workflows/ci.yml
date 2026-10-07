@@ -98,3 +98,28 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  compose:
+    name: docker compose up works from a fresh clone
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start web, worker, postgres and redis
+        run: docker compose up -d --build --wait --wait-timeout 300
+
+      - name: Website answers
+        run: |
+          curl -fsS http://127.0.0.1:8000/healthz/
+          curl -fsS http://127.0.0.1:8000/ | grep -q "Start my free check-up"
+
+      - name: Worker answers
+        run: docker compose exec -T worker celery -A config inspect ping --timeout 10
+
+      - name: Show logs if something failed
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop
+        if: always()
+        run: docker compose down -v
