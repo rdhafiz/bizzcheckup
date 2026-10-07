@@ -163,12 +163,11 @@ def test_progress_steps(progress: int, states: list[str]) -> None:
     assert [step.state for step in steps_for(progress)] == states
 
 
-def test_dev_fallback_runs_checkup_in_a_thread_without_a_queue(
+def test_immediate_runner_starts_the_checkup_right_away(
     settings: Settings,
     django_capture_on_commit_callbacks: Any,
 ) -> None:
-    settings.DEBUG = True
-    settings.CHECKUP_RUN_WITHOUT_QUEUE = True
+    settings.CHECKUP_RUNNER = "immediate"
     with (
         patch.object(services, "run_in_background_thread") as thread,
         patch.object(tasks.run_checkup, "delay") as delay,
@@ -177,15 +176,14 @@ def test_dev_fallback_runs_checkup_in_a_thread_without_a_queue(
         checkup = services.create_checkup("shop.test")
 
     thread.assert_called_once_with(str(checkup.pk))
-    delay.assert_not_called()
+    delay.assert_not_called()  # no Redis, no Celery
 
 
-def test_dev_fallback_never_runs_without_debug(
+def test_celery_runner_uses_the_queue(
     settings: Settings,
     django_capture_on_commit_callbacks: Any,
 ) -> None:
-    settings.DEBUG = False  # e.g. production with the variable set by mistake
-    settings.CHECKUP_RUN_WITHOUT_QUEUE = True
+    settings.CHECKUP_RUNNER = "celery"
     with (
         patch.object(services, "run_in_background_thread") as thread,
         patch.object(tasks.run_checkup, "delay") as delay,
@@ -193,8 +191,66 @@ def test_dev_fallback_never_runs_without_debug(
     ):
         services.create_checkup("shop.test")
 
-    thread.assert_not_called()
     delay.assert_called_once()
+    thread.assert_not_called()
+
+
+def test_immediate_runner_limits_how_many_run_at_once(settings: Settings) -> None:
+    import threading
+    import time
+
+    settings.CHECKUP_MAX_CONCURRENT = 2
+    services._slots = None  # start with fresh slots for this test
+    running = 0
+    most = 0
+    done = 0
+    lock = threading.Lock()
+    all_done = threading.Event()
+
+    def fake_task(pk: str) -> None:
+        nonlocal running, most, done
+        with lock:
+            running += 1
+            most = max(most, running)
+        time.sleep(0.2)  # pretend to audit a website
+        with lock:
+            running -= 1
+            done += 1
+            if done == 5:
+                all_done.set()
+
+    with patch.object(tasks, "run_checkup", side_effect=fake_task):
+        for number in range(5):
+            services.run_in_background_thread(str(number))
+        assert all_done.wait(timeout=10)
+
+    services._slots = None
+    assert most == 2  # never more than 2 at the same time, and all 5 finished
+
+
+def test_stuck_checkup_is_failed_instead_of_spinning_forever(settings: Settings) -> None:
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    checkup = Checkup.objects.create(url="https://a.test/", domain="a.test", status="running")
+    Checkup.objects.filter(pk=checkup.pk).update(
+        created_at=timezone.now() - timedelta(seconds=settings.CHECKUP_TIMEOUT_SECONDS + 300)
+    )
+    checkup.refresh_from_db()
+
+    services.expire_if_stuck(checkup)
+
+    checkup.refresh_from_db()
+    assert checkup.status == Checkup.Status.FAILED
+    assert checkup.error_message == services.STUCK_ERROR
+
+
+def test_recent_running_checkup_is_left_alone() -> None:
+    checkup = Checkup.objects.create(url="https://a.test/", domain="a.test", status="running")
+    services.expire_if_stuck(checkup)
+    checkup.refresh_from_db()
+    assert checkup.status == Checkup.Status.RUNNING
 
 
 def test_background_thread_runs_the_worker_task() -> None:
@@ -205,11 +261,3 @@ def test_background_thread_runs_the_worker_task() -> None:
         services.run_in_background_thread("abc")
         assert done.wait(timeout=5)
     task.assert_called_once_with("abc")
-
-
-def test_production_settings_disable_the_dev_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
-    import importlib
-
-    monkeypatch.setenv("CHECKUP_RUN_WITHOUT_QUEUE", "True")
-    prod = importlib.reload(importlib.import_module("config.settings.prod"))
-    assert prod.CHECKUP_RUN_WITHOUT_QUEUE is False

@@ -75,6 +75,7 @@ def _form_error(
 def detail(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     """One address for everything: progress while running, then the report."""
     checkup = get_object_or_404(Checkup, pk=checkup_id)
+    services.expire_if_stuck(checkup)
     if checkup.status == Checkup.Status.FAILED:
         return render(request, "checkups/failed.html", {"checkup": checkup})
     if checkup.status == Checkup.Status.DONE:
@@ -88,6 +89,7 @@ def detail(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
 def progress(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     """The progress box only. HTMX asks for it every 2 seconds."""
     checkup = get_object_or_404(Checkup, pk=checkup_id)
+    services.expire_if_stuck(checkup)
     if checkup.is_finished:
         # Tell HTMX to reload the whole page, which now shows the report (or the error).
         response = HttpResponse(status=204)

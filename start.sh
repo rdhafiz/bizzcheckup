@@ -9,7 +9,7 @@
 #   3. PostgreSQL + Redis in Docker (if Docker is running; otherwise SQLite)
 #   4. Tailwind CSS: download once, then rebuild automatically while you work
 #   5. database migrations
-#   6. Celery worker (only when Redis is available)
+#   6. Celery worker (only with CHECKUP_RUNNER=celery; by default check-ups run immediately)
 #   7. Django development server
 #
 # Stop everything with Ctrl+C. Use another port with: PORT=8001 ./start.sh
@@ -62,7 +62,7 @@ port_in_use() {
   "$PY" -c "import socket,sys; s=socket.socket(); sys.exit(0 if s.connect_ex(('127.0.0.1', int(sys.argv[1]))) == 0 else 1)" "$1"
 }
 
-env_value() { grep -E "^$1=" .env | tail -n1 | cut -d= -f2-; }
+env_value() { { grep -E "^$1=" .env || true; } | tail -n1 | cut -d= -f2-; }
 
 # --- 1. Python and the virtual environment --------------------------------------
 
@@ -127,10 +127,7 @@ if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
     warn "DATABASE_URL=postgres://bizzcheckup:bizzcheckup@localhost:5432/bizzcheckup"
   fi
 else
-  warn "Docker isn't running, so PostgreSQL, Redis and the worker are skipped."
-  warn "Check-ups will run inside the dev server instead (development only)."
-  warn "For the real setup, install Docker Desktop and start it."
-  export CHECKUP_RUN_WITHOUT_QUEUE=True
+  info "Docker isn't running: using SQLite. Check-ups run immediately in the web app."
   if [[ "$(env_value DATABASE_URL)" != sqlite* ]]; then
     info "Switching .env to SQLite so the site can still start."
     sed -i.bak "s|^DATABASE_URL=.*|DATABASE_URL=sqlite:///db.sqlite3|" .env && rm -f .env.bak
@@ -157,9 +154,10 @@ step "Updating the database"
 "$PY" manage.py migrate --noinput -v 0 || fail "Migrations failed (is the database running?)."
 info "Database is up to date."
 
-# --- 6. Celery worker -------------------------------------------------------------
+# --- 6. Celery worker (only for CHECKUP_RUNNER=celery) -----------------------------
 
-if [ "$REDIS_READY" = true ]; then
+RUNNER="${CHECKUP_RUNNER:-$(env_value CHECKUP_RUNNER)}"
+if [ "$RUNNER" = "celery" ] && [ "$REDIS_READY" = true ]; then
   step "Starting the background worker"
   # --pool=solo: Celery's default process pool doesn't work on Windows.
   "$BIN/celery" -A config worker --loglevel=info --pool=solo >"$RUN_DIR/worker.log" 2>&1 &

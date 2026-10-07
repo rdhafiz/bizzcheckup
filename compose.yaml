@@ -19,6 +19,8 @@ x-app: &app
     REDIS_URL: redis://redis:6379/0
     CELERY_BROKER_URL: redis://redis:6379/1
     PSI_API_KEY: ${PSI_API_KEY:-}
+    # Docker has Redis anyway, so use the separate worker here (scales best).
+    CHECKUP_RUNNER: celery
   depends_on:
     postgres:
       condition: service_healthy

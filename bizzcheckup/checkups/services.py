@@ -5,6 +5,7 @@ Views stay thin: they call these functions instead of doing the work themselves.
 
 import logging
 import threading
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import transaction
@@ -19,6 +20,7 @@ from .models import Checkup, Finding, Lead
 
 logger = logging.getLogger(__name__)
 
+STUCK_ERROR = "Your check-up was interrupted before it could finish. Please try again."
 QUEUE_DOWN_ERROR = (
     "Our check-up service is busy or temporarily unavailable. Please try again in a few minutes."
 )
@@ -60,25 +62,38 @@ def create_checkup(raw_url: str, *, ip_hash: str = "", lead: Lead | None = None)
 
 
 def enqueue(checkup: Checkup) -> None:
-    """Send the check-up to the worker. If the job queue is down, fail it politely."""
-    from .tasks import run_checkup  # imported here to avoid a circular import
+    """Start the check-up: immediately in this web app, or through the Celery queue."""
+    if settings.CHECKUP_RUNNER == "celery":
+        from .tasks import run_checkup  # imported here to avoid a circular import
 
-    if settings.CHECKUP_RUN_WITHOUT_QUEUE and settings.DEBUG:
-        run_in_background_thread(str(checkup.pk))
+        try:
+            run_checkup.delay(str(checkup.pk))
+        except Exception:  # e.g. Redis unreachable
+            logger.exception("Could not queue check-up %s", checkup.pk)
+            mark_failed(checkup, QUEUE_DOWN_ERROR)
         return
-    try:
-        run_checkup.delay(str(checkup.pk))
-    except Exception:  # e.g. Redis unreachable
-        logger.exception("Could not queue check-up %s", checkup.pk)
-        mark_failed(checkup, QUEUE_DOWN_ERROR)
+    run_in_background_thread(str(checkup.pk))
+
+
+_slots_lock = threading.Lock()
+_slots: threading.BoundedSemaphore | None = None
+
+
+def _concurrency_slots() -> threading.BoundedSemaphore:
+    """At most CHECKUP_MAX_CONCURRENT check-ups run at once in this process."""
+    global _slots
+    with _slots_lock:
+        if _slots is None:
+            _slots = threading.BoundedSemaphore(settings.CHECKUP_MAX_CONCURRENT)
+        return _slots
 
 
 def run_in_background_thread(checkup_id: str) -> None:
-    """DEVELOPMENT ONLY: run the worker's task in a thread of the dev server.
+    """Run the check-up right away in a background thread of this web app.
 
-    The visitor's request still returns at once (the redirect to the progress page);
-    the check-up continues in the thread. Only used when CHECKUP_RUN_WITHOUT_QUEUE and
-    DEBUG are both on, so it can never happen in production.
+    The visitor's request returns at once (the redirect to the progress page), and
+    the check-up continues in the thread. Extra check-ups wait for a free slot, so at
+    most CHECKUP_MAX_CONCURRENT run at the same time.
     """
     from django.db import connection
 
@@ -86,11 +101,27 @@ def run_in_background_thread(checkup_id: str) -> None:
 
     def work() -> None:
         try:
-            run_checkup(checkup_id)  # the exact same code the Celery worker runs
+            with _concurrency_slots():
+                run_checkup(checkup_id)  # the same code the Celery worker runs
+        except Exception:
+            logger.exception("Check-up %s crashed in its thread", checkup_id)
         finally:
             connection.close()  # each thread has its own database connection
 
     threading.Thread(target=work, name=f"checkup-{checkup_id}", daemon=True).start()
+
+
+def expire_if_stuck(checkup: Checkup) -> None:
+    """Fail a check-up that can no longer finish (e.g. the server restarted mid-way).
+
+    Anything still waiting or running long after the time limit is marked failed, so
+    the progress page never spins forever.
+    """
+    if checkup.is_finished:
+        return
+    limit = timedelta(seconds=settings.CHECKUP_TIMEOUT_SECONDS + 120)
+    if timezone.now() - checkup.created_at > limit:
+        mark_failed(checkup, STUCK_ERROR)
 
 
 def save_report(checkup: Checkup, report: AuditReport) -> None:

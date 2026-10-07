@@ -18,6 +18,9 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"
 # Hashing passwords properly is slow on purpose; tests don't need that.
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
+# Tests use the Celery path, with tasks run inline (no threads, so results are predictable).
+CHECKUP_RUNNER = "celery"
+
 # Run Celery tasks immediately inside the test instead of sending them to a worker.
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True

@@ -160,10 +160,12 @@ TRUST_X_FORWARDED_FOR = env.bool("TRUST_X_FORWARDED_FOR", default=False)
 TURNSTILE_SITE_KEY = env("TURNSTILE_SITE_KEY", default="")
 TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
 
-# DEVELOPMENT ONLY: with no job queue (no Redis/Docker), run check-ups in a background
-# thread of the dev server instead. start.sh turns this on when Docker isn't running.
-# Production always has it off (config/settings/prod.py).
-CHECKUP_RUN_WITHOUT_QUEUE = env.bool("CHECKUP_RUN_WITHOUT_QUEUE", default=False)
+# How check-ups run (docs/12-background-jobs.md):
+#   "immediate" (default): start straight away inside the web app, no Redis/Celery needed
+#   "celery": send them to a separate Celery worker through Redis (for heavy traffic)
+CHECKUP_RUNNER = env.str("CHECKUP_RUNNER", default="immediate")
+# How many check-ups may run at the same time in one web process ("immediate" mode).
+CHECKUP_MAX_CONCURRENT = env.int("CHECKUP_MAX_CONCURRENT", default=3)
 
 # The worker stops a check-up that runs past the timeout, with some extra room.
 CELERY_TASK_SOFT_TIME_LIMIT = CHECKUP_TIMEOUT_SECONDS + 30
