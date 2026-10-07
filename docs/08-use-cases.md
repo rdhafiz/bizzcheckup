@@ -11,10 +11,22 @@
 ## 1. Start a check-up
 
 1. The visitor opens the landing page: "BizzCheckup — Check your business's online
-   health".
-2. They enter their website URL. Name and email are optional. They tick the consent
-   box and click **Start my free check-up**.
-3. They're sent straight to `/checkups/<uuid>/`. The work happens in the background.
+   health", with the five vital signs explained and a three-step "How it works".
+2. They enter their website address. **Name and email are optional.**
+3. They tick the **required** consent box: "I agree to the privacy note. If I leave my
+   email, I'm happy to be contacted about my report."
+4. They click **Start my free check-up** and are sent straight to `/checkups/<uuid>/`.
+   The work happens in the background.
+
+What can stop it (each with a friendly message): an invalid or internal address, a
+missing consent, the honeypot, a failed Turnstile check, 5 check-ups in the last hour,
+or a full queue. See [Security](17-security.md).
+
+### Leads
+
+A `Lead` (name, email in lowercase, consent) is saved **only when an email is given**.
+It's linked to the check-up. If the visitor is sent to a reused report instead, the lead
+is still saved and linked to that report (if it had no lead yet).
 
 ## 2. Watch progress live
 
@@ -42,12 +54,36 @@ UUID address. Only people with the link can see the report.
 
 The finished report is reused instantly, with no new crawl.
 
-## 6. Admin reviews leads
+## 6. Admin reviews check-ups and leads
 
-The consultant searches and filters check-ups, findings and leads in Django admin, and
-exports leads to CSV.
+Create a login once:
 
-## 7. Fork and rebrand
+```bash
+python manage.py createsuperuser
+```
+
+Then open <http://127.0.0.1:8000/admin/>.
+
+| Page | Search by | Filter by | Extras |
+|------|-----------|-----------|--------|
+| **Check-ups** | URL, domain, lead email or name | Status, health band (urgent / attention / healthy), date | Health score and band, time taken, the findings inline, a screenshot preview, "Open report". Check-ups can't be added by hand. |
+| **Findings** | Check id, message, domain | Severity, category, impact, effort | Read-only |
+| **Leads** | Email, name, checked domain | Consent, date | Number of check-ups. **Action: "Export selected leads to CSV"** |
+
+**CSV export** columns: name, email, consent, created_at, websites, latest_health_score.
+The file starts with a UTF-8 marker so Excel shows names like "Sébastien" or "রহমান"
+correctly. Cells starting with `=`, `+`, `-` or `@` get a leading `'`, which stops
+**CSV injection** (a name like `=HYPERLINK(...)` running as a formula in Excel).
+
+## 7. Read the privacy note
+
+`/privacy/` explains in plain words what is collected (the URL, optional name and email,
+an IP *hash*), why, who can see a report (anyone with its link), which other services
+are involved (Google PageSpeed, and Cloudflare Turnstile if it's on), the cookies (just
+CSRF), and how to ask for deletion (the email in `branding.yaml`). Every page footer
+links to it.
+
+## 8. Fork and rebrand
 
 Someone edits only `branding.yaml`, and every report shows their details.
 

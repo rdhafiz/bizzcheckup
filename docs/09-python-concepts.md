@@ -867,3 +867,66 @@ except (httpx.HTTPError, ValueError):
 ```
 
 A security check that fails should **deny**, not allow.
+
+---
+
+# Phase 9: concepts in forms and admin
+
+## Django forms (`checkups/forms.py`)
+
+```python
+class CheckupForm(forms.Form):
+    url = forms.CharField(max_length=2048)
+    email = forms.EmailField(required=False)              # optional, but must look like an email
+    consent = forms.BooleanField(error_messages={"required": "Please agree..."})  # must be ticked
+
+    def clean_url(self) -> str:                          # runs after the basic checks for "url"
+        ...
+        raise forms.ValidationError("friendly message")  # shown next to the field
+        return url                                       # the cleaned value
+```
+
+- `form.is_valid()` runs every check. `form.cleaned_data["url"]` then holds the cleaned
+  values.
+- `clean_<field>()` methods add your own rules for one field.
+- `form.add_error(None, "...")` adds an error for the whole form (a "non-field error").
+- `BooleanField` is required by default, so an unticked box fails validation.
+
+## The Django admin (`checkups/admin.py`)
+
+```python
+@admin.register(Lead)                       # show Lead in /admin/
+class LeadAdmin(admin.ModelAdmin):
+    list_display = ("email", "name", "consent", "checkup_count")   # table columns
+    list_filter = ("consent", "created_at")                        # right-hand filters
+    search_fields = ("email", "name", "checkups__domain")          # search box; __ follows links
+    actions = ["export_csv"]                                       # "Action" dropdown
+
+    @admin.display(description="check-ups")   # a computed column
+    def checkup_count(self, obj): ...
+
+    @admin.action(description="Export selected leads to CSV")
+    def export_csv(self, request, queryset): ...
+```
+
+A `SimpleListFilter` makes a custom filter (`HealthBandFilter`: score ranges for each
+band). `annotate(checkup_total=Count("checkups"))` adds a computed count in the same
+database query.
+
+## `format_html`: safe HTML in Python
+
+```python
+format_html('<a href="{}">Open report</a>', url)   # url is escaped; the result is marked safe
+```
+
+Never build HTML with f-strings. `format_html` escapes every value it inserts.
+
+## The `csv` module
+
+```python
+writer = csv.writer(response)          # an HttpResponse can be written to like a file
+writer.writerow(["name", "email"])
+```
+
+`csv` handles commas and quotes inside values correctly. Never join values with `","`
+by hand.

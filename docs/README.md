@@ -54,5 +54,5 @@ offering the consultant's services. All of that content comes from `branding.yam
 | 6 | Models, Celery task, live progress page | Done |
 | 7 | Report page, treatment plan, proposal, PDF | Done |
 | 8 | Security & abuse protection | Done |
-| 9 | Landing page, lead capture, admin, privacy | Next |
-| 10 | Final docs, sample report, release tag | Planned |
+| 9 | Landing page, lead capture, admin, privacy | Done |
+| 10 | Final docs, sample report, release tag | Next |

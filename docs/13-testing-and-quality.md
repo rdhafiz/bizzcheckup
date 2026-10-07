@@ -296,3 +296,15 @@ real SSRF rules run without touching the internet.
 
 Turnstile tests fake Cloudflare with `respx.mock()` and check what was sent (secret and
 token).
+
+---
+
+## Landing and admin tests (phase 9)
+
+| File | Covers |
+|------|--------|
+| `tests/core/test_landing.py` | Brand and tagline, all form fields, the privacy link, five vital-sign cards, required consent, the lead saved (tidied, lowercased) only with an email, invalid email, the lead kept on reuse, the privacy page content, the footer link |
+| `tests/checkups/test_admin.py` | All three admin lists load, search by lead email, the health-band filter, the severity filter, the detail page (report link, findings), no manual adding, CSV export (headers, values, formula neutralised), and `safe_cell` cases |
+
+The `admin_client` fixture creates a superuser and logs in. `client.login(...)` works
+like a real login, without the login page.

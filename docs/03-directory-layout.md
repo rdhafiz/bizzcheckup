@@ -45,6 +45,7 @@ bizzcheckup/
 │   │   ├── forms.py          CheckupForm: the URL field
 │   │   ├── services.py       Business logic: create_checkup, save_report, mark_failed
 │   │   ├── protection.py     Report reuse, rate limit, global capacity
+│   │   ├── admin.py          Admin pages, health-band filter, lead CSV export
 │   │   ├── tasks.py          Celery job run_checkup: runs the engine in the worker
 │   │   ├── progress.py       Steps shown on the progress page
 │   │   ├── views.py          CONTROLLER: start, detail, progress (HTMX), screenshot
@@ -69,7 +70,7 @@ bizzcheckup/
 ├── templates/                HTML templates (VIEW layer)
 │   ├── base.html             Page skeleton every page extends: header, footer, theme
 │   ├── partials/             Small reusable pieces: logo, score ring
-│   ├── core/                 Templates of the core app: home (with form), styleguide
+│   ├── core/                 home (landing page + form), privacy, styleguide
 │   ├── checkups/             progress.html, _progress.html (HTMX box), failed.html
 │   └── reports/              report.html (web), report_pdf.html (PDF), _sections.html (shared), ...
 ├── frontend/tailwind.css     Design system source (colours, fonts, components)

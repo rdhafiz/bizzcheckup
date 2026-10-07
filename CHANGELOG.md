@@ -73,5 +73,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   towards the limit), a global queue cap, a honeypot field, optional Cloudflare
   Turnstile, IPs stored only as salted HMAC hashes, and a strict Content Security Policy
   without `unsafe-inline` plus Permissions-Policy.
+- Landing page: hero, the check-up form with optional name/email and required consent,
+  the five vital signs, and "How it works".
+- Lead capture (only when an email is given; also kept when a report is reused).
+- Privacy note page, linked from every footer.
+- Django admin for check-ups (search, status and health-band filters, inline findings,
+  screenshot), findings (severity/category/impact/effort filters) and leads (CSV export
+  protected against CSV injection).
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).
