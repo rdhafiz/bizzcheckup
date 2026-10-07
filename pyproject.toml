@@ -30,6 +30,7 @@ select = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106"]   # assert is how pytest works; fake test secrets are fine
 "**/models.py" = ["RUF012"]  # Django's `class Meta: ordering = [...]` is the standard pattern
+"**/admin.py" = ["RUF012"]   # Django admin options (inlines = [...]) are class-level by design
 
 # --- mypy: static type checker -----------------------------------------------
 [tool.mypy]
@@ -41,6 +42,12 @@ exclude = ['migrations/', '.venv/']
 [[tool.mypy.overrides]]
 module = ["celery.*", "environ.*"]
 ignore_missing_imports = true
+
+# Django admin classes can't take type parameters at runtime (that needs an extra
+# package), so allow the plain `admin.ModelAdmin` base class in admin modules.
+[[tool.mypy.overrides]]
+module = ["*.admin"]
+disallow_any_generics = false
 
 # Celery ships without type hints, so its @shared_task decorator is "untyped".
 [[tool.mypy.overrides]]
