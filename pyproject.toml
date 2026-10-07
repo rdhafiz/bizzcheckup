@@ -34,7 +34,7 @@ select = [
 [tool.mypy]
 python_version = "3.12"
 strict = true
-plugins = ["mypy_django_plugin.main"]
+plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
 exclude = ['migrations/', '.venv/']
 
 [[tool.mypy.overrides]]
@@ -58,3 +58,6 @@ django_settings_module = "config.settings.test"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 testpaths = ["tests"]
 addopts = "--strict-markers"
+# async def tests run automatically, no @pytest.mark.asyncio needed
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

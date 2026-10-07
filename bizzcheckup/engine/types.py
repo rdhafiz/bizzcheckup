@@ -1,0 +1,156 @@
+"""Data models shared by the whole engine (Pydantic v2).
+
+Pydantic checks every value when an object is created, so a Finding with a
+typo'd severity or a missing "how to fix" fails loudly in tests instead of
+showing up broken in a client's report.
+"""
+
+from datetime import datetime
+from enum import StrEnum
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class Category(StrEnum):
+    """The five "vital signs". Values are the ids used in branding.yaml."""
+
+    PERFORMANCE = "performance"
+    ACCESSIBILITY = "accessibility"
+    BEST_PRACTICES = "best_practices"
+    SEO = "seo"
+    AGENTIC = "agentic"
+
+    @property
+    def label(self) -> str:
+        return CATEGORY_LABELS[self]
+
+
+CATEGORY_LABELS: dict[Category, str] = {
+    Category.PERFORMANCE: "Performance",
+    Category.ACCESSIBILITY: "Accessibility",
+    Category.BEST_PRACTICES: "Best practices",
+    Category.SEO: "SEO",
+    Category.AGENTIC: "Agentic browsing",
+}
+
+
+class Severity(StrEnum):
+    PASS = "pass"  # noqa: S105 (a check result, not a password)
+    INFO = "info"
+    WARN = "warn"
+    FAIL = "fail"
+
+
+class Level(StrEnum):
+    """Used for both effort (how hard to fix) and impact (how much it matters)."""
+
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+class Band(StrEnum):
+    URGENT = "urgent"
+    ATTENTION = "attention"
+    HEALTHY = "healthy"
+
+    @property
+    def label(self) -> str:
+        return BAND_LABELS[self]
+
+
+BAND_LABELS: dict[Band, str] = {
+    Band.URGENT: "Needs urgent care",
+    Band.ATTENTION: "Needs attention",
+    Band.HEALTHY: "Healthy",
+}
+
+
+class Finding(BaseModel):
+    """One result of one check: something wrong, or something healthy."""
+
+    model_config = ConfigDict(frozen=True)
+
+    check_id: str = Field(min_length=1)
+    category: Category
+    severity: Severity
+    message: str = Field(min_length=1)  # what we found, in plain words
+    why_it_matters: str = Field(min_length=1)  # business impact, shown first
+    how_to_fix: str = Field(min_length=1)  # the technical fix
+    effort: Level
+    impact: Level
+    affected_urls: list[str] = Field(default_factory=list)
+
+
+class Page(BaseModel):
+    """One fetched page (or file such as robots.txt)."""
+
+    url: str  # the URL we asked for
+    final_url: str  # after redirects
+    status_code: int
+    headers: dict[str, str] = Field(default_factory=dict)  # keys lowercased
+    text: str = ""
+    size_bytes: int = 0
+    truncated: bool = False  # True when the body was cut at the size limit
+    elapsed_ms: int = 0
+    redirect_chain: list[str] = Field(default_factory=list)
+
+    @property
+    def content_type(self) -> str:
+        return self.headers.get("content-type", "").split(";")[0].strip().lower()
+
+    @property
+    def is_html(self) -> bool:
+        return self.content_type in ("text/html", "application/xhtml+xml")
+
+    @property
+    def ok(self) -> bool:
+        return 200 <= self.status_code < 300
+
+
+class CheckStatus(StrEnum):
+    RAN = "ran"
+    SKIPPED = "skipped"  # a requirement (e.g. PageSpeed key) was missing
+    ERROR = "error"  # the check crashed; it is left out of the score
+
+
+class CheckResult(BaseModel):
+    check_id: str
+    category: Category
+    title: str
+    weight: int
+    status: CheckStatus
+    score: float | None = None  # 0.0-1.0, None unless status is RAN
+    findings: list[Finding] = Field(default_factory=list)
+    note: str = ""  # why it was skipped or what went wrong
+
+
+class CategoryScore(BaseModel):
+    category: Category
+    score: int | None  # None = "Not checked"
+    band: Band | None
+    checks_run: int
+    checks_skipped: int
+    note: str = ""
+
+
+class AuditReport(BaseModel):
+    """Everything the engine produces for one check-up. Saved as JSON."""
+
+    url: str
+    final_url: str
+    started_at: datetime
+    finished_at: datetime
+    pages: list[str]  # URLs that were analysed
+    categories: list[CategoryScore]
+    health_score: int | None
+    health_band: Band | None
+    results: list[CheckResult]
+    notes: list[str] = Field(default_factory=list)
+
+    @property
+    def findings(self) -> list[Finding]:
+        return [finding for result in self.results for finding in result.findings]
+
+    def category(self, category: Category) -> CategoryScore:
+        return next(c for c in self.categories if c.category == category)
