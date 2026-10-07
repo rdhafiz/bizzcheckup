@@ -1,0 +1,11 @@
+# Keep the image small: only what the app needs at runtime.
+# Hidden files and folders (.git, .env, .venv, .bin, .github, ...)
+.*
+# Documentation and tests aren't needed inside the image
+*.md
+docs
+tests
+db.sqlite3
+staticfiles
+static/css/app.css
+**/__pycache__

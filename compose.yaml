@@ -1,0 +1,72 @@
+# Run everything locally:   docker compose up --build
+# Only the database + Redis (to run Django from your venv):
+#                           docker compose up postgres redis
+# Then open http://localhost:8000
+
+name: bizzcheckup
+
+# Settings shared by the web and worker containers.
+x-app: &app
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+  image: bizzcheckup:local
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.dev
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-docker-only-change-me}
+    DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+    DATABASE_URL: postgres://bizzcheckup:bizzcheckup@postgres:5432/bizzcheckup
+    REDIS_URL: redis://redis:6379/0
+    CELERY_BROKER_URL: redis://redis:6379/1
+    PSI_API_KEY: ${PSI_API_KEY:-}
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  web:
+    <<: *app
+    command: sh -c "python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --access-logfile -"
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    <<: *app
+    # --concurrency = how many check-ups run at the same time.
+    command: celery -A config worker --loglevel=info --concurrency=${WORKER_CONCURRENCY:-3}
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: bizzcheckup
+      POSTGRES_USER: bizzcheckup
+      POSTGRES_PASSWORD: bizzcheckup
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bizzcheckup -d bizzcheckup"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

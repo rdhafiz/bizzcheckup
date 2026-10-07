@@ -1,0 +1,6 @@
+# Store every text file with Linux line endings (LF) so the Docker image and
+# shell scripts work, no matter which OS the commit came from.
+* text=auto eol=lf
+*.woff2 binary
+*.png binary
+*.jpg binary
