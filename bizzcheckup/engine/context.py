@@ -48,6 +48,19 @@ class AuditContext:
     def has(self, capability: str) -> bool:
         return capability in self.capabilities
 
+    def dom(self, page: Page) -> LexborHTMLParser:
+        """Like tree(), but uses the browser-rendered HTML for the homepage when we have it.
+
+        Sites built with JavaScript (React, Vue, ...) send almost empty HTML; the
+        rendered version is what visitors actually get.
+        """
+        if self.render is not None and page.final_url == self.homepage.final_url:
+            key = f"rendered:{page.final_url}"
+            if key not in self._trees:
+                self._trees[key] = LexborHTMLParser(self.render.html)
+            return self._trees[key]
+        return self.tree(page)
+
     def tree(self, page: Page) -> LexborHTMLParser:
         """Parsed HTML of `page`. Parsed once, then reused by every check."""
         key = page.final_url
