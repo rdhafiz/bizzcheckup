@@ -15,33 +15,21 @@ It does everything below automatically, skipping steps that are already done:
 | 1 | Checks for Python 3.12+ and creates `.venv` | `.venv` exists |
 | 2 | Installs `requirements/dev.txt` | The requirements haven't changed since last time |
 | 3 | Creates `.env` with a fresh secret key | `.env` exists |
-| 4 | Starts PostgreSQL and Redis in Docker | Docker isn't running. It then switches `.env` to SQLite and runs check-ups **inside the dev server** (see below). |
+| 4 | Starts PostgreSQL and Redis in Docker | Docker isn't running (it then switches `.env` to SQLite; check-ups still run immediately) |
 | 5 | Downloads Tailwind, builds the CSS, and keeps rebuilding while you edit | — |
 | 6 | Runs database migrations | — |
-| 7 | Starts the Celery worker | Redis isn't available |
+| 7 | Starts the Celery worker | `CHECKUP_RUNNER` isn't `celery`, or Redis isn't available |
 | 8 | Starts the Django server, on the next free port if 8000 is busy | — |
 
 **Ctrl+C** stops everything (the server, CSS watcher and worker). Logs from the
 background programs are in `.run/` (`tailwind.log`, `worker.log`). To use a different
 port, run `PORT=8001 ./start.sh`.
 
-### Without Docker: check-ups still work (development only)
+### No Docker or Redis? Check-ups still work
 
-Check-ups normally go to the **worker** through **Redis**, which runs in Docker. When
-Docker isn't running, `start.sh` sets `CHECKUP_RUN_WITHOUT_QUEUE=True`, and the dev server
-then runs each check-up in a **background thread**. The page still redirects instantly
-and the progress page works as usual. This only works with `DEBUG` on, and
-`config/settings/prod.py` always switches it off. A live server always uses the real
-worker.
-
-If you start the server yourself (not with `start.sh`) and have no Redis, set it in
-`.env`:
-
-```
-CHECKUP_RUN_WITHOUT_QUEUE=True
-```
-
-Otherwise check-ups end with "Our check-up service is busy or temporarily unavailable".
+By default (`CHECKUP_RUNNER=immediate`), check-ups start immediately inside the web app,
+with no Redis and no worker. Docker is only needed for PostgreSQL, or if you choose
+`CHECKUP_RUNNER=celery`. See [Running check-ups](12-background-jobs.md).
 
 > **Double-click opens a text editor instead?** Right-click `start.sh`, choose
 > **Open with**, then **Git Bash**, and tick "Always use this app".
@@ -151,7 +139,7 @@ python manage.py runserver
 Open <http://127.0.0.1:8000>. The brand style guide is at
 <http://127.0.0.1:8000/styleguide/> (only while `DJANGO_DEBUG=True`).
 
-### 7. Worker (in a third terminal, once check-ups exist)
+### 7. Worker (only with `CHECKUP_RUNNER=celery`)
 
 ```bash
 celery -A config worker --loglevel=info --pool=solo     # --pool=solo is needed on Windows

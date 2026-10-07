@@ -1,4 +1,42 @@
-# 12. Background Jobs (Celery + Redis)
+# 12. Running Check-ups (immediately, or with Celery)
+
+## Two ways to run a check-up: `CHECKUP_RUNNER`
+
+| Mode | How | Needs | Use when |
+|------|-----|-------|----------|
+| **`immediate`** (default) | The check-up starts **the moment the form is sent**, in a background *thread* of the web app | Nothing extra: no Redis, no worker | Your computer, and small or medium sites |
+| **`celery`** | The web app puts a job on a **queue** (Redis), and a separate **worker** process runs it | Redis + `celery -A config worker` | Heavy traffic; Docker Compose uses this |
+
+Both run **exactly the same function**, `tasks.run_checkup()`, so the result is identical.
+
+In both modes the visitor's page redirects at once to the live progress page. The audit
+never makes the form submission wait.
+
+### `immediate` mode in detail (`services.run_in_background_thread`)
+
+1. The form is saved and the visitor is redirected (about 0.3 s).
+2. A Python **thread** starts `run_checkup()` straight away.
+3. **At most `CHECKUP_MAX_CONCURRENT` (3) run at the same time** per web process, using
+   a `threading.BoundedSemaphore`. Extra check-ups wait for a free slot. That keeps
+   heavy check-ups (each opens Chromium) from overloading the server.
+4. The thread closes its own database connection at the end (each thread gets one).
+5. If the server restarts while a check-up is running, that thread is gone. The next time
+   anyone opens its page, `services.expire_if_stuck()` marks it failed ("interrupted…
+   please try again") instead of letting it spin forever.
+
+**Trade-off:** check-ups share the web server's CPU and memory. For a few check-ups at a
+time that's fine. For a busy public service, switch to `celery`, where workers can run
+on their own machines.
+
+### SQLite note
+
+SQLite allows one writer at a time. `OPTIONS["timeout"] = 20` (in `base.py`) makes a
+check-up thread and the web requests wait for each other instead of failing with
+"database is locked".
+
+---
+
+# The `celery` mode: background jobs with Celery + Redis
 
 ## Why not just run the check-up in the view?
 
@@ -92,20 +130,9 @@ locked").
 | `CELERY_TASK_SOFT_TIME_LIMIT` | timeout + 30 s | Celery raises `SoftTimeLimitExceeded` in the task, as a backup |
 | `CELERY_TASK_TIME_LIMIT` | timeout + 60 s | Celery kills the worker process, as a last resort |
 
-### No Redis on your computer? (development only)
-
-With `CHECKUP_RUN_WITHOUT_QUEUE=True` and `DEBUG` on, `services.enqueue()` doesn't
-contact Redis. `services.run_in_background_thread()` starts a Python **thread** that
-runs `run_checkup()`, the exact same function the worker runs. The visitor's request
-still returns immediately. The thread closes its own database connection when it's done,
-because every thread gets its own connection. With SQLite, the setting
-`OPTIONS["timeout"] = 20` (in `base.py`) makes the thread and the web requests wait for
-each other instead of failing with "database is locked". `start.sh` turns this mode on
-automatically when Docker isn't running. Production never uses it.
-
 ### When Redis is down
 
-`services.enqueue()` catches the error and marks the check-up `failed` with "Our
+(In `celery` mode.) `services.enqueue()` catches the error and marks the check-up `failed` with "Our
 check-up service is busy or temporarily unavailable". The visitor sees a friendly page,
 not a crash. `CELERY_TASK_PUBLISH_RETRY_POLICY` makes it give up within about a second.
 

@@ -13,9 +13,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - Check-ups that never started because the job queue was down no longer count towards
   the visitor's hourly limit.
 
-### Added
-- Development without Docker: when there's no Redis, `start.sh` lets the dev server run
-  check-ups in a background thread (`CHECKUP_RUN_WITHOUT_QUEUE`; never in production).
+### Changed
+- Check-ups now start **immediately** in the web app by default (`CHECKUP_RUNNER=immediate`),
+  with no Redis or worker needed, at most `CHECKUP_MAX_CONCURRENT` (3) at once. The Celery
+  queue stays available with `CHECKUP_RUNNER=celery`, which Docker Compose uses.
+- Check-ups interrupted by a server restart are marked as failed instead of showing
+  progress forever.
 - The development settings allow 50 check-ups per hour (production keeps 5).
 - SQLite waits up to 20 s for the database instead of failing with "database is locked".
 

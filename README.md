@@ -57,8 +57,7 @@ Full list with every pass/warn/fail rule: [docs/15-checks-reference.md](docs/15-
 flowchart LR
     V([Visitor]) -->|POST /checkups/new/| W[Django web<br/>gunicorn]
     W -->|SSRF check, rate limit,<br/>reuse, honeypot| W
-    W -->|queue job| R[(Redis)]
-    R --> K[Celery worker]
+    W -->|"start immediately (default)<br/>or queue via Redis (celery)"| K[Check-up runner<br/>thread or Celery worker]
     K -->|run_audit| E
 
     subgraph E [Audit engine - pure Python, no Django]
@@ -73,8 +72,10 @@ flowchart LR
     W --> P
 ```
 
-- **Check-ups never run in a web request.** The web app only queues them, and the
-  worker does the work, so many check-ups at once don't slow the site.
+- **Check-ups start immediately** when the form is sent, in the background, while the
+  visitor watches live progress. No Redis is needed by default. For heavy traffic, set
+  `CHECKUP_RUNNER=celery` to use Redis and separate Celery workers (Docker Compose does
+  this).
 - **The engine** (`bizzcheckup/engine/`) has no Django imports. **Collectors** do all the
   network work, and **checks** are pure functions of the collected data, tested with
   local HTML.
@@ -168,11 +169,12 @@ ruff check . && ruff format --check . && mypy . && pytest
 
 ## Deployment
 
-The Docker image (`docker/Dockerfile`) runs both the web server (gunicorn) and the worker
-(Celery, with headless Chromium included).
+The Docker image (`docker/Dockerfile`) includes headless Chromium and can run as the web
+server (gunicorn) and, with `CHECKUP_RUNNER=celery`, as the Celery worker.
 
-1. Run the image twice, as **web** and **worker**, plus PostgreSQL and Redis, as in
-   `compose.yaml`.
+1. Small setup: run the image as **web** with PostgreSQL (check-ups run immediately).
+   Bigger setup: also run it as **worker**, plus Redis, with `CHECKUP_RUNNER=celery`, as
+   in `compose.yaml`.
 2. Set `DJANGO_SETTINGS_MODULE=config.settings.prod`. That means DEBUG always off, HTTPS
    redirect, HSTS and secure cookies.
 3. Set `DJANGO_SECRET_KEY`, `IP_HASH_SALT`, `DJANGO_ALLOWED_HOSTS`,

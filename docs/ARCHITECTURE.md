@@ -13,11 +13,14 @@ Keep it current whenever the structure changes.
     └──────────────── PostgreSQL ◀─────────── saves progress, scores, findings
 ```
 
-- **web** answers page requests quickly. It **never** runs an audit itself.
-- **worker** picks up jobs from Redis and runs the audit engine. Slow work (crawling,
-  Chromium, PageSpeed) happens here, so many check-ups never slow the website down.
-- **PostgreSQL** stores check-ups, findings and leads. **Redis** is the job queue and
-  the cache (for rate limiting).
+- **web** answers page requests quickly. The form submission **never waits** for an
+  audit: it redirects at once to the live progress page.
+- **How the audit runs** depends on `CHECKUP_RUNNER`:
+  - `immediate` (default): a background thread of the web app starts it straight away,
+    at most 3 at once. No Redis or worker is needed.
+  - `celery`: a job goes to Redis and a separate **worker** runs it (best for heavy
+    traffic; Docker Compose uses this).
+- **PostgreSQL** (or SQLite locally) stores check-ups, findings and leads.
 
 ## Layers
 

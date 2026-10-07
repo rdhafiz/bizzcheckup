@@ -49,11 +49,13 @@ rate limit.
 
 ## 4. Global capacity
 
-- The worker runs at most 3 check-ups at the same time (`--concurrency`, through
-  `WORKER_CONCURRENCY`).
+- At most 3 check-ups run at the same time: per web process in `immediate` mode
+  (`CHECKUP_MAX_CONCURRENT`), or per worker in `celery` mode (`--concurrency`, through
+  `WORKER_CONCURRENCY`). Extra check-ups wait their turn.
 - When 20 check-ups (`CHECKUP_QUEUE_CAP`) are already waiting or running, new ones are
   refused with HTTP 503 and "We're checking a lot of websites right now…".
-- Because check-ups only run in the **worker**, many of them never slow the website down.
+- Check-ups run outside the request, so the form never waits. For heavy traffic, use
+  `CHECKUP_RUNNER=celery` so audits run on separate worker machines.
 
 ## 5. Limits inside each check-up
 

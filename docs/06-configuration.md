@@ -33,7 +33,7 @@ what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variab
 | `DJANGO_DEBUG` | no | `False` (`True` in dev) | Detailed error pages. **Never on in production.** |
 | `DJANGO_ALLOWED_HOSTS` | no | `localhost,127.0.0.1` | Domain names the site answers to |
 | `DATABASE_URL` | yes | — | e.g. `postgres://user:pw@host:5432/db` |
-| `REDIS_URL` | no | `redis://localhost:6379/0` | Cache |
+| `REDIS_URL` | no | `redis://localhost:6379/0` | Cache (only with `celery`) |
 | `CELERY_BROKER_URL` | no | `redis://localhost:6379/1` | Job queue (a separate Redis database, number 1) |
 | `PSI_API_KEY` | no | empty | Google PageSpeed key. Empty means performance checks are skipped and the report says so. |
 | `DJANGO_SECURE_SSL_REDIRECT` | prod only | `True` | Redirect http to https |
@@ -48,7 +48,8 @@ what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variab
 | `IP_HASH_SALT` | prod: yes | the secret key | Secret used to hash visitor IPs |
 | `TRUST_X_FORWARDED_FOR` | no | `False` | Read the client IP from the proxy header |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | no | empty | Cloudflare Turnstile on the form |
-| `CHECKUP_RUN_WITHOUT_QUEUE` | dev only | `False` | Run check-ups in a dev-server thread when there's no Redis. `start.sh` sets it automatically. Always off in production. |
+| `CHECKUP_RUNNER` | no | `immediate` | `immediate`: run in the web app right away (no Redis). `celery`: use the queue and worker. |
+| `CHECKUP_MAX_CONCURRENT` | no | `3` | Check-ups running at the same time per web process (`immediate` mode) |
 
 The security-related ones are explained in [Security](17-security.md).
 
