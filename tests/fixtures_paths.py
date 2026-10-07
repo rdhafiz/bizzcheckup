@@ -1,0 +1,5 @@
+"""Where the test fixture files live."""
+
+from pathlib import Path
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "html"

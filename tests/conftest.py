@@ -9,7 +9,7 @@ from bizzcheckup.engine.netguard import NetGuard
 PUBLIC_TEST_IP = "93.184.216.34"
 
 
-async def test_dns(host: str) -> list[str]:
+async def fake_dns(host: str) -> list[str]:
     if host == "internal.test":
         return ["10.0.0.7"]
     if host.endswith(".test"):
@@ -20,4 +20,4 @@ async def test_dns(host: str) -> list[str]:
 @pytest.fixture(autouse=True)
 def offline_ssrf_guard(monkeypatch: pytest.MonkeyPatch) -> None:
     """The form's SSRF check uses the real rules, with fake DNS instead of the internet."""
-    monkeypatch.setattr(services, "make_guard", lambda: NetGuard(resolver=test_dns))
+    monkeypatch.setattr(services, "make_guard", lambda: NetGuard(resolver=fake_dns))
