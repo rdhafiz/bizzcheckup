@@ -6,6 +6,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+## [0.1.0-alpha] - 2026-10-07
+
+First public release: the complete check-up flow from landing page to PDF.
+
 ### Added
 - Django 5.2 LTS project with split settings (`base`, `dev`, `test`, `prod`) configured
   through environment variables.
@@ -80,5 +84,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - Django admin for check-ups (search, status and health-band filters, inline findings,
   screenshot), findings (severity/category/impact/effort filters) and leads (CSV export
   protected against CSV injection).
+- End-to-end test (form → worker → engine with Chromium → report → PDF) and a CI job
+  that starts the full `docker compose` stack from a fresh clone.
+- README with screenshots, an architecture diagram, scoring, how to add a check,
+  deployment and responsible-use notes, plus a sample report of ridwanulhafiz.me.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).
+
+[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.1.0-alpha...HEAD
+[0.1.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.1.0-alpha
