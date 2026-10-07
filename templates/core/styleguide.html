@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Style guide — {{ product_name }}{% endblock %}
+
+{% block content %}
+  <div class="container-page space-y-12 py-12">
+    <header>
+      <p class="eyebrow">Development only</p>
+      <h1 class="mt-2 text-4xl font-bold">Style guide</h1>
+      <p class="mt-2 text-muted">Every brand building block in one place. Toggle dark mode in the header.</p>
+    </header>
+
+    <section class="space-y-4">
+      <h2 class="text-2xl font-bold">Wordmark</h2>
+      <div class="card flex items-center gap-6">{% include "partials/logo.html" %}</div>
+    </section>
+
+    <section class="space-y-4">
+      <h2 class="text-2xl font-bold">Typography</h2>
+      <div class="card space-y-3">
+        <p class="font-display text-3xl font-bold">Bricolage Grotesque: headings</p>
+        <p class="text-lg">Public Sans: body text that business owners read comfortably.</p>
+        <p class="font-mono">JetBrains Mono: scores 0123456789</p>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <h2 class="text-2xl font-bold">Colours</h2>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div class="rounded-xl border border-line bg-card p-3"><div class="h-12 rounded-lg border border-line bg-paper"></div><p class="mt-2 font-mono text-xs">paper</p></div>
+        <div class="rounded-xl border border-line bg-card p-3"><div class="h-12 rounded-lg border border-line bg-card"></div><p class="mt-2 font-mono text-xs">card</p></div>
+        <div class="rounded-xl border border-line bg-card p-3"><div class="h-12 rounded-lg bg-ink"></div><p class="mt-2 font-mono text-xs">ink</p></div>
+        <div class="rounded-xl border border-line bg-card p-3"><div class="h-12 rounded-lg bg-muted"></div><p class="mt-2 font-mono text-xs">muted</p></div>
+        <div class="rounded-xl border border-line bg-card p-3"><div class="h-12 rounded-lg bg-primary"></div><p class="mt-2 font-mono text-xs">primary</p></div>
+        <div class="rounded-xl border border-line bg-card p-3"><div class="h-12 rounded-lg bg-urgent"></div><p class="mt-2 font-mono text-xs">urgent</p></div>
+        <div class="rounded-xl border border-line bg-card p-3"><div class="h-12 rounded-lg bg-attention"></div><p class="mt-2 font-mono text-xs">attention</p></div>
+        <div class="rounded-xl border border-line bg-card p-3"><div class="h-12 rounded-lg bg-healthy"></div><p class="mt-2 font-mono text-xs">healthy</p></div>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <h2 class="text-2xl font-bold">Buttons</h2>
+      <div class="card flex flex-wrap gap-3">
+        <button class="btn-primary" type="button">Start my free check-up</button>
+        <button class="btn-secondary" type="button">Copy share link</button>
+        <button class="btn-primary" type="button" disabled>Disabled</button>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <h2 class="text-2xl font-bold">Health bands</h2>
+      <div class="card flex flex-wrap gap-3">
+        <span class="band-urgent band-pill">Needs urgent care</span>
+        <span class="band-attention band-pill">Needs attention</span>
+        <span class="band-healthy band-pill">Healthy</span>
+        <span class="band-none band-pill">Not checked</span>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <h2 class="text-2xl font-bold">Score rings</h2>
+      <div class="card grid grid-cols-2 gap-6 sm:grid-cols-5">
+        {% include "partials/score_ring.html" with score=38 label="Performance" band="urgent" band_label="Needs urgent care" %}
+        {% include "partials/score_ring.html" with score=72 label="Accessibility" band="attention" band_label="Needs attention" %}
+        {% include "partials/score_ring.html" with score=95 label="Best practices" band="healthy" band_label="Healthy" %}
+        {% include "partials/score_ring.html" with score=88 label="SEO" band="attention" band_label="Needs attention" %}
+        {% include "partials/score_ring.html" with score=None label="Agentic" %}
+      </div>
+    </section>
+  </div>
+{% endblock %}

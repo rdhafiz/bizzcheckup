@@ -1,0 +1,19 @@
+{% comment %}
+  Circular score gauge.
+  Usage: {% include "partials/score_ring.html" with score=72 label="SEO" band="attention" band_label="Needs attention" %}
+  pathLength="100" lets the score be used directly as the stroke length, no maths needed.
+{% endcomment %}
+<figure class="band-{{ band|default:'none' }} flex flex-col items-center gap-2 text-center">
+  <svg class="size-24" viewBox="0 0 36 36" role="img"
+       aria-label="{{ label }}: {% if score is not None %}{{ score }} out of 100, {{ band_label }}{% else %}not checked{% endif %}">
+    <circle class="score-ring__track" cx="18" cy="18" r="15.9" fill="none" stroke-width="3"/>
+    {% if score is not None %}
+      <circle class="score-ring__value" cx="18" cy="18" r="15.9" fill="none" stroke-width="3"
+              stroke-linecap="round" pathLength="100" stroke-dasharray="{{ score }} 100"
+              transform="rotate(-90 18 18)"/>
+    {% endif %}
+    <text x="18" y="18" text-anchor="middle" dominant-baseline="central"
+          class="fill-ink font-mono text-[9px] font-semibold">{% if score is not None %}{{ score }}{% else %}–{% endif %}</text>
+  </svg>
+  <figcaption class="text-sm font-semibold">{{ label }}</figcaption>
+</figure>
