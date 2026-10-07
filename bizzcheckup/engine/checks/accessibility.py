@@ -351,9 +351,11 @@ class AxeScan(Check):
         return [self.rule_finding(v, ctx.homepage.final_url) for v in violations]
 
     def rule_finding(self, rule: AxeRule, url: str) -> Finding:
+        # Serious problems count as high impact: they block real visitors, and a high-impact
+        # failure keeps the category out of "Healthy" (see scoring.HIGH_IMPACT_FAIL_CAP).
         severity, impact = {
             "critical": (Severity.FAIL, Level.HIGH),
-            "serious": (Severity.FAIL, Level.MEDIUM),
+            "serious": (Severity.FAIL, Level.HIGH),
             "moderate": (Severity.WARN, Level.LOW),
         }.get(rule.impact, (Severity.INFO, Level.LOW))
         examples = ", ".join(f"`{target}`" for target in rule.targets[:3])

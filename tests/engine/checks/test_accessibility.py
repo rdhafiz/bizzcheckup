@@ -203,7 +203,7 @@ def test_axe_scan_reports_each_rule_by_impact_and_skips_covered_rules() -> None:
 
     assert [(f.message.split(" (")[0], f.severity, f.impact) for f in findings] == [
         ("Rule aria-hidden-focus", Severity.FAIL, Level.HIGH),
-        ("Rule color-contrast", Severity.FAIL, Level.MEDIUM),
+        ("Rule color-contrast", Severity.FAIL, Level.HIGH),
         ("Rule region", Severity.WARN, Level.LOW),
         ("Rule some-minor-thing", Severity.INFO, Level.LOW),
     ]
