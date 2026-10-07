@@ -7,6 +7,8 @@ showing up broken in a client's report.
 
 from datetime import datetime
 from enum import StrEnum
+from functools import cached_property
+from urllib.robotparser import RobotFileParser
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -106,6 +108,48 @@ class Page(BaseModel):
     @property
     def ok(self) -> bool:
         return 200 <= self.status_code < 300
+
+
+class RobotsInfo(BaseModel):
+    """What we learned from /robots.txt."""
+
+    url: str
+    exists: bool
+    status_code: int | None = None
+    text: str = ""
+    sitemaps: list[str] = Field(default_factory=list)  # "Sitemap:" lines
+
+    @cached_property
+    def _parser(self) -> RobotFileParser:
+        parser = RobotFileParser()
+        parser.parse(self.text.splitlines() if self.exists else [])
+        return parser
+
+    def allows(self, agent: str, url: str) -> bool:
+        """Does robots.txt let `agent` (e.g. "GPTBot") visit `url`?"""
+        return self._parser.can_fetch(agent, url)
+
+
+class SitemapInfo(BaseModel):
+    """What we learned from the sitemap(s)."""
+
+    checked: list[str] = Field(default_factory=list)  # sitemap URLs we fetched
+    found: bool = False  # at least one valid sitemap
+    urls: list[str] = Field(default_factory=list)  # page URLs listed in it
+
+
+class CrawlResult(BaseModel):
+    start_url: str
+    final_url: str  # homepage after redirects (e.g. http -> https)
+    pages: list[Page]  # homepage first, then other HTML pages
+    robots: RobotsInfo
+    sitemap: SitemapInfo
+    skipped_by_robots: list[str] = Field(default_factory=list)
+    errors: dict[str, str] = Field(default_factory=dict)  # url -> what went wrong
+
+    @property
+    def homepage(self) -> Page:
+        return self.pages[0]
 
 
 class CheckStatus(StrEnum):
