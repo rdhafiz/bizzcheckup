@@ -13,7 +13,8 @@ from ..fetcher import Fetcher
 
 Collector = Callable[[AuditContext, Fetcher, EngineConfig], Awaitable[None]]
 
+from .pagespeed import collect_pagespeed  # noqa: E402
 from .probes import collect_probes  # noqa: E402 (needs Collector defined first)
 from .render import collect_render  # noqa: E402
 
-DEFAULT_COLLECTORS: list[Collector] = [collect_probes, collect_render]
+DEFAULT_COLLECTORS: list[Collector] = [collect_probes, collect_render, collect_pagespeed]

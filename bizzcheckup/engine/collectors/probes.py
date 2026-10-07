@@ -2,25 +2,78 @@
 
 - http:// version of the homepage: does it redirect to https://?
 - status of internal links found on the crawled pages (broken links)
-
-Phase 5 adds llms.txt and the AI-agent user-agent comparison here.
+- /llms.txt
+- the homepage requested as an AI agent and as a normal browser, to spot
+  firewalls or CDNs that turn AI assistants away
 """
 
 import asyncio
 from urllib.parse import urlsplit, urlunsplit
 
-from ..config import ROBOTS_AGENT_NAME, EngineConfig
+from ..config import AI_AGENT_USER_AGENT, BROWSER_USER_AGENT, ROBOTS_AGENT_NAME, EngineConfig
 from ..context import PROBES, AuditContext
 from ..crawler import extract_links
 from ..fetcher import Fetcher, FetchError
 from ..netguard import BlockedURLError
+from ..types import AgentProbe
 from ..urls import same_origin
 
 
 async def collect_probes(ctx: AuditContext, fetcher: Fetcher, config: EngineConfig) -> None:
     await probe_http_version(ctx, fetcher)
     await probe_internal_links(ctx, fetcher, config.max_link_checks)
+    await probe_llms_txt(ctx, fetcher)
+    ctx.probes.as_ai_agent, ctx.probes.as_browser = await asyncio.gather(
+        probe_as(fetcher, ctx.homepage.final_url, AI_AGENT_USER_AGENT),
+        probe_as(fetcher, ctx.homepage.final_url, BROWSER_USER_AGENT),
+    )
     ctx.capabilities.add(PROBES)
+
+
+LLMS_TXT_KEEP = 4000  # characters kept for the report
+
+# Phrases that bot-protection pages (Cloudflare, Akamai, Imperva, ...) typically contain.
+CHALLENGE_MARKERS = (
+    "cf-challenge",
+    "challenge-platform",
+    "just a moment...",
+    "attention required! | cloudflare",
+    "verify you are human",
+    "are you a robot",
+    "captcha",
+    "_incapsula_resource",
+    "pardon our interruption",
+    "access denied",
+)
+
+
+async def probe_llms_txt(ctx: AuditContext, fetcher: Fetcher) -> None:
+    parts = urlsplit(ctx.homepage.final_url)
+    url = urlunsplit((parts.scheme, parts.netloc, "/llms.txt", "", ""))
+    try:
+        page = await fetcher.get(url)
+    except (FetchError, BlockedURLError):
+        return
+    ctx.probes.llms_txt_status = page.status_code
+    looks_like_text = not page.is_html and not page.text.lstrip().startswith("<")
+    if page.ok and looks_like_text:
+        ctx.probes.llms_txt_text = page.text[:LLMS_TXT_KEEP]
+
+
+async def probe_as(fetcher: Fetcher, url: str, user_agent: str) -> AgentProbe:
+    try:
+        page = await fetcher.get(url, user_agent=user_agent)
+    except (FetchError, BlockedURLError):
+        return AgentProbe()
+    if page.headers.get("cf-mitigated", "").lower() == "challenge":
+        challenge = True
+    else:
+        # Real pages may mention "captcha" (e.g. a contact form), so the phrases only
+        # count on error answers or short pages, which is what challenge pages are.
+        suspicious = page.status_code in (403, 429, 503) or len(page.text) < 15000
+        head = page.text[:20000].lower()
+        challenge = suspicious and any(marker in head for marker in CHALLENGE_MARKERS)
+    return AgentProbe(status_code=page.status_code, text_length=len(page.text), challenge=challenge)
 
 
 async def probe_http_version(ctx: AuditContext, fetcher: Fetcher) -> None:

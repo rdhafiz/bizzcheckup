@@ -152,6 +152,14 @@ class CrawlResult(BaseModel):
         return self.pages[0]
 
 
+class AgentProbe(BaseModel):
+    """How the homepage answered one User-Agent."""
+
+    status_code: int = 0  # 0 = no answer
+    text_length: int = 0
+    challenge: bool = False  # a "prove you're human" / bot-protection page
+
+
 class ProbeResults(BaseModel):
     """Extra requests made after crawling (see collectors/probes.py)."""
 
@@ -161,6 +169,12 @@ class ProbeResults(BaseModel):
     # Internal link -> HTTP status (0 = unreachable), and the pages it appears on.
     link_status: dict[str, int] = Field(default_factory=dict)
     link_sources: dict[str, list[str]] = Field(default_factory=dict)
+    # /llms.txt: a plain-text guide to your site written for AI assistants.
+    llms_txt_status: int = 0
+    llms_txt_text: str = ""  # first few KB, only when it really is a text file
+    # The same homepage requested as an AI agent and as a normal browser.
+    as_ai_agent: AgentProbe | None = None
+    as_browser: AgentProbe | None = None
 
 
 class AxeRule(BaseModel):
@@ -194,6 +208,39 @@ class RenderResult(BaseModel):
     blocked_requests: list[str] = Field(default_factory=list)  # stopped by the SSRF guard
     # The picture for the report cover. exclude=True keeps it out of the JSON.
     screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
+
+
+class FieldData(BaseModel):
+    """Speed measured from REAL Chrome users over the last 28 days (Chrome UX Report)."""
+
+    lcp_ms: float | None = None  # Largest Contentful Paint
+    cls: float | None = None  # Cumulative Layout Shift
+    inp_ms: float | None = None  # Interaction to Next Paint
+    fcp_ms: float | None = None  # First Contentful Paint
+    origin_wide: bool = False  # True = data for the whole site, not just this page
+
+
+class SpeedTest(BaseModel):
+    """One Lighthouse run by Google PageSpeed Insights (mobile or desktop)."""
+
+    strategy: str  # "mobile" | "desktop"
+    score: float  # 0.0-1.0 (Lighthouse performance score)
+    lcp_ms: float | None = None
+    cls: float | None = None
+    tbt_ms: float | None = None  # Total Blocking Time (lab stand-in for INP)
+    fcp_ms: float | None = None
+    speed_index_ms: float | None = None
+    total_bytes: int | None = None  # page weight
+    render_blocking: list[str] = Field(default_factory=list)  # resource URLs
+    render_blocking_savings_ms: float = 0
+    offscreen_images: list[str] = Field(default_factory=list)  # should be lazy-loaded
+    unsized_images: list[str] = Field(default_factory=list)
+    field: FieldData | None = None
+
+
+class PageSpeedResult(BaseModel):
+    mobile: SpeedTest | None = None
+    desktop: SpeedTest | None = None
 
 
 class CheckStatus(StrEnum):
