@@ -30,13 +30,14 @@ def test_landing_page_shows_brand_and_everything_the_brief_asks_for(client: Clie
     html = client.get("/").content.decode()
 
     assert "<title>BizzCheckup — Check your business&#x27;s online health</title>" in html
-    assert 'BizzCheckup<span class="sr-only"> — </span>' in html
-    assert "Check your business&#x27;s online" in html
+    assert '<span class="sr-only">BizzCheckup: </span>Is your business website' in html
     for name in ('name="url"', 'name="name"', 'name="email"', 'name="consent"'):
         assert name in html
     assert "Start my free check-up" in html
     assert reverse("core:privacy") in html  # privacy note link
-    assert html.count('class="sign-card"') == 5  # the five vital signs
+    assert html.count('class="sign-card tone-') == 5  # the five vital signs
+    assert html.count('href="#start"') == 6  # each sign card and the last section lead to the form
+    assert 'id="start"' in html
 
 
 def test_consent_is_required(client: Client) -> None:

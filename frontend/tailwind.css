@@ -60,6 +60,14 @@
   --attention-soft: #fdf0e1;
   --healthy: #15803d;        /* 90-100 Healthy */
   --healthy-soft: #e5f4ea;
+  /* Accent tones for the homepage illustrations (icons and tiles only, never body text). */
+  --tone-green: #15803d;  --tone-green-soft: #e3f4e9;
+  --tone-blue: #2563eb;   --tone-blue-soft: #e6eefd;
+  --tone-rose: #e11d48;   --tone-rose-soft: #fde7ec;
+  --tone-violet: #7c3aed; --tone-violet-soft: #efe8fd;
+  --tone-amber: #d97706;  --tone-amber-soft: #fdf1dc;
+  --on-tone: #ffffff;
+  --hero-glow: #f1e4d0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -80,6 +88,13 @@
     --attention-soft: #3a2a12;
     --healthy: #4ade80;
     --healthy-soft: #12301e;
+    --tone-green: #4ade80;  --tone-green-soft: #12301e;
+    --tone-blue: #60a5fa;   --tone-blue-soft: #14243f;
+    --tone-rose: #fb7185;   --tone-rose-soft: #3a1820;
+    --tone-violet: #a78bfa; --tone-violet-soft: #241a3d;
+    --tone-amber: #fbbf24;  --tone-amber-soft: #3a2a12;
+    --on-tone: #0c1517;
+    --hero-glow: #1c2a26;
   }
 }
 
@@ -100,6 +115,13 @@
   --attention-soft: #3a2a12;
   --healthy: #4ade80;
   --healthy-soft: #12301e;
+  --tone-green: #4ade80;  --tone-green-soft: #12301e;
+  --tone-blue: #60a5fa;   --tone-blue-soft: #14243f;
+  --tone-rose: #fb7185;   --tone-rose-soft: #3a1820;
+  --tone-violet: #a78bfa; --tone-violet-soft: #241a3d;
+  --tone-amber: #fbbf24;  --tone-amber-soft: #3a2a12;
+  --on-tone: #0c1517;
+  --hero-glow: #1c2a26;
 }
 
 /* Expose the variables to Tailwind: bg-paper, text-ink, border-line, ... */
@@ -149,6 +171,9 @@
 
 @utility container-page {
   @apply mx-auto w-full max-w-5xl px-4 sm:px-6;
+}
+@utility container-wide {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
 }
 
 @utility btn {
@@ -303,29 +328,8 @@
     color: var(--band);
     background: var(--band-soft);
   }
-  .tick {
-    @apply inline-block size-5 shrink-0 rounded-full;
-    background: var(--healthy-soft)
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2315803d'%3E%3Cpath d='M8.3 13.3 4.9 9.9l-1.2 1.2 4.6 4.6 8-8-1.2-1.2z'/%3E%3C/svg%3E")
-      center / 14px no-repeat;
-  }
-  .sign-card {
-    @apply rounded-2xl border border-line bg-paper p-5 transition-colors hover:border-primary;
-  }
   .sign-icon {
     @apply inline-flex size-11 items-center justify-center rounded-xl bg-primary-soft text-primary;
-  }
-  .steps {
-    counter-reset: step;
-  }
-  .steps > li {
-    @apply relative border-t-2 border-primary pt-6;
-    counter-increment: step;
-  }
-  .steps > li::before {
-    @apply absolute -top-4 left-0 flex size-8 items-center justify-center rounded-full bg-primary
-      font-mono text-sm font-bold text-on-primary;
-    content: counter(step);
   }
   .prose-page h2 {
     @apply mt-10 text-2xl font-bold;
@@ -339,6 +343,237 @@
   }
   .prose-page .lead {
     @apply mt-5 text-lg text-muted;
+  }
+}
+
+/* --- Homepage (templates/core/home.html) ---------------------------------------- */
+
+@utility btn-pill {
+  @apply btn min-h-13 rounded-full bg-primary px-8 text-base text-on-primary
+    shadow-[0_12px_30px_-12px_rgb(15_110_102/0.7)] hover:bg-primary-hover;
+}
+
+@layer components {
+  .tone-green  { --tone: var(--tone-green);  --tone-soft: var(--tone-green-soft); }
+  .tone-blue   { --tone: var(--tone-blue);   --tone-soft: var(--tone-blue-soft); }
+  .tone-rose   { --tone: var(--tone-rose);   --tone-soft: var(--tone-rose-soft); }
+  .tone-violet { --tone: var(--tone-violet); --tone-soft: var(--tone-violet-soft); }
+  .tone-amber  { --tone: var(--tone-amber);  --tone-soft: var(--tone-amber-soft); }
+  .tone-teal   { --tone: var(--primary);     --tone-soft: var(--primary-soft); }
+
+  .tone-tile {
+    @apply inline-flex size-11 shrink-0 items-center justify-center rounded-xl;
+    color: var(--tone);
+    background: var(--tone-soft);
+  }
+  .tone-tile--round {
+    @apply size-12 rounded-full;
+  }
+  .sign-card .tone-tile--round {
+    @apply size-14;
+  }
+
+  /* Warm light behind the header and hero, like a sunny desk. */
+  .page-home {
+    background:
+      radial-gradient(60rem 36rem at 85% 0%, var(--hero-glow), transparent 70%),
+      var(--paper);
+    background-repeat: no-repeat;
+  }
+
+  .pill-eyebrow {
+    @apply inline-flex rounded-full bg-primary-soft px-3 py-1 font-mono text-xs font-semibold
+      tracking-widest text-primary uppercase;
+  }
+  .eyebrow-dash {
+    @apply flex items-center gap-4 text-xs font-semibold tracking-[0.18em] text-primary uppercase;
+  }
+  .eyebrow-dash::before {
+    @apply h-0.5 w-6 rounded-full bg-primary;
+    content: "";
+  }
+
+  /* Hero: three overlapping columns on large screens, stacked below. */
+  .hero {
+    @apply grid gap-10 pt-8 pb-16 sm:pt-12 lg:grid-cols-12 lg:gap-0 lg:pb-20;
+    overflow-x: clip; /* the tilted laptop may poke out on small screens */
+  }
+  .hero__text {
+    @apply lg:col-span-6 lg:col-start-1 lg:row-start-1 lg:pt-10;
+  }
+  .hero__laptop {
+    @apply relative mx-auto w-full max-w-md lg:col-span-4 lg:col-start-6 lg:row-start-1
+      lg:mt-56 lg:w-[125%] lg:max-w-none lg:self-start;
+  }
+  .hero__form {
+    @apply relative z-10 rounded-3xl border border-line bg-card p-6 sm:p-7 lg:col-span-4
+      lg:col-start-9 lg:row-start-1 lg:mt-4 lg:self-start;
+    box-shadow: 0 30px 70px -35px rgb(14 27 30 / 0.45);
+  }
+  .hero__laptop {
+    order: 3;
+  }
+  @media (min-width: 64rem) {
+    .hero__laptop { order: 0; }
+  }
+
+  .hero__highlight {
+    @apply relative inline-block text-primary;
+  }
+  .hero__swoosh {
+    @apply absolute -bottom-2 left-0 h-3 w-full;
+    color: var(--primary);
+  }
+  .hero__perks {
+    @apply mt-10 grid max-w-md grid-cols-1 gap-4 text-sm font-medium sm:grid-cols-3;
+  }
+  .hero__perks li {
+    @apply flex items-center gap-3;
+  }
+
+  /* The laptop: a screen in gentle perspective, a keyboard deck, a coffee cup. */
+  .laptop {
+    perspective: 1400px;
+  }
+  .laptop__screen {
+    @apply rounded-2xl p-2.5;
+    background: #1b2427;
+    transform: rotateY(-16deg) rotateX(3deg);
+    transform-origin: left center;
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.6);
+  }
+  .laptop__display {
+    @apply overflow-hidden rounded-lg bg-white p-4;
+    aspect-ratio: 16 / 10;
+    color: #0e1b1e;
+  }
+  .laptop__base {
+    @apply mx-auto -mt-1 h-4 w-[112%] -translate-x-[5%] rounded-b-2xl;
+    background: linear-gradient(#d9dde0, #9aa3a8);
+    clip-path: polygon(3% 0, 97% 0, 100% 100%, 0 100%);
+  }
+  .hero__cup {
+    @apply absolute -bottom-2 -left-6 w-20 sm:-left-10;
+  }
+  .cup__saucer { fill: #e9e4dc; }
+  .cup__body { fill: #f7f4ee; }
+  .cup__handle { stroke: #f0ebe2; }
+  .cup__coffee { fill: #6b4226; }
+
+  .mini-report {
+    @apply grid h-full grid-cols-[2fr_3fr] items-center gap-4;
+  }
+  .mini-report__brand {
+    @apply text-[9px] font-bold;
+    color: #0f6e66;
+  }
+  .mini-report__label {
+    @apply mt-1 text-center text-[9px] font-semibold italic;
+  }
+  .mini-report__bar {
+    @apply mt-1 block h-1 w-full rounded-full;
+    background: linear-gradient(90deg, #0f6e66 70%, #e2ded4 70%);
+  }
+  .mini-ring__track { stroke: #e2ded4; }
+  .mini-ring__value { stroke: #15803d; }
+  .mini-ring__text {
+    @apply font-mono text-[11px] font-bold;
+    fill: #0e1b1e;
+  }
+  .mini-report__list {
+    @apply space-y-1.5 text-[9px] font-semibold;
+  }
+  .mini-report__list li {
+    @apply flex items-center gap-1.5 rounded-md px-1.5 py-1;
+    background: #f7f6f2;
+  }
+  .mini-report__list li::before {
+    @apply size-2 rounded-full;
+    content: "";
+    background: var(--tone);
+  }
+
+  /* Inputs with a leading icon. */
+  .input-icon {
+    @apply relative;
+  }
+  .input-icon__icon {
+    @apply pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted;
+  }
+  .input-icon .field-input {
+    @apply mt-0 pl-12;
+  }
+
+  /* Vital-sign cards: one pastel tone each, a lift on hover. */
+  .sign-card {
+    @apply relative flex flex-col rounded-3xl border border-line p-6 text-ink no-underline
+      transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-1
+      hover:no-underline;
+    background: linear-gradient(170deg, var(--tone-soft), var(--card) 75%);
+  }
+  .sign-card:hover {
+    border-color: var(--tone);
+    box-shadow: 0 20px 40px -28px var(--tone);
+  }
+  .sign-card__go {
+    @apply mt-auto inline-flex size-9 items-center justify-center self-start rounded-full
+      transition-transform duration-200;
+    margin-top: 1.5rem;
+    color: var(--on-tone);
+    background: var(--tone);
+  }
+  .sign-card:hover .sign-card__go {
+    @apply translate-x-1;
+  }
+
+  /* How it works. */
+  .how {
+    @apply py-16 sm:py-20;
+    background: color-mix(in srgb, var(--primary-soft) 70%, var(--paper));
+  }
+  .how__steps {
+    @apply mt-12 grid gap-10 md:grid-cols-3 md:gap-8;
+  }
+  .how__steps > li {
+    @apply relative flex items-start gap-5;
+  }
+  .how__num {
+    @apply inline-flex size-12 shrink-0 items-center justify-center rounded-full font-mono
+      text-base font-bold;
+    color: var(--on-tone);
+    background: var(--tone);
+  }
+  .how__arrow {
+    @apply absolute -top-3 -right-10 hidden w-20 lg:block;
+    color: var(--tone);
+  }
+  .how__note {
+    @apply absolute -top-4 right-6 hidden rotate-[-8deg] text-right text-2xl leading-tight lg:block;
+    font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+  }
+  .how__note-arrow {
+    @apply mt-1 ml-auto w-12;
+  }
+
+  /* Benefits: text on the left, the illustration bleeding to the right edge. */
+  .benefits {
+    @apply grid bg-card lg:grid-cols-2;
+  }
+  .benefits__text {
+    @apply px-4 py-16 sm:px-6 sm:py-20 lg:py-24 lg:pr-12;
+    padding-left: max(1rem, calc((100vw - 72rem) / 2 + 1.5rem));
+  }
+  .benefits__list {
+    @apply mt-10 grid gap-5 text-sm sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-line;
+  }
+  .benefits__list li {
+    @apply flex items-center gap-3 sm:px-4 sm:first:pl-0;
+  }
+  .benefits__art {
+    @apply aspect-[8/7] overflow-hidden lg:aspect-auto;
+  }
+  .benefits__art img {
+    @apply size-full object-cover object-left;
   }
 }
 

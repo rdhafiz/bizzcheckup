@@ -1,61 +1,116 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block head %}
   {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
+{% block body_class %}page-home{% endblock %}
+{% block header_class %}relative z-10{% endblock %}
+{% block header_container %}container-wide{% endblock %}
+
 {% block content %}
-  {# --- Hero + form ------------------------------------------------------------ #}
-  <section class="hero container-page grid items-start gap-10 py-12 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-    <div class="lg:pt-6">
-      <p class="eyebrow">Free website check-up</p>
-      <h1 class="mt-3 text-4xl font-bold sm:text-6xl">
-        <span class="block text-primary">{{ product_name }}<span class="sr-only"> — </span></span>Check your business's online&nbsp;health
+  {# --- Hero: promise on the left, a report preview in the middle, the form on the right --- #}
+  <section class="hero container-wide" aria-labelledby="hero-title">
+    <div class="hero__text">
+      <p class="pill-eyebrow">Free website check-up</p>
+      <h1 id="hero-title" class="mt-5 text-4xl leading-[1.05] font-bold sm:text-6xl lg:text-[3.6rem]">
+        <span class="sr-only">{{ product_name }}: </span>Is your business website
+        <span class="hero__highlight">healthy<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span>?
       </h1>
-      <p class="mt-5 max-w-xl text-lg text-muted">
-        Like a medical check-up for your website. In about a minute we take five vital signs,
-        then explain what's wrong, why it matters for your business and how to fix it,
-        in plain language.
+      <p class="mt-6 max-w-md text-lg text-muted">
+        In just a minute, we analyze your website and explain what's working, what's not,
+        and how to improve it for better visibility, trust and growth.
       </p>
-      <ul class="mt-8 grid max-w-xl gap-3 text-sm sm:grid-cols-3">
-        <li class="flex items-center gap-2"><span class="tick" aria-hidden="true"></span>Free, no account</li>
-        <li class="flex items-center gap-2"><span class="tick" aria-hidden="true"></span>Report in about a minute</li>
-        <li class="flex items-center gap-2"><span class="tick" aria-hidden="true"></span>PDF to keep or share</li>
+      <ul class="hero__perks">
+        <li class="tone-green">
+          <span class="tone-tile">{% include "partials/icon.html" with name="bolt" css="size-5" %}</span>
+          <span>Free, no<br>account</span>
+        </li>
+        <li class="tone-blue">
+          <span class="tone-tile">{% include "partials/icon.html" with name="clock" css="size-5" %}</span>
+          <span>Report in<br>about a minute</span>
+        </li>
+        <li class="tone-rose">
+          <span class="tone-tile">{% include "partials/icon.html" with name="file" css="size-5" %}</span>
+          <span>PDF to keep<br>or share</span>
+        </li>
       </ul>
     </div>
 
-    <form method="post" action="{% url 'checkups:start' %}" class="card shadow-[0_20px_60px_-30px_rgb(15_110_102/0.45)]" novalidate>
+    {# Decorative preview of a report on a laptop (built in HTML, so it stays sharp and follows dark mode). #}
+    <div class="hero__laptop" aria-hidden="true">
+      <div class="laptop">
+        <div class="laptop__screen">
+          <div class="laptop__display">
+            <div class="mini-report">
+              <div class="mini-report__score">
+                <p class="mini-report__brand">BizzCheckup</p>
+                <svg viewBox="0 0 36 36" class="mt-1 w-full">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke-width="3.5" class="mini-ring__track"/>
+                  <circle cx="18" cy="18" r="15" fill="none" stroke-width="3.5" stroke-linecap="round" pathLength="100" stroke-dasharray="92 100" transform="rotate(-90 18 18)" class="mini-ring__value"/>
+                  <text x="18" y="18" text-anchor="middle" dominant-baseline="central" class="mini-ring__text">92</text>
+                </svg>
+                <p class="mini-report__label">Website Health</p>
+                <span class="mini-report__bar"></span>
+              </div>
+              <ul class="mini-report__list">
+                <li class="tone-green">Performance</li>
+                <li class="tone-blue">Accessibility</li>
+                <li class="tone-rose">Best Practices</li>
+                <li class="tone-violet">SEO</li>
+                <li class="tone-amber">AI Readiness</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="laptop__base"></div>
+      </div>
+      <svg class="hero__cup" viewBox="0 0 80 70">
+        <ellipse cx="38" cy="64" rx="34" ry="5" class="cup__saucer"/>
+        <path d="M10 22h52l-5 34a8 8 0 0 1-8 7H23a8 8 0 0 1-8-7z" class="cup__body"/>
+        <path d="M62 28c9 0 12 4 11 9s-6 9-13 9" fill="none" stroke-width="4" class="cup__handle"/>
+        <ellipse cx="36" cy="22" rx="26" ry="5" class="cup__coffee"/>
+      </svg>
+    </div>
+
+    <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" novalidate>
       {% csrf_token %}
-      <h2 class="text-xl font-bold">Start your check-up</h2>
+      <h2 class="text-2xl font-bold">Start your <span class="text-primary">check-up</span></h2>
+      <label for="id_url" class="mt-1 block text-sm text-muted">Enter your website address to get a free report.</label>
 
       {% for error in form.non_field_errors %}
         <p class="alert band-urgent mt-4" role="alert">{{ error }}</p>
       {% endfor %}
 
       <div class="mt-5">
-        <label for="id_url" class="field-label">{{ form.url.label }}</label>
-        <input type="text" name="url" id="id_url" value="{{ form.url.value|default_if_none:'' }}"
-               placeholder="yourbusiness.com" autocomplete="url" inputmode="url"
-               autocapitalize="none" spellcheck="false" required
-               {% if form.url.errors %}aria-invalid="true" aria-describedby="url-error"{% endif %}
-               class="field-input text-lg">
+        <div class="input-icon">
+          {% include "partials/icon.html" with name="globe" css="size-5 input-icon__icon" %}
+          <input type="text" name="url" id="id_url" value="{{ form.url.value|default_if_none:'' }}"
+                 placeholder="yourbusiness.com" autocomplete="url" inputmode="url"
+                 autocapitalize="none" spellcheck="false" required
+                 {% if form.url.errors %}aria-invalid="true" aria-describedby="url-error"{% endif %}
+                 class="field-input pl-12! text-lg">
+        </div>
         {% if form.url.errors %}<p id="url-error" class="field-error" role="alert">{{ form.url.errors.0 }}</p>{% endif %}
       </div>
 
       <fieldset class="mt-5">
         <legend class="text-sm font-semibold">Where should we send follow-up tips? <span class="font-normal text-muted">(optional)</span></legend>
-        <div class="mt-2 grid gap-3 sm:grid-cols-2">
-          <div>
+        <div class="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_3fr]">
+          <div class="input-icon">
             <label for="id_name" class="sr-only">{{ form.name.label }}</label>
+            {% include "partials/icon.html" with name="user" css="size-5 input-icon__icon" %}
             <input type="text" name="name" id="id_name" value="{{ form.name.value|default_if_none:'' }}"
-                   placeholder="Your name" autocomplete="name" maxlength="120" class="field-input">
+                   placeholder="Your name" autocomplete="name" maxlength="120" class="field-input pl-11! lg:text-sm">
           </div>
-          <div>
+          <div class="input-icon">
             <label for="id_email" class="sr-only">{{ form.email.label }}</label>
+            {% include "partials/icon.html" with name="mail" css="size-5 input-icon__icon" %}
             <input type="email" name="email" id="id_email" value="{{ form.email.value|default_if_none:'' }}"
                    placeholder="you@business.com" autocomplete="email"
                    {% if form.email.errors %}aria-invalid="true" aria-describedby="email-error"{% endif %}
-                   class="field-input">
+                   class="field-input pl-11! lg:text-sm">
           </div>
         </div>
         {% if form.email.errors %}<p id="email-error" class="field-error" role="alert">{{ form.email.errors.0 }}</p>{% endif %}
@@ -85,48 +140,89 @@
         <div class="cf-turnstile mt-5" data-sitekey="{{ turnstile_site_key }}"></div>
       {% endif %}
 
-      <button type="submit" class="btn-primary mt-6 w-full text-base">Start my free check-up</button>
-      <p class="mt-3 text-xs text-muted">
-        We only look at public pages, like a visitor would.
-        <a href="{% url 'core:privacy' %}">How we handle your data</a>.
+      <button type="submit" class="btn-pill mt-6 w-full">Start my free check-up {% include "partials/icon.html" with name="arrow" css="size-5" %}</button>
+      <p class="mt-4 flex items-start justify-center gap-3 text-xs text-muted">
+        {% include "partials/icon.html" with name="lock" css="size-5 text-ink" %}
+        <span>We only look at public pages, like a visitor would.<br>
+        <a href="{% url 'core:privacy' %}">How we handle your data</a>.</span>
       </p>
     </form>
   </section>
 
   {# --- The five vital signs ------------------------------------------------------- #}
-  <section class="border-y border-line bg-card py-16 sm:py-20" aria-labelledby="signs-title">
-    <div class="container-page">
-      <p class="eyebrow">What we examine</p>
-      <h2 id="signs-title" class="mt-2 max-w-2xl text-3xl font-bold sm:text-4xl">Five vital signs of a healthy business website</h2>
+  <section class="bg-card py-16 sm:py-20" aria-labelledby="signs-title">
+    <div class="container-wide">
+      <div class="grid items-end gap-6 lg:grid-cols-[1.2fr_1fr]">
+        <div>
+          <p class="eyebrow-dash">What we examine</p>
+          <h2 id="signs-title" class="mt-3 max-w-xl text-3xl font-bold sm:text-4xl">Five vital signs of a healthy business website</h2>
+        </div>
+        <p class="max-w-md text-muted lg:justify-self-end">We check the key areas that impact your visibility, trust and conversions, and give clear, actionable advice.</p>
+      </div>
       <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {% for sign in vital_signs %}
-          <article class="sign-card">
-            <span class="sign-icon" aria-hidden="true">{{ sign.icon|safe }}</span>
-            <h3 class="mt-4 font-bold">{{ sign.title }}</h3>
+          <a href="#start" class="sign-card tone-{{ sign.tone }}">
+            <span class="tone-tile tone-tile--round" aria-hidden="true">{% include "partials/icon.html" with name=sign.icon css="size-7" %}</span>
+            <h3 class="mt-5 text-lg font-bold">{{ sign.title }}</h3>
             <p class="mt-2 text-sm text-muted">{{ sign.text }}</p>
-          </article>
+            <span class="sign-card__go" aria-hidden="true">{% include "partials/icon.html" with name="arrow" css="size-4" %}</span>
+            <span class="sr-only">Check my {{ sign.title|lower }}</span>
+          </a>
         {% endfor %}
       </div>
     </div>
   </section>
 
   {# --- How it works ------------------------------------------------------------------- #}
-  <section class="container-page py-16 sm:py-20" aria-labelledby="how-title">
-    <p class="eyebrow">How it works</p>
-    <h2 id="how-title" class="mt-2 text-3xl font-bold sm:text-4xl">From address to treatment plan</h2>
-    <ol class="steps mt-10 grid gap-8 md:grid-cols-3">
-      <li>
-        <h3 class="font-bold">Enter your address</h3>
-        <p class="mt-2 text-muted">No account, no installation. We visit up to 10 public pages the way a customer, Google and an AI assistant would.</p>
-      </li>
-      <li>
-        <h3 class="font-bold">Watch the check-up</h3>
-        <p class="mt-2 text-muted">Speed tests, a real browser, an accessibility scan and dozens of checks run while you watch the progress live.</p>
-      </li>
-      <li>
-        <h3 class="font-bold">Get your treatment plan</h3>
-        <p class="mt-2 text-muted">A Business Health Score, the top risks to your business and quick wins first, as a web page and a PDF.</p>
-      </li>
-    </ol>
+  <section class="how" aria-labelledby="how-title">
+    <div class="container-wide relative">
+      <p class="eyebrow-dash">How it works</p>
+      <h2 id="how-title" class="mt-3 text-3xl font-bold sm:text-4xl">From address to <span class="text-primary">treatment plan</span></h2>
+      <p class="how__note" aria-hidden="true">Simple.<br>Fast.<br>Actionable.
+        <svg viewBox="0 0 60 60" class="how__note-arrow"><path d="M48 4c8 18 2 36-26 44M22 48l10-10M22 48l13 4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </p>
+      <ol class="how__steps">
+        <li class="tone-teal">
+          <span class="how__num">01</span>
+          <div>
+            <h3 class="text-lg font-bold">Enter your address</h3>
+            <p class="mt-2 text-muted">No account, no installation. We visit up to 10 public pages the way a customer, Google and an AI assistant would.</p>
+          </div>
+          <svg class="how__arrow" viewBox="0 0 90 30" aria-hidden="true"><path d="M2 22C25 4 60 2 84 18M84 18l-9-1M84 18l-3-8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"/></svg>
+        </li>
+        <li class="tone-blue">
+          <span class="how__num">02</span>
+          <div>
+            <h3 class="text-lg font-bold">Watch the check-up</h3>
+            <p class="mt-2 text-muted">Speed tests, a real browser, an accessibility scan and dozens of checks run while you watch the progress live.</p>
+          </div>
+          <svg class="how__arrow" viewBox="0 0 90 30" aria-hidden="true"><path d="M2 22C25 4 60 2 84 18M84 18l-9-1M84 18l-3-8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"/></svg>
+        </li>
+        <li class="tone-violet">
+          <span class="how__num">03</span>
+          <div>
+            <h3 class="text-lg font-bold">Get your treatment plan</h3>
+            <p class="mt-2 text-muted">A Business Health Score, the top risks to your business and quick wins first, as a web page and a PDF.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  {# --- What a healthier website brings ------------------------------------------------ #}
+  <section class="benefits" aria-labelledby="benefits-title">
+    <div class="benefits__text">
+      <p class="eyebrow-dash">A healthier website means</p>
+      <h2 id="benefits-title" class="mt-3 text-4xl leading-[1.08] font-bold sm:text-5xl lg:text-[2.9rem]">More visibility.<br>More trust. More growth.</h2>
+      <ul class="benefits__list">
+        <li class="tone-teal"><span class="tone-tile tone-tile--round">{% include "partials/icon.html" with name="users" css="size-5" %}</span><span><strong>Attract</strong><br>more customers</span></li>
+        <li class="tone-rose"><span class="tone-tile tone-tile--round">{% include "partials/icon.html" with name="handshake" css="size-5" %}</span><span><strong>Build</strong><br>more trust</span></li>
+        <li class="tone-violet"><span class="tone-tile tone-tile--round">{% include "partials/icon.html" with name="growth" css="size-5" %}</span><span><strong>Turn visitors</strong><br>into real opportunities</span></li>
+      </ul>
+      <a href="#start" class="btn-pill mt-10">Start your free check-up {% include "partials/icon.html" with name="arrow" css="size-5" %}</a>
+    </div>
+    <div class="benefits__art">
+      <img src="{% static 'img/healthier-website.svg' %}" alt="" width="640" height="560" loading="lazy" decoding="async">
+    </div>
   </section>
 {% endblock %}
