@@ -67,6 +67,7 @@
   --tone-violet: #7c3aed; --tone-violet-soft: #efe8fd;
   --tone-amber: #d97706;  --tone-amber-soft: #fdf1dc;
   --on-tone: #ffffff;
+  --mint: #34d8b4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -362,12 +363,13 @@
 }
 
 @layer components {
-  .tone-green  { --tone: var(--tone-green);  --tone-soft: var(--tone-green-soft); }
-  .tone-blue   { --tone: var(--tone-blue);   --tone-soft: var(--tone-blue-soft); }
-  .tone-rose   { --tone: var(--tone-rose);   --tone-soft: var(--tone-rose-soft); }
-  .tone-violet { --tone: var(--tone-violet); --tone-soft: var(--tone-violet-soft); }
-  .tone-amber  { --tone: var(--tone-amber);  --tone-soft: var(--tone-amber-soft); }
-  .tone-teal   { --tone: var(--primary);     --tone-soft: var(--primary-soft); }
+  /* --tone-solid: a saturated shade that is the same in both themes, for white icons on top. */
+  .tone-green  { --tone: var(--tone-green);  --tone-soft: var(--tone-green-soft);  --tone-solid: #12a150; }
+  .tone-blue   { --tone: var(--tone-blue);   --tone-soft: var(--tone-blue-soft);   --tone-solid: #2f6bf2; }
+  .tone-rose   { --tone: var(--tone-rose);   --tone-soft: var(--tone-rose-soft);   --tone-solid: #e5334f; }
+  .tone-violet { --tone: var(--tone-violet); --tone-soft: var(--tone-violet-soft); --tone-solid: #7c3aed; }
+  .tone-amber  { --tone: var(--tone-amber);  --tone-soft: var(--tone-amber-soft);  --tone-solid: #d97706; }
+  .tone-teal   { --tone: var(--primary);     --tone-soft: var(--primary-soft);     --tone-solid: #0f8f78; }
 
   .tone-tile {
     @apply inline-flex size-11 shrink-0 items-center justify-center rounded-xl;
@@ -378,10 +380,6 @@
     @apply size-12 rounded-full;
   }
 
-  .pill-eyebrow {
-    @apply inline-flex rounded-full bg-primary-soft px-3 py-1 font-mono text-xs font-semibold
-      tracking-widest text-primary uppercase;
-  }
   .eyebrow-dash {
     @apply flex items-center gap-4 text-xs font-semibold tracking-[0.18em] text-primary uppercase;
   }
@@ -418,18 +416,82 @@
     @apply absolute inset-x-0 top-16 z-30;
   }
 
+  /* Hero text (on the photo). */
+  .hero-pill {
+    @apply inline-flex items-center gap-3 rounded-full py-1 pr-5 pl-1 text-sm font-bold tracking-[0.12em]
+      text-ink uppercase backdrop-blur-md;
+    background: rgb(255 255 255 / 0.06);
+    border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
+    box-shadow: 0 0 28px -8px var(--primary);
+  }
+  .hero-pill__icon {
+    @apply inline-flex size-9 items-center justify-center rounded-full;
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+  .hero__title {
+    @apply relative mt-6 text-[2.6rem] leading-[1.04] font-extrabold tracking-tight sm:text-6xl
+      xl:text-7xl;
+  }
   .hero__highlight {
-    @apply relative inline-block text-primary;
+    @apply relative inline-block;
+    color: var(--mint);
+  }
+  @supports (background-clip: text) {
+    .hero__highlight {
+      background: linear-gradient(90deg, var(--mint), var(--primary));
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
   }
   .hero__swoosh {
-    @apply absolute -bottom-2 left-0 h-3 w-full;
-    color: var(--primary);
+    @apply absolute -bottom-3 left-0 h-3 w-full;
+    color: var(--mint);
   }
+  .hero__spark--title { @apply -top-10 right-[6%] size-12; color: var(--mint); }
+  .hero__spark--cta { @apply top-0 -right-12 size-10; color: var(--mint); }
+
+  /* Frosted-glass perk cards with a solid round icon. */
   .hero__perks {
-    @apply mt-10 grid max-w-md grid-cols-1 gap-4 text-sm font-medium sm:grid-cols-3;
+    @apply mt-10 grid gap-3 sm:grid-cols-3;
   }
-  .hero__perks li {
-    @apply flex items-center gap-3;
+  .perk-card {
+    @apply flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm text-muted backdrop-blur-md;
+    background: rgb(255 255 255 / 0.05);
+    border: 1px solid rgb(255 255 255 / 0.12);
+  }
+  .perk-card strong {
+    @apply block text-base font-bold text-ink;
+  }
+  .perk-card__icon {
+    @apply inline-flex size-12 shrink-0 items-center justify-center rounded-full text-white;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--tone-solid) 80%, #fff),
+      var(--tone-solid) 60%);
+    box-shadow: 0 8px 22px -8px var(--tone-solid);
+  }
+
+  /* Bright mint call to action: large bold text (20px) keeps white text readable. */
+  .btn-mint {
+    @apply inline-flex min-h-16 items-center gap-4 rounded-full py-2 pr-2 pl-8 text-xl font-bold
+      text-white no-underline transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5
+      hover:no-underline;
+    background: linear-gradient(90deg, #0b8a72, #0fa585);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.18),
+      0 16px 40px -12px rgb(16 185 129 / 0.65);
+  }
+  .btn-mint:hover {
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.25),
+      0 20px 48px -12px rgb(16 185 129 / 0.8);
+  }
+  .btn-mint__arrow {
+    @apply inline-flex size-12 items-center justify-center rounded-full bg-white transition-transform
+      duration-200;
+    color: #0f6e66;
+  }
+  .btn-mint:hover .btn-mint__arrow {
+    @apply translate-x-1;
   }
 
   /* Inputs with a leading icon. */

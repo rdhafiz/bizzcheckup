@@ -15,29 +15,37 @@
   <section class="hero-full" aria-labelledby="hero-title">
     <div class="hero container-wide">
       <div class="hero__text on-dark">
-        <p class="pill-eyebrow">Free website check-up</p>
-        <h1 id="hero-title" class="mt-5 text-4xl leading-[1.05] font-bold sm:text-6xl lg:text-[3.6rem]">
+        <p class="hero-pill">
+          <span class="hero-pill__icon" aria-hidden="true"><svg class="size-5" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          Free website check-up
+        </p>
+        <h1 id="hero-title" class="hero__title">
+          <svg class="deco-spark hero__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 8 18M30 8 20 20M34 24l-12-1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
           <span class="sr-only">{{ product_name }}: </span>Is your business website
           <span class="hero__highlight">healthy<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span>?
         </h1>
-        <p class="mt-6 max-w-md text-lg text-muted">
+        <p class="mt-7 max-w-xl text-lg text-muted sm:text-xl">
           In just a minute, we analyze your website and explain what's working, what's not,
           and how to improve it for better visibility, trust and growth.
         </p>
         <ul class="hero__perks">
-          <li class="tone-green">
-            <span class="tone-tile">{% include "partials/icon.html" with name="bolt" css="size-5" %}</span>
-            <span>Free, no<br>account</span>
+          <li class="perk-card tone-green">
+            <span class="perk-card__icon">{% include "partials/icon.html" with name="bolt" css="size-6" %}</span>
+            <span><strong>Free,</strong> no account</span>
           </li>
-          <li class="tone-blue">
-            <span class="tone-tile">{% include "partials/icon.html" with name="clock" css="size-5" %}</span>
-            <span>Report in<br>about a minute</span>
+          <li class="perk-card tone-blue">
+            <span class="perk-card__icon">{% include "partials/icon.html" with name="clock" css="size-6" %}</span>
+            <span><strong>Report in</strong> about a minute</span>
           </li>
-          <li class="tone-rose">
-            <span class="tone-tile">{% include "partials/icon.html" with name="file" css="size-5" %}</span>
-            <span>PDF to keep<br>or share</span>
+          <li class="perk-card tone-rose">
+            <span class="perk-card__icon">{% include "partials/icon.html" with name="file" css="size-6" %}</span>
+            <span><strong>PDF to keep</strong> or share</span>
           </li>
         </ul>
+        <div class="relative mt-10 hidden lg:inline-block">
+          <a href="#start" class="btn-mint">Start your free check-up <span class="btn-mint__arrow">{% include "partials/icon.html" with name="arrow" css="size-5" %}</span></a>
+          <svg class="deco-spark hero__spark--cta" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 6l4 8M22 4l-4 10M30 18l-10 2M26 32l-6-8" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+        </div>
       </div>
 
       <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" novalidate>

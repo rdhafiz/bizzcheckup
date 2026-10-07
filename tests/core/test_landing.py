@@ -36,7 +36,8 @@ def test_landing_page_shows_brand_and_everything_the_brief_asks_for(client: Clie
     assert "Start my free check-up" in html
     assert reverse("core:privacy") in html  # privacy note link
     assert html.count('class="sign-card tone-') == 5  # the five vital signs
-    assert html.count('href="#start"') == 6  # each sign card and the last section lead to the form
+    # The hero button, each sign card and the last section lead to the form.
+    assert html.count('href="#start"') == 7
     assert 'id="start"' in html
 
 
