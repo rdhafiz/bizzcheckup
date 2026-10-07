@@ -1,17 +1,62 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Checking {{ checkup.domain }} — {{ product_name }}{% endblock %}
 
-{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block head %}
+  <meta name="robots" content="noindex">
+  <script src="{% static 'js/progress.js' %}" defer></script>
+  {# Without JavaScript there's no live update, so just reload every few seconds. #}
+  <noscript><meta http-equiv="refresh" content="5"></noscript>
+{% endblock %}
 
 {% block content %}
   <section class="container-page max-w-2xl py-12 sm:py-20">
-    <p class="eyebrow">Check-up in progress</p>
+    <p class="eyebrow" data-progress-eyebrow>Check-up in progress</p>
     <h1 class="mt-3 text-3xl font-bold sm:text-4xl">We're examining {{ checkup.domain }}</h1>
     <p class="mt-3 text-muted">
       This usually takes under a minute. You can keep this page open: your report appears
       here automatically.
     </p>
-    {% include "checkups/_progress.html" %}
+
+    <div class="card progress-card mt-8" data-progress-card data-report-url="{% url 'checkups:detail' checkup.pk %}">
+      {# HTMX refreshes only this tiny hidden element; progress.js animates everything else. #}
+      <div id="progress-data" hidden
+           hx-get="{% url 'checkups:progress' checkup.pk %}" hx-trigger="every 1s" hx-swap="innerHTML">
+        {% include "checkups/_progress_data.html" %}
+      </div>
+
+      <div class="progress-running">
+        <div class="flex items-baseline justify-between gap-4">
+          <p class="font-semibold" data-step-text aria-live="polite">{{ checkup.current_step }}</p>
+          <p class="font-mono text-sm text-muted"><span data-percent>{{ checkup.progress }}</span>%</p>
+        </div>
+        <progress class="progress-bar mt-3" max="100" value="{{ checkup.progress }}" data-bar
+                  aria-label="Check-up progress">{{ checkup.progress }}%</progress>
+
+        <ol class="mt-6 space-y-3">
+          {% for step in steps %}
+            <li class="progress-step is-{{ step.state }}" data-start="{{ step.start }}" data-end="{{ step.end }}">
+              <span class="progress-step__icon" aria-hidden="true">
+                <svg class="icon-done" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
+                <span class="icon-active"><span class="ping"></span><span class="dot"></span></span>
+                <span class="icon-pending"></span>
+              </span>
+              <span class="progress-step__label">{{ step.label }}</span>
+              <span class="sr-only" data-step-state>({{ step.state }})</span>
+            </li>
+          {% endfor %}
+        </ol>
+      </div>
+
+      <div class="progress-success" role="status" aria-live="assertive">
+        <svg class="success-mark" viewBox="0 0 52 52" aria-hidden="true">
+          <circle class="success-mark__circle" cx="26" cy="26" r="24" fill="none"/>
+          <path class="success-mark__check" fill="none" d="M15 27 l7 7 l15 -16"/>
+        </svg>
+        <p class="mt-4 text-2xl font-bold">Your report is ready</p>
+        <p class="mt-1 text-muted">Opening it now…</p>
+      </div>
+    </div>
   </section>
 {% endblock %}

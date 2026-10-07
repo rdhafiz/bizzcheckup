@@ -87,15 +87,16 @@ def detail(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
 
 @require_GET
 def progress(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
-    """The progress box only. HTMX asks for it every 2 seconds."""
+    """The latest progress as a tiny HTML snippet. HTMX asks for it every second.
+
+    When the check-up has finished, the answer uses status 286, which tells HTMX to
+    stop polling. The page's script then plays the "ready" animation and opens the
+    report (or the error page).
+    """
     checkup = get_object_or_404(Checkup, pk=checkup_id)
     services.expire_if_stuck(checkup)
-    if checkup.is_finished:
-        # Tell HTMX to reload the whole page, which now shows the report (or the error).
-        response = HttpResponse(status=204)
-        response["HX-Refresh"] = "true"
-        return response
-    return render(request, "checkups/_progress.html", progress_context(checkup))
+    status = 286 if checkup.is_finished else 200
+    return render(request, "checkups/_progress_data.html", {"checkup": checkup}, status=status)
 
 
 @require_GET

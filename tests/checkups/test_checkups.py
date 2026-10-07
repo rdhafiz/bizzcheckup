@@ -153,9 +153,10 @@ def test_engine_config_comes_from_settings(settings) -> None:  # type: ignore[no
     ("progress", "states"),
     [
         (0, ["active"] + ["pending"] * 7),
-        (25, ["done", "active"] + ["pending"] * 6),
-        (60, ["done"] * 4 + ["active"] + ["pending"] * 3),
-        (95, ["done"] * 7 + ["active"]),
+        (20, ["done", "active"] + ["pending"] * 6),
+        (60, ["done", "active"] + ["pending"] * 6),  # still taking vital signs
+        (75, ["done"] * 3 + ["active"] + ["pending"] * 4),  # checking accessibility
+        (94, ["done"] * 7 + ["active"]),  # preparing the report and PDF
         (100, ["done"] * 8),
     ],
 )
@@ -261,3 +262,9 @@ def test_background_thread_runs_the_worker_task() -> None:
         services.run_in_background_thread("abc")
         assert done.wait(timeout=5)
     task.assert_called_once_with("abc")
+
+
+def test_steps_carry_their_range_for_the_animation() -> None:
+    steps = steps_for(0)
+    assert [(step.start, step.end) for step in steps][:3] == [(0, 20), (20, 70), (70, 74)]
+    assert steps[-1].end == 100

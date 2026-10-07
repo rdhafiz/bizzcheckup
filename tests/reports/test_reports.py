@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def finished(db: None) -> Checkup:
     checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
     services.save_report(checkup, make_report())
+    services.mark_done(checkup)
     return checkup
 
 

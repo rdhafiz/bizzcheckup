@@ -207,6 +207,70 @@
     overflow: hidden;
   }
 
+  /* --- Live progress (templates/checkups/progress.html, static/js/progress.js) --- */
+  .progress-step {
+    @apply flex items-center gap-3 text-muted transition-colors duration-300;
+  }
+  .progress-step.is-active,
+  .progress-step.is-done {
+    @apply text-ink;
+  }
+  .progress-step.is-active .progress-step__label {
+    @apply font-semibold;
+  }
+  .progress-step__icon {
+    @apply relative flex size-5 shrink-0 items-center justify-center;
+  }
+  .progress-step__icon > * {
+    @apply hidden;
+  }
+  .progress-step.is-done .icon-done {
+    @apply block size-5 text-healthy;
+    animation: pop-in 320ms ease-out;
+  }
+  .progress-step.is-active .icon-active {
+    @apply flex size-5 items-center justify-center;
+  }
+  .progress-step.is-pending .icon-pending {
+    @apply block size-2 rounded-full bg-line;
+  }
+  .icon-active .ping {
+    @apply absolute size-3.5 animate-ping rounded-full bg-primary opacity-40;
+  }
+  .icon-active .dot {
+    @apply size-2.5 rounded-full bg-primary;
+  }
+
+  .progress-success {
+    @apply hidden flex-col items-center py-8 text-center;
+  }
+  .progress-card.is-complete .progress-running {
+    @apply hidden;
+  }
+  .progress-card.is-complete .progress-success {
+    @apply flex;
+    animation: fade-up 400ms ease-out;
+  }
+  .success-mark {
+    @apply size-20;
+  }
+  .success-mark__circle {
+    stroke: var(--healthy);
+    stroke-width: 3;
+    stroke-dasharray: 151;
+    stroke-dashoffset: 151;
+    animation: draw 600ms ease-out forwards;
+  }
+  .success-mark__check {
+    stroke: var(--healthy);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 36;
+    stroke-dashoffset: 36;
+    animation: draw 350ms 500ms ease-out forwards;
+  }
+
   .score-ring__track { stroke: var(--line); }
   .score-ring__value {
     stroke: var(--band);
@@ -358,7 +422,24 @@
   font-size: 11pt;
 }
 
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes pop-in {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes fade-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* Show the finished tick at once instead of drawing it. */
+  .success-mark__circle,
+  .success-mark__check {
+    stroke-dashoffset: 0;
+  }
   *, *::before, *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;

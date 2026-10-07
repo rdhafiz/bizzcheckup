@@ -49,7 +49,9 @@ def test_running_checkup_shows_progress_with_htmx_polling(client: Client) -> Non
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
 
     assert "We're examining shop.test" in html
-    assert 'hx-trigger="every 2s"' in html
+    assert 'hx-trigger="every 1s"' in html
+    assert "js/progress.js" in html  # the smooth animation
+    assert 'data-start="70" data-end="74"' in html  # step ranges for the animation
     assert f'hx-get="/checkups/{checkup.pk}/progress/"' in html
     assert 'value="60"' in html
     assert "Checking SEO" in html
@@ -62,12 +64,20 @@ def test_progress_partial_while_running(client: Client) -> None:
     assert "<html" not in response.content.decode()  # just the box, not a whole page
 
 
+def test_progress_partial_is_just_the_latest_data(client: Client) -> None:
+    checkup = make_checkup(status=Checkup.Status.RUNNING, progress=42, current_step="Opening")
+    html = client.get(reverse("checkups:progress", args=[checkup.pk])).content.decode()
+    assert 'data-progress="42"' in html
+    assert 'data-status="running"' in html
+    assert 'data-step="Opening"' in html
+
+
 @pytest.mark.parametrize("status", [Checkup.Status.DONE, Checkup.Status.FAILED])
-def test_progress_partial_tells_htmx_to_reload_when_finished(client: Client, status: str) -> None:
+def test_progress_partial_stops_htmx_polling_when_finished(client: Client, status: str) -> None:
     checkup = make_checkup(status=status)
     response = client.get(reverse("checkups:progress", args=[checkup.pk]))
-    assert response.status_code == 204
-    assert response["HX-Refresh"] == "true"
+    assert response.status_code == 286  # htmx's "stop polling" status
+    assert f'data-status="{status}"' in response.content.decode()
 
 
 def test_finished_checkup_shows_the_report_at_the_same_url(
@@ -75,6 +85,7 @@ def test_finished_checkup_shows_the_report_at_the_same_url(
 ) -> None:
     checkup = make_checkup()
     services.save_report(checkup, report)
+    services.mark_done(checkup)
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
     assert "BizzCheckup Health Report" in html
     assert "Needs attention" in html  # health score 66

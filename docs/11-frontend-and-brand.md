@@ -88,23 +88,39 @@ requests go to Google, which is better for privacy, speed and PDF output.
 `pathLength="100"` tells the browser that the circle's length is 100. A score of 72
 then draws exactly 72 % of the ring, with no maths needed in the template.
 
-## HTMX: live updates without writing JavaScript
+## The live progress page (HTMX + `static/js/progress.js`)
 
-`static/vendor/htmx.min.js` (htmx 2.0.11, Zero-Clause BSD licence, stored in the repo)
-lets plain HTML attributes fetch and swap content:
+Two pieces work together:
 
-```html
-<div id="progress"
-     hx-get="/checkups/<uuid>/progress/"   <!-- ask the server for new HTML -->
-     hx-trigger="every 2s"                  <!-- ...every 2 seconds -->
-     hx-swap="outerHTML">                   <!-- ...and replace this whole div with it -->
-```
+1. **HTMX fetches the facts.** Every second it asks the server for the latest progress,
+   and puts the answer into a small **hidden** element:
+   ```html
+   <div id="progress-data" hidden
+        hx-get="/checkups/<uuid>/progress/" hx-trigger="every 1s" hx-swap="innerHTML">
+     <span data-progress="54" data-status="running" data-step="Measuring speed with Google PageSpeed…"></span>
+   </div>
+   ```
+   When the check-up has finished, the server answers with status **286**, htmx's built-in
+   signal to **stop polling**.
+2. **`progress.js` animates what the visitor sees**, towards those facts:
+   - the bar **glides** at a steady pace (about 15% a second) instead of jumping;
+   - during a long step (Google's PageSpeed test can take 20–40 s), it **creeps** slowly
+     (about 1% every 2 s), but never past the end of the current step, so it never claims
+     work that isn't done;
+   - steps are **ticked off one by one** as the bar passes them, even when the server
+     finished several at once (the five category checks take under a second);
+   - the text names the step the bar is on, or the server's detailed message ("Measuring
+     speed with Google PageSpeed…") once the bar has caught up;
+   - at 100%, a **success animation** plays (a circle and tick drawn with SVG
+     `stroke-dashoffset`, in `frontend/tailwind.css`), then the report opens at the same URL;
+   - if the check-up failed, it reloads at once to show the friendly error page;
+   - with `prefers-reduced-motion`, everything jumps straight to its final state.
 
-The server answers with the updated box (`templates/checkups/_progress.html`). When the
-check-up is finished, it answers `204 No Content` with the header `HX-Refresh: true`, and
-HTMX reloads the page, which now shows the report.
+Each step in the list carries its range, `data-start` and `data-end`, taken from
+`checkups/progress.py`. That module uses the same milestones as the engine
+(`engine/runner.py`: crawl 3%, vital signs 20–70%, categories 70–86%, report 90%, PDF 94%).
 
-Partial templates start with `_` (`_progress.html`) to show they're pieces, not pages.
+Without JavaScript, a `<noscript>` meta refresh reloads the page every 5 seconds.
 
 ### No inline styles
 

@@ -21,6 +21,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - Tests no longer read the developer's `.env`.
 
 ### Changed
+- The progress page animates smoothly from 0% to 100%: real progress while each data
+  source finishes, gentle creeping during slow steps, steps ticked off one by one, and a
+  "Your report is ready" animation before the report opens. The PDF is ready when the
+  report appears.
 - Check-ups now start **immediately** in the web app by default (`CHECKUP_RUNNER=immediate`),
   with no Redis or worker needed, at most `CHECKUP_MAX_CONCURRENT` (3) at once. The Celery
   queue stays available with `CHECKUP_RUNNER=celery`, which Docker Compose uses.

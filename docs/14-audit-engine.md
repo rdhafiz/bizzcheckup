@@ -257,10 +257,16 @@ The health score is (25×80 + 20×100 + 15×60 + 15×20) ÷ (25+20+15+15) = 5200
 
 | % | Step |
 |---|------|
-| 5 | Visiting your website |
-| 25 | Taking your website's vital signs |
-| 40–90 | Checking Performance / Accessibility / Best practices / SEO / Agentic browsing |
-| 95 | Preparing your report |
+| 3 | Visiting your website |
+| 20–70 | Taking your website's vital signs. **Each data source that finishes moves the bar**, and the message says what's still running: "Checking links, security and AI access…", then "Opening your site in a real browser…", then "Measuring speed with Google PageSpeed…" |
+| 70, 74, 78, 82, 86 | Checking Performance / Accessibility / Best practices / SEO / Agentic browsing |
+| 90 | Preparing your report (scoring) |
+| 94 | Preparing your PDF (in the web app, after the engine) |
+| 100 | Your report is ready |
+
+The numbers are constants at the top of `runner.py` (`COLLECT_START`, `CHECKS_START`…),
+and `checkups/progress.py` builds the steps from them, so the page and the engine always
+agree.
 
 ## Errors the visitor can see
 
