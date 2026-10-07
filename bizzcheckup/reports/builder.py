@@ -49,6 +49,29 @@ class VitalSign:
     def needs_care(self) -> bool:
         return self.score.score is not None and self.score.score < HEALTHY_FROM
 
+    @property
+    def anchor(self) -> str:
+        """id of this vital sign's section, for jump links ("sign-best_practices")."""
+        return f"sign-{self.category.value}"
+
+    @property
+    def serious(self) -> int:
+        return sum(1 for f in self.problems if f.severity is Severity.FAIL)
+
+    @property
+    def headline(self) -> str:
+        """One short sentence under the score, in plain words."""
+        if self.score.score is None:
+            return "Not checked this time."
+        if not self.problems:
+            return "Healthy: nothing to fix here."
+        count = len(self.problems)
+        issues = "1 issue" if count == 1 else f"{count} issues"
+        if self.serious:
+            serious = "1 needs" if self.serious == 1 else f"{self.serious} need"
+            return f"{issues} found; {serious} treatment."
+        return f"{issues} worth fixing."
+
 
 @dataclass
 class Recommendation:
@@ -75,6 +98,40 @@ class ReportView:
     @property
     def band(self) -> Band | None:
         return self.report.health_band
+
+    # --- counts for the overview tiles -------------------------------------------------
+    @property
+    def needs_treatment(self) -> int:
+        return sum(1 for f in self.plan.all if f.severity is Severity.FAIL)
+
+    @property
+    def worth_fixing(self) -> int:
+        return sum(1 for f in self.plan.all if f.severity is Severity.WARN)
+
+    @property
+    def healthy_count(self) -> int:
+        return sum(len(sign.healthy) for sign in self.vital_signs)
+
+    @property
+    def verdict(self) -> str:
+        """The one sentence a business owner should remember."""
+        serious, total = self.needs_treatment, len(self.plan.all)
+        if self.band is Band.HEALTHY:
+            if not total:
+                return "Your website is in excellent health."
+            return "Your website is in good health, with a few things worth polishing."
+        if self.band is Band.URGENT:
+            problems = "1 serious problem is" if serious == 1 else f"{serious} serious problems are"
+            return f"Your website needs urgent care: {problems} likely costing you customers."
+        if serious:
+            problems = "1 serious problem is" if serious == 1 else f"{serious} serious problems are"
+            return f"Your website works, but {problems} holding your business back."
+        return f"Your website works, but {total} issues are holding your business back."
+
+    @property
+    def problem_categories(self) -> list[VitalSign]:
+        """Vital signs that have something to fix, for the overview."""
+        return [sign for sign in self.vital_signs if sign.problems]
 
 
 def build_report(checkup: Checkup) -> ReportView:
