@@ -7,6 +7,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **Redesigned report page**, easier to act on: a sticky bar with the score and jump
+  links; an overview with a score gauge, a one-sentence verdict, counters and the five
+  vital signs as bars against the "Healthy" line; the top risks as problem, cost and
+  solution cards; the treatment plan as a checklist saved in your browser; issues as rows
+  that open to show why they matter and how to fix them. The PDF uses the same layout.
 - **Check again now** button on reports and on the "couldn't finish" page: a fresh
   check-up of the same site that skips report reuse but keeps every other protection
   (an already-running check-up is reused, SSRF check, Turnstile, rate limit, capacity).

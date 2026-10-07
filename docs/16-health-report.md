@@ -6,18 +6,38 @@ A finished check-up is shown at its own address, `/checkups/<uuid>/`, as the
 
 ## The six sections (`templates/reports/_sections.html`)
 
-| # | Section | Shows | Comes from |
-|---|---------|-------|------------|
-| 1 | **Cover** | Wordmark, date, domain, URL, homepage screenshot, Business Health Score with its band, five score rings | `Checkup`, `AuditReport` |
-| 2 | **Diagnosis** | Three plain-English sentences, the **top 3 risks to the business**, notes, and the pages checked | `builder.diagnosis_summary()`, `builder.top_risks()` |
-| 3 | **Vital signs** (×5) | Score ring, a one-line explanation, "What needs attention" (fail/warn findings), "Good to know" (info), "What's healthy" (passes, folded on the web) | `builder.vital_sign()` |
-| 4 | **Treatment plan** | Quick wins first, then next steps: impact high to low, effort low to high | `engine.treatment.build_treatment_plan()` |
-| 5 | **How {first name} can help** | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, plus the broad "rebuild" service when 3+ areas need care, and the call to action | `builder.recommend_services()` |
-| 6 | **Contact** | Photo, name, title, intro, highlights, email, WhatsApp, website, GitHub, CV, portfolio, QR code to the website, and the footer note | `branding.yaml`, `builder.qr_code_svg()` |
+The order follows the questions a business owner asks, one at a time:
+
+| # | Section (`id`) | Question it answers | Shows | Comes from |
+|---|----------------|---------------------|-------|------------|
+| 1 | **Overview** (`#overview`) | *How healthy is my website?* | Domain, URL, half-circle **gauge** with the Business Health Score and band, a one-sentence **verdict**, the homepage screenshot, 4 counters (need treatment, worth fixing, quick wins, checks passed), the 5 vital signs as **bullet bars**, the summary sentences and the pages checked | `ReportView.verdict`, `.needs_treatment`, `.worth_fixing`, `.healthy_count`, `builder.diagnosis_summary()` |
+| 2 | **Top risks** (`#top-issues`) | *What are the biggest problems?* | Up to 3 cards: the problem, **what it costs you**, and **the solution** side by side | `builder.top_risks()` |
+| 3 | **Treatment plan** (`#plan`) | *What do I do, and in what order?* | A **checklist**: quick wins first, then next steps; each step links to its details | `engine.treatment.build_treatment_plan()` |
+| 4 | **Vital signs** ×5 (`#sign-<category>`) | *Tell me more.* | Icon, score ring, a one-line **headline** ("5 issues worth fixing."), then each issue as a row that opens to show *why it matters*, *how to fix it* and *where*; "Good to know" notes; passed checks folded | `builder.vital_sign()`, `VitalSign.headline` |
+| 5 | **How {first name} can help** (`#help`) | *Who can fix this?* | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, plus the broad "rebuild" service when 3+ areas need care, and the call to action | `builder.recommend_services()` |
+| 6 | **Contact** (`#contact`) | *How do I reach them?* | Photo, name, title, intro, highlights, email, WhatsApp, website, GitHub, CV, portfolio, QR code, footer note | `branding.yaml`, `builder.qr_code_svg()` |
 
 Every finding shows its severity ("Needs treatment", "Worth fixing", "Good to know",
-"Healthy"), impact, effort, **why it matters for your business**, **how to fix it**, and
-the affected URLs (the first 5, then "and N more").
+"Healthy") as **an icon, a colour and a word** (never colour alone), plus impact, effort,
+**why it matters for your business**, **how to fix it**, and the affected URLs (the first
+5, then "and N more").
+
+## The report's design, and why
+
+| Pattern | Where | Why |
+|---------|-------|-----|
+| **Sticky bar** with the score and jump links | `report.html`, `.report-bar` | A long report needs a map. The links are real `#anchors`, so they also work without JavaScript; `scroll-mt-24` stops headings hiding under the bar |
+| **Gauge** for the one big number | `reports/_gauge.html` | One KPI reads best as a gauge. `pathLength="100"` makes the score the arc length, no maths |
+| **Bullet bars** with a line at 90 | `reports/_bullet.html` | Five scores compared against one target ("Healthy"). The bar is an SVG `<rect width="72">` because our CSP forbids `style="width:72%"` |
+| **Problem → cost → solution** cards | Top risks | Answers "what's wrong and what do I do" without scrolling |
+| **Expandable rows** (`<details>`) | `reports/_issue.html` | 40+ findings at full length make a wall of text. One line each, details on demand. `<details>` is native HTML: keyboard and screen-reader friendly, no JavaScript. In the PDF they are always `open` |
+| **Checklist** | `reports/_plan_item.html`, `static/js/report.js` | Turns the report into a to-do list. Ticks are saved in the visitor's browser (`localStorage`, key `bizzcheckup-plan-<uuid>`), never on the server. If storage is blocked it still works, it just forgets. The progress bar only appears when JavaScript runs. The PDF prints empty boxes |
+| **One icon set** | `reports/_icon.html` | SVG line icons (2 px stroke), `aria-hidden` because the text next to them says the same thing. No emoji |
+
+Responsive: one column on phones (bars go under the names, the nav scrolls sideways),
+two on tablets, the full grid on desktop. Long CSS selectors and URLs in the fix text use
+`overflow-wrap: anywhere` so they never make the page scroll sideways. Animations (the
+gauge filling, a row opening) are short and switched off with *reduce motion*.
 
 ## How the pieces fit
 
@@ -84,6 +104,7 @@ right now" page (HTTP 503), never an error page.
 |--------|------|
 | **Download PDF** | `/checkups/<uuid>/report.pdf`, ready straight away because the PDF is made before the report appears |
 | **Copy share link** | Copies the report's address (`static/js/report.js`) |
+| **Jump links** (sticky bar) | Overview · Top issues · Action plan · Details · Get help |
 | **Check again now** | A fresh check-up of the same site, skipping report reuse (`checkups/_recheck_form.html`, `views.recheck`; rules in [Security](17-security.md)) |
 
 Below the buttons, the report says how old it is: `{{ checkup.finished_at|timesince }}`

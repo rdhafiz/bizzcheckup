@@ -78,6 +78,13 @@ requests go to Google, which is better for privacy, speed and PDF output.
 | `templates/base.html` | Skeleton: `<head>`, skip link, header with logo and theme button, footer |
 | `templates/partials/logo.html` | Wordmark: pulse mark + **Bizz** (teal) + **Checkup** (ink) |
 | `templates/partials/score_ring.html` | Circular score gauge (see below) |
+| `templates/reports/_icon.html` | The report's SVG icons: severities, the five vital signs, why/fix/where |
+| `templates/reports/_gauge.html` | Half-circle gauge for the Business Health Score |
+| `templates/reports/_bullet.html` | One vital sign as a bar against the "Healthy" line at 90 |
+| `templates/reports/_issue.html` | One finding as an expandable `<details>` row |
+| `templates/reports/_plan_item.html` | One treatment-plan step with its checkbox |
+
+How and why the report looks the way it does: [Health report](16-health-report.md#the-reports-design-and-why).
 
 ### Score ring trick
 
