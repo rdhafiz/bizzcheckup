@@ -88,3 +88,80 @@ Two exceptions are in `pyproject.toml`:
 | `test_styleguide_hidden_when_debug_off` | Style guide gives a 404 in production |
 | `test_styleguide_visible_when_debug_on` | Style guide works in dev |
 | `test_ping_task_runs` | Celery is wired up |
+
+---
+
+## Testing the engine (phase 2)
+
+### No real internet, ever
+
+Engine tests use two fakes, both defined in `tests/engine/conftest.py`:
+
+| Fake | Replaces | How |
+|------|----------|-----|
+| `fake_resolver` | DNS | A dict: `"shop.test"` maps to a public IP, `"evil.test"` to `10.0.0.1` |
+| `router` (respx) | The internet | Routes like `router.get("https://shop.test/").respond(200, html="...")` |
+
+The `fetcher` fixture builds a real `Fetcher` wired to both fakes:
+
+```python
+async def test_redirect_to_private_address_is_blocked(fetcher, router):
+    router.get("https://shop.test/").respond(302, headers={"Location": "http://169.254.169.254/"})
+    with pytest.raises(BlockedURLError):
+        await fetcher.get("https://shop.test/")
+```
+
+`assert_all_mocked=True` means any request to an address without a route **fails the
+test**. A test can't secretly reach the internet.
+
+### `conftest.py` and fixtures
+
+pytest automatically loads `conftest.py` files. A **fixture** is a function marked
+`@pytest.fixture`. Any test with a parameter of the same name receives its return
+value. A fixture that uses `yield` runs its cleanup code after the test, which is how
+the `fetcher` fixture closes the client.
+
+### `@pytest.mark.parametrize`: one test, many inputs
+
+```python
+@pytest.mark.parametrize("url", ["http://127.0.0.1/", "http://10.0.0.1/", ...])
+async def test_internal_addresses_are_blocked(guard, url):
+```
+
+Each value becomes its own test in the results, so you see exactly which one failed.
+`test_netguard.py` checks 22 blocked addresses this way.
+
+### `pytest.raises`
+
+```python
+with pytest.raises(AuditError, match="took too long"):
+    await run_audit(...)
+```
+
+The test passes only if that error is raised **and** its message matches.
+
+### `monkeypatch`
+
+`test_registry.py` uses `monkeypatch.setattr(...)` to swap in an empty registry for
+one test. It's put back automatically afterwards.
+
+### Factories (`tests/engine/factories.py`)
+
+`make_page()`, `make_context()`, `make_finding()` and `make_result()` build test
+objects with sensible defaults, so each test only states what matters to it. Phase 3's
+check tests build their contexts with `make_context(make_page(html))`.
+
+### Engine test files
+
+| File | Covers |
+|------|--------|
+| `test_urls.py` | URL normalising and link resolution |
+| `test_types.py` | Pydantic validation of findings and pages |
+| `test_netguard.py` | Every kind of blocked address, port and scheme |
+| `test_fetcher.py` | User-Agent, redirects, SSRF on redirect, size cap, retries |
+| `test_crawler.py` | robots.txt, sitemap, link fallback, max pages, XML bomb safety |
+| `test_registry.py` | Self-registration, duplicates, validation, ordering |
+| `test_scoring.py` | Severity scores, band boundaries, weights, cap, rebalancing |
+| `test_treatment.py` | Quick wins and ordering |
+| `test_runner.py` | A full audit with fake checks: skips, crashes, progress, timeouts, errors |
+| `test_no_django.py` | The engine never imports Django or Celery |

@@ -64,6 +64,33 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 | **Where** | `config/celery.py`, `bizzcheckup/*/tasks.py` |
 | **How** | Mark a function with `@shared_task`, then call `my_task.delay(...)` to queue it |
 
+### httpx `0.28.1`
+
+| | |
+|---|---|
+| **What** | HTTP client: sends requests and reads responses |
+| **Why** | It supports **async**, so the crawler can wait on two pages at once instead of one after the other. It has a clean API like `requests`, streams big bodies (so we can stop at 5 MB), and lets us plug in a fake transport for tests. |
+| **Where** | `bizzcheckup/engine/fetcher.py` only |
+| **How** | `async with httpx.AsyncClient() as client: response = await client.send(request, stream=True)` |
+
+### pydantic `2.13.5`
+
+| | |
+|---|---|
+| **What** | Data classes that **validate** their values |
+| **Why** | A `Finding` with a typo'd severity, or an empty "how to fix", raises an error immediately instead of producing a broken report. `model_dump(mode="json")` turns a whole `AuditReport` into JSON for the database in one call. |
+| **Where** | `engine/types.py`, `engine/config.py`, `engine/treatment.py` |
+| **How** | `class Finding(BaseModel): severity: Severity`. Then `Finding(severity="warn", ...)` converts the text into `Severity.WARN`. |
+
+### selectolax `1.0.0`
+
+| | |
+|---|---|
+| **What** | A very fast HTML parser (it uses the Lexbor engine, written in C) |
+| **Why** | Every check reads HTML. selectolax is many times faster than BeautifulSoup and supports CSS selectors such as `tree.css("a[href]")`. |
+| **Where** | `engine/crawler.py` (links), `engine/context.py` (`ctx.tree(page)`), and every check |
+| **How** | `LexborHTMLParser(html).css_first("title").text()` |
+
 ### gunicorn `26.2.0`
 
 | | |
@@ -90,6 +117,8 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 | **pytest-django** `4.14.0` | Connects pytest to Django | Gives fixtures like `client` (a fake browser) and `settings`, and sets up a test database |
 | **ruff** `0.16.10` | Linter + formatter | Finds bugs, unused imports, security issues and style problems. Also formats code. One very fast tool replaces flake8, isort and black. |
 | **mypy** `1.19.1` | Static type checker | Reads type hints and catches mistakes like passing a `str` where an `int` is expected, before the code runs |
+| **pytest-asyncio** `1.4.0` | Runs `async def` tests | The engine is async. With `asyncio_mode = "auto"` in `pyproject.toml`, any `async def test_...` just works. |
+| **respx** `0.23.1` | Fakes HTTP responses for httpx | Tests describe a fake website ("`GET https://shop.test/` returns this HTML"), so they never touch the real internet and always give the same result |
 | **django-stubs** `5.2.9` | Type information for Django | Django has no type hints of its own. This adds them, so mypy understands models, querysets and settings. Version 5.2 matches Django 5.2. It needs mypy below 1.20, so mypy is pinned to 1.19.1. |
 
 See [Testing & code quality](13-testing-and-quality.md) for how to run them.
@@ -110,10 +139,6 @@ See [Testing & code quality](13-testing-and-quality.md) for how to run them.
 
 | Library | Phase | For |
 |---------|-------|-----|
-| httpx | 2 | Async HTTP fetching in the crawler |
-| pydantic | 2 | Engine data models (Finding, Page, Report) with validation |
-| selectolax | 3 | Very fast HTML parsing for checks |
-| pytest-asyncio, respx | 2 | Testing async code; faking httpx responses (no network in tests) |
 | playwright | 4 | Headless Chromium: JS rendering, screenshots, axe-core, PDF |
 | PyYAML, types-PyYAML | 7 | Reading `branding.yaml` |
 | segno | 7 | QR code (SVG) on the contact page |

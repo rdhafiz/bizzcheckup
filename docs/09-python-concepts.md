@@ -117,3 +117,254 @@ if not settings.DEBUG:
 ## `sys.exit("message")`
 
 This stops a script and prints the message (`get_tailwind.py`, unsupported OS).
+
+---
+
+# Phase 2: concepts in the audit engine
+
+## Classes, the deeper parts
+
+### Abstract base classes: `ABC` and `@abstractmethod` (`checks/base.py`)
+
+```python
+class Check(ABC):
+    @abstractmethod
+    def run(self, ctx: AuditContext) -> list[Finding]: ...
+```
+
+`Check` is a template. Python refuses to create a `Check()` or any subclass that
+hasn't written its own `run()`. Forgetting `run()` fails immediately, not halfway
+through an audit.
+
+### Class variables: `ClassVar`
+
+```python
+id: ClassVar[str]           # belongs to the class itself, not to each object
+weight: ClassVar[int] = 5   # default that subclasses can change
+```
+
+The registry reads `SingleH1.id` without creating a `SingleH1` object.
+
+### `__init_subclass__`: code that runs when a subclass is *defined*
+
+```python
+def __init_subclass__(cls, register: bool = True, **kwargs: Any) -> None:
+    super().__init_subclass__(**kwargs)
+    if register and not inspect.isabstract(cls):
+        default_registry.register(cls)
+```
+
+When Python reads `class SingleH1(Check): ...`, it calls this method with
+`cls = SingleH1`. That's how checks "register themselves". Extra words in the class
+line become arguments: `class X(Check, register=False)`.
+
+### `@property` and `@cached_property` (`types.py`)
+
+```python
+@property
+def is_html(self) -> bool:      # used like an attribute: page.is_html (no brackets)
+    return self.content_type in ("text/html", "application/xhtml+xml")
+
+@cached_property
+def _parser(self) -> RobotFileParser:   # computed on first use, then remembered
+    ...
+```
+
+### Enums: `StrEnum` (`types.py`)
+
+```python
+class Severity(StrEnum):
+    PASS = "pass"
+    WARN = "warn"
+
+Severity("warn") is Severity.WARN    # True
+Severity.WARN == "warn"              # True: it *is* a string, so JSON stays simple
+list(Category)                       # all members, in the order written
+```
+
+An enum is a fixed set of allowed values. A typo like `Severity.WRAN` is caught
+straight away.
+
+### `@dataclass` (`context.py`)
+
+```python
+@dataclass
+class AuditContext:
+    crawl: CrawlResult
+    capabilities: set[str] = field(default_factory=set)
+```
+
+Python writes `__init__` (and a readable `repr`) for you from the field list.
+`field(default_factory=set)` gives every object its **own** new empty set.
+
+> **Why not `capabilities: set[str] = set()`?** That one set would be shared by every
+> object, which is a classic Python bug. `default_factory` (and Pydantic's
+> `Field(default_factory=list)`) avoids it.
+
+### Pydantic models vs dataclasses
+
+| | `@dataclass` | Pydantic `BaseModel` |
+|---|---|---|
+| Checks values when created | No | **Yes** (`Finding(severity="oops")` raises an error) |
+| Converts types | No | Yes (`"warn"` becomes `Severity.WARN`) |
+| To and from JSON | Manual | `model_dump(mode="json")`, `model_validate(data)` |
+| We use it for | `AuditContext` (holds parse caches) | Everything that gets saved or validated |
+
+`model_config = ConfigDict(frozen=True)` makes `Finding` read-only after creation.
+
+### Custom exceptions (`netguard.py`, `fetcher.py`, `runner.py`)
+
+```python
+class BlockedURLError(Exception):
+    """The URL points somewhere BizzCheckup must not connect to."""
+
+class UnusableHomepageError(FetchError):   # a more specific kind of FetchError
+    ...
+```
+
+`except FetchError` also catches `UnusableHomepageError`, because it inherits from
+`FetchError`.
+
+### `raise ... from error`
+
+```python
+except TimeoutError as error:
+    raise AuditError("Your website took too long...") from error
+```
+
+This replaces a technical error with a friendly one, **keeping** the original in the
+traceback for debugging.
+
+## Async programming (`fetcher.py`, `crawler.py`, `runner.py`)
+
+Fetching a page means mostly *waiting* for the network. With `async`, Python works on
+something else while it waits:
+
+```python
+async def fetch_page(fetcher, url):     # "async def" makes a coroutine function
+    page = await fetcher.get(url)       # "await" means: pause here until the answer arrives
+    return page
+
+pages = await asyncio.gather(*(fetch_page(f, u) for u in urls))   # run many at once
+```
+
+| Tool | Where | What it does |
+|------|-------|--------------|
+| `async def` / `await` | everywhere in the engine | Define and wait for coroutines |
+| `asyncio.gather(...)` | `crawler.py` | Run several coroutines at once and collect their results in order |
+| `asyncio.Semaphore(2)` | `fetcher.py` | At most 2 inside `async with semaphore:` at a time |
+| `asyncio.timeout(180)` | `runner.py` | Cancel everything inside it after 180 seconds and raise `TimeoutError` |
+| `asyncio.sleep(0.5)` | `fetcher.py` | Wait without blocking other work (used between retries) |
+| `asyncio.run(main())` | Celery task (phase 6) | Start the event loop from normal code |
+| `async for chunk in ...` | `fetcher.py` | Loop over data as it arrives (the page body) |
+
+### `async with` and context managers
+
+```python
+async with Fetcher(config) as fetcher:   # __aenter__ opens the HTTP client
+    page = await fetcher.get(url)
+# __aexit__ closes it here, even if an error happened inside
+```
+
+`Fetcher` implements `__aenter__` and `__aexit__` to support this. The non-async
+version is `with open(...) as f:` (`__enter__` and `__exit__`).
+
+## Type hints, the deeper parts
+
+| Hint | Meaning | Where |
+|------|---------|-------|
+| `str \| None` | A string or `None` | `absolute()` returns `str \| None` |
+| `list[Finding]` | List of `Finding` | `Check.run` |
+| `dict[str, list[str]]` | Dictionary of string to list of strings | `FAKE_DNS` in tests |
+| `tuple[bool, list[str]]` | Exactly two values: a bool and a list | `parse_sitemap` |
+| `type[Check]` | The *class* `Check` (or a subclass), not an object | `Registry.register` |
+| `Callable[[int, str], Awaitable[None]]` | An async function taking `(int, str)` | `ProgressCallback` |
+| `Self` | "The same class as this one" | `Fetcher.__aenter__` |
+| `Iterable[str]` | Anything you can loop over | `Check.finding(urls=...)` |
+
+### `TYPE_CHECKING` and `from __future__ import annotations` (`registry.py`)
+
+`registry.py` needs the name `Check` for type hints. But `checks/base.py` imports
+`registry.py`, so importing `Check` back would be a **circular import**. The fix:
+
+```python
+from __future__ import annotations   # hints are kept as text, not evaluated
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:                    # True only for mypy, False when the program runs
+    from .checks.base import Check
+```
+
+## Functions, the deeper parts
+
+### Keyword-only arguments: the lone `*`
+
+```python
+def finding(self, severity, message, why_it_matters, how_to_fix, *, effort=..., impact=...):
+```
+
+Everything after `*` **must** be named: `finding(..., impact=Level.HIGH)`. Calls are
+self-explanatory and can't mix up `effort` and `impact`.
+
+### `*args`, `**kwargs` and unpacking
+
+```python
+def make_context(*pages: Page, ...)       # any number of pages, as a tuple
+{"content-type": "text/html", **(headers or {})}   # merge two dicts
+{"check_id": ..., **extra}                # add extra keys
+```
+
+### Nested functions (closures) (`runner.py`)
+
+```python
+async def _run(..., on_progress, ...):
+    async def progress(percent: int, step: str) -> None:
+        if on_progress is not None:       # uses a variable from the outer function
+            await on_progress(percent, step)
+```
+
+## Handy built-ins and idioms
+
+```python
+[f for f in findings if f.severity in PROBLEMS]        # list comprehension (filter)
+{str(info[4][0]) for info in infos}                    # set comprehension: no duplicates
+min((score(f) for f in findings), default=1.0)         # generator + default if empty
+any(f.severity is Severity.FAIL for f in findings)     # True if at least one matches
+next((r.note for r in skipped if r.note), "Not checked.")  # first match, or a default
+sorted(checks, key=lambda c: (order.index(c.category), c.id))  # sort by two things
+for index, (category, group) in enumerate(groups):     # index + tuple unpacking
+groupby(checks, lambda c: c.category)                  # itertools: runs of equal keys
+f"{host!r}"                                            # !r = repr(): adds quotes
+```
+
+### `is` vs `==`
+
+`severity is Severity.FAIL` checks for the *same object*. That's the recommended way
+to compare enum members and `None`. Use `==` to compare values (`score == 100`).
+
+### `try / except / else / finally` (`fetcher.py`)
+
+```python
+try:
+    response = await client.send(request)
+except httpx.TransportError:     # runs only if that error happened
+    ...
+else:                            # runs only if NO error happened
+    return response
+finally:                         # always runs (used to close the response)
+    ...
+```
+
+## Standard library modules used
+
+| Module | Used for | Where |
+|--------|----------|-------|
+| `ipaddress` | Understanding IPs: `ip.is_global`, `ipv4_mapped` | `netguard.py` |
+| `urllib.parse` | Splitting and joining URLs | `urls.py`, `fetcher.py` |
+| `urllib.robotparser` | Reading robots.txt rules | `types.py` (`RobotsInfo`) |
+| `xml.etree.ElementTree` | Reading sitemap XML | `crawler.py` |
+| `pkgutil`, `importlib` | Finding and importing every module in a folder | `registry.py` |
+| `inspect` | `isabstract(cls)` | `checks/base.py` |
+| `logging` | Writing errors to the worker log | `runner.py` |
+| `math` | `floor` for rounding | `scoring.py` |
+| `ast` | Reading Python code as data (the no-Django test) | `tests/engine/test_no_django.py` |

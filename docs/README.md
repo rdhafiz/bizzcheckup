@@ -21,6 +21,7 @@ Read them in order the first time. Later, jump to the page you need.
 | 11 | [Frontend & brand](11-frontend-and-brand.md) | Tailwind, colours, fonts, dark mode, templates |
 | 12 | [Background jobs](12-background-jobs.md) | Celery and Redis: why check-ups run in a worker |
 | 13 | [Testing & code quality](13-testing-and-quality.md) | pytest, Ruff, mypy: what each one catches |
+| 14 | [The audit engine](14-audit-engine.md) | Crawler, SSRF guard, checks, scoring: how a website gets examined |
 
 ## What is BizzCheckup?
 
@@ -43,8 +44,8 @@ offering the consultant's services. All of that content comes from `branding.yam
 | Phase | What | Status |
 |-------|------|--------|
 | 1 | Project setup: Django, Docker Compose, Celery, CI, Tailwind, brand style | Done |
-| 2 | Engine core: crawler, Check/Finding models, registry, scoring | Next |
-| 3 | SEO and Best Practices checks | Planned |
+| 2 | Engine core: crawler, Check/Finding models, registry, scoring | Done |
+| 3 | SEO and Best Practices checks | Next |
 | 4 | Playwright rendering, screenshots, accessibility checks | Planned |
 | 5 | PageSpeed performance + Agentic Browsing checks | Planned |
 | 6 | Models, Celery task, live progress page | Planned |

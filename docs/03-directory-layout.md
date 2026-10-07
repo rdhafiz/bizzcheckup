@@ -10,7 +10,19 @@ bizzcheckup/
 │   │   ├── tasks.py          Celery jobs (just "ping" for now)
 │   │   ├── urls.py           URLs of this app: /, /healthz/, /styleguide/
 │   │   └── views.py          CONTROLLER: functions that handle requests
-│   ├── engine/               (phase 2) Audit engine, pure Python, no Django
+│   ├── engine/               Audit engine: pure Python, NO Django (docs/14-audit-engine.md)
+│   │   ├── types.py          Data models: Finding, Page, CrawlResult, AuditReport...
+│   │   ├── config.py         Limits (EngineConfig) and our User-Agent
+│   │   ├── urls.py           normalize_url(), origin(), absolute()...
+│   │   ├── netguard.py       SSRF protection: blocks private/internal addresses
+│   │   ├── fetcher.py        The only code making HTTP requests (httpx)
+│   │   ├── crawler.py        Homepage → robots.txt → sitemap → up to 10 pages
+│   │   ├── context.py        AuditContext: everything checks can read
+│   │   ├── registry.py       List of all checks; load_builtin_checks()
+│   │   ├── scoring.py        Category scores, Business Health Score, bands
+│   │   ├── treatment.py      Treatment plan ordering, quick wins
+│   │   ├── runner.py         run_audit(): ties it all together
+│   │   └── checks/           One module per category (phase 3+); base.py = Check class
 │   ├── checkups/             (phase 6) Checkup / Finding / Lead models, Celery task
 │   └── reports/              (phase 7) Report page, branding loader, PDF
 ├── config/                   Django project configuration
@@ -34,6 +46,10 @@ bizzcheckup/
 │   ├── img/favicon.svg       Browser tab icon
 │   └── js/theme.js           Light/dark mode switch
 ├── tests/                    pytest tests, mirroring the package layout
+│   ├── core/                 Tests for the core app
+│   └── engine/               Engine tests (fake DNS + fake internet, no network)
+│       ├── conftest.py       Shared fixtures: router (respx), fetcher, fake_resolver
+│       └── factories.py      make_page(), make_context(), make_finding()...
 ├── scripts/get_tailwind.py   Downloads the Tailwind CLI into .bin/
 ├── docker/Dockerfile         How to build the app image
 ├── compose.yaml              Runs web, worker, postgres and redis together

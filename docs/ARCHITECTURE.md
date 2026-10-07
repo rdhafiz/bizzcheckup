@@ -27,7 +27,7 @@ Keep it current whenever the structure changes.
 | Django apps | `bizzcheckup/core`, `checkups`, `reports` | Web concerns: models, views, templates, admin, tasks |
 | Config | `config/` | Settings, URLs, Celery app. No business logic. |
 
-### Engine design (phase 2 onwards)
+### Engine design (details: [14-audit-engine.md](14-audit-engine.md))
 
 1. **Collectors** do all the network work: crawler, robots.txt, sitemap, Playwright,
    PageSpeed, probes. Their results go into one `AuditContext`.
@@ -35,6 +35,8 @@ Keep it current whenever the structure changes.
    they're tested with local HTML fixtures.
 3. Every check is **one class** that registers itself (through `__init_subclass__`).
 4. **Scoring** turns findings into category scores and the Business Health Score.
+5. **Safety**: every outgoing request, and every redirect hop, passes the SSRF guard
+   (`netguard.py`). There are size, time and concurrency limits on everything.
 
 ## Scoring
 
