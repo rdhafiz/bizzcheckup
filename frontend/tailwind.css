@@ -178,6 +178,26 @@
   .band-healthy   { --band: var(--healthy);   --band-soft: var(--healthy-soft); }
   .band-none      { --band: var(--muted);     --band-soft: var(--line); }
 
+  /* Native <progress> styled per browser engine (no inline styles, so CSP stays strict). */
+  .progress-bar {
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 0.5rem;
+    border: 0;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: var(--line);
+    color: var(--primary);
+  }
+  .progress-bar::-webkit-progress-bar { background: var(--line); border-radius: 9999px; }
+  .progress-bar::-webkit-progress-value {
+    background: var(--primary);
+    border-radius: 9999px;
+    transition: width 700ms ease-out;
+  }
+  .progress-bar::-moz-progress-bar { background: var(--primary); border-radius: 9999px; }
+
   .score-ring__track { stroke: var(--line); }
   .score-ring__value {
     stroke: var(--band);

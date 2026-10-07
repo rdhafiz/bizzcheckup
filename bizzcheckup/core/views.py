@@ -4,8 +4,10 @@ from django.shortcuts import render
 
 
 def home(request: HttpRequest) -> HttpResponse:
-    """Landing page. The real form arrives in phase 9."""
-    return render(request, "core/home.html")
+    """Landing page with the check-up form."""
+    from bizzcheckup.checkups.forms import CheckupForm
+
+    return render(request, "core/home.html", {"form": CheckupForm()})
 
 
 def healthz(request: HttpRequest) -> JsonResponse:
