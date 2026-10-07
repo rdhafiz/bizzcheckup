@@ -20,6 +20,13 @@ from .config import EngineConfig
 from .netguard import BlockedURLError, NetGuard
 from .types import Page
 
+# Headers every browser sends. Some CDNs and firewalls (e.g. Hostinger's) refuse
+# requests without them as "bot-like", even with an honest User-Agent like ours.
+BROWSER_HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
 REDIRECT_CODES = {301, 302, 303, 307, 308}
 RETRY_CODES = {429, 502, 503, 504}  # "try again later" answers
 
@@ -47,7 +54,7 @@ class Fetcher:
 
     async def __aenter__(self) -> Self:
         self._client = httpx.AsyncClient(
-            headers={"User-Agent": self.config.user_agent},
+            headers={"User-Agent": self.config.user_agent, **BROWSER_HEADERS},
             timeout=httpx.Timeout(self.config.request_timeout),
             follow_redirects=False,  # we follow them ourselves to check every hop
             transport=self._transport,

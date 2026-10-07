@@ -23,6 +23,16 @@ async def test_fetch_returns_page_with_our_user_agent(
     assert route.calls.last.request.headers["user-agent"] == USER_AGENT
 
 
+async def test_sends_browser_like_accept_headers(fetcher: Fetcher, router: respx.Router) -> None:
+    """Some CDNs (e.g. Hostinger's) answer 403 to requests without these headers."""
+    route = router.get("https://shop.test/").respond(200)
+    await fetcher.get("https://shop.test/")
+    headers = route.calls.last.request.headers
+    assert headers["accept"].startswith("text/html")
+    assert headers["accept-language"].startswith("en")
+    assert headers["user-agent"] == USER_AGENT  # still honest about who we are
+
+
 async def test_custom_user_agent(fetcher: Fetcher, router: respx.Router) -> None:
     route = router.get("https://shop.test/").respond(200)
     await fetcher.get("https://shop.test/", user_agent="GPTBot/1.0")
