@@ -62,6 +62,8 @@ class Checkup(models.Model):
     # Homepage screenshot (JPEG). Kept in the database so the web and worker
     # containers don't need a shared disk.
     screenshot = models.BinaryField(null=True, blank=True, editable=False)
+    # The PDF version of the report, made by the worker right after the check-up.
+    pdf = models.BinaryField(null=True, blank=True, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(null=True, blank=True)

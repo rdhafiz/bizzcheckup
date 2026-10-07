@@ -1,0 +1,13 @@
+{% load static %}<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <title>{{ view.checkup.domain }}: {{ view.branding.report_title }}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="report-pdf">
+  <main class="report">
+    {% include "reports/_sections.html" with pdf=True %}
+  </main>
+</body>
+</html>

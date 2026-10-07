@@ -71,3 +71,11 @@ def make_report(url: str = "https://shop.test/") -> AuditReport:
 @pytest.fixture
 def report() -> AuditReport:
     return make_report()
+
+
+@pytest.fixture(autouse=True)
+def no_pdf_rendering(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Check-up tests don't need a real PDF (Chromium is slow); reports tests cover it."""
+    from bizzcheckup.reports import pdf
+
+    monkeypatch.setattr(pdf, "ensure_pdf", lambda checkup: b"%PDF-fake")
