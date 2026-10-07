@@ -7,6 +7,7 @@
 {% block head %}
   <meta name="robots" content="noindex">
   <script src="{% static 'js/report.js' %}" defer></script>
+  {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -14,8 +15,13 @@
     <div class="report-actions no-print flex flex-wrap gap-3">
       <a class="btn-primary" href="{% url 'reports:pdf' view.checkup.pk %}">Download PDF</a>
       <button type="button" class="btn-secondary" data-copy-link="{{ share_url }}">Copy share link</button>
+      {% include "checkups/_recheck_form.html" with checkup=view.checkup %}
       <span class="self-center text-sm text-muted" data-copy-status aria-live="polite"></span>
     </div>
+    <p class="no-print mt-3 text-sm text-muted">
+      Checked {{ view.checkup.finished_at|timesince }} ago. Changed something on your website?
+      Check again to see the new result.
+    </p>
     <div class="report mt-8">
       {% include "reports/_sections.html" with pdf=False %}
     </div>

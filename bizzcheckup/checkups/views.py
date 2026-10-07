@@ -2,11 +2,14 @@
 
 from uuid import UUID
 
+from asgiref.sync import async_to_sync
+from django.contrib import messages
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
 from bizzcheckup.core import security
+from bizzcheckup.engine.netguard import BlockedURLError
 
 from . import protection, services
 from .forms import CheckupForm
@@ -52,6 +55,46 @@ def start(request: HttpRequest) -> HttpResponse:
         return _form_error(request, form, BUSY_ERROR, status=503)
 
     checkup = services.create_checkup(url, ip_hash=ip_hash, lead=_save_lead(form))
+    return redirect("checkups:detail", checkup_id=checkup.pk)
+
+
+@require_POST
+def recheck(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
+    """ "Check again now": a fresh check-up of the same site, skipping report reuse.
+
+    Everything else still applies: a check-up of the site that is already running is
+    shown instead, the address passes the SSRF guard again, Turnstile (if on) must
+    pass, and it counts towards the visitor's hourly limit.
+    """
+    previous = get_object_or_404(Checkup, pk=checkup_id)
+    back = redirect("checkups:detail", checkup_id=previous.pk)
+
+    running = protection.in_progress(previous.url)
+    if running is not None:
+        return redirect("checkups:detail", checkup_id=running.pk)
+
+    ip = security.client_ip(request)
+    if security.turnstile_enabled():
+        token = request.POST.get("cf-turnstile-response", "")
+        if not security.verify_turnstile(token, ip):
+            messages.error(request, BOT_ERROR)
+            return back
+    try:
+        # The site's address may point somewhere else by now, so check it again.
+        async_to_sync(services.make_guard().check_url)(previous.url)
+    except BlockedURLError as error:
+        messages.error(request, str(error))
+        return back
+
+    ip_hash = security.hash_ip(ip)
+    if protection.over_rate_limit(ip_hash):
+        messages.error(request, RATE_LIMIT_ERROR)
+        return back
+    if protection.too_busy():
+        messages.error(request, BUSY_ERROR)
+        return back
+
+    checkup = services.create_checkup(previous.url, ip_hash=ip_hash)
     return redirect("checkups:detail", checkup_id=checkup.pk)
 
 

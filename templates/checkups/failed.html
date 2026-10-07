@@ -2,7 +2,10 @@
 
 {% block title %}Check-up of {{ checkup.domain }} couldn't finish — {{ product_name }}{% endblock %}
 
-{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block head %}
+  <meta name="robots" content="noindex">
+  {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
+{% endblock %}
 
 {% block content %}
   <section class="container-page max-w-2xl py-12 sm:py-20">
@@ -13,7 +16,8 @@
       <p class="mt-2 text-muted">{{ checkup.error_message }}</p>
     </div>
     <div class="mt-8 flex flex-wrap gap-3">
-      <a href="{% url 'core:home' %}" class="btn-primary">Try again</a>
+      {% include "checkups/_recheck_form.html" with button_class="btn-primary" %}
+      <a href="{% url 'core:home' %}" class="btn-secondary">Check a different website</a>
     </div>
   </section>
 {% endblock %}

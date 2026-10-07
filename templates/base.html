@@ -33,6 +33,13 @@
   </header>
 
   <main id="main" class="flex-1">
+    {% if messages %}
+      <div class="container-page pt-6">
+        {% for message in messages %}
+          <p class="alert {% if message.level_tag == 'error' %}band-urgent{% else %}band-healthy{% endif %}" role="alert">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 

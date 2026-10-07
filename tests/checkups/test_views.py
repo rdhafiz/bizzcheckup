@@ -95,7 +95,8 @@ def test_failed_checkup_shows_friendly_error(client: Client) -> None:
     checkup = make_checkup(status=Checkup.Status.FAILED, error_message="The site did not answer.")
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
     assert "The site did not answer." in html
-    assert "Try again" in html
+    assert "Check again now" in html
+    assert "Check a different website" in html
 
 
 def test_unknown_checkup_is_404(client: Client) -> None:
