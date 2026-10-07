@@ -569,10 +569,10 @@
     @apply flex items-center gap-3 sm:px-4 sm:first:pl-0;
   }
   .benefits__art {
-    @apply aspect-[8/7] overflow-hidden lg:aspect-auto;
+    @apply aspect-[4/3] overflow-hidden lg:aspect-auto;
   }
   .benefits__art img {
-    @apply size-full object-cover object-left;
+    @apply size-full object-cover object-center;
   }
 }
 
