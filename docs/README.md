@@ -23,6 +23,7 @@ Read them in order the first time. Later, jump to the page you need.
 | 13 | [Testing & code quality](13-testing-and-quality.md) | pytest, Ruff, mypy: what each one catches |
 | 14 | [The audit engine](14-audit-engine.md) | Crawler, SSRF guard, checks, scoring: how a website gets examined |
 | 15 | [Checks reference](15-checks-reference.md) | Every check: what it looks at, when it passes, warns or fails |
+| 16 | [The Health Report](16-health-report.md) | The six report sections, branding.yaml, how the PDF is made |
 
 ## What is BizzCheckup?
 
@@ -50,7 +51,7 @@ offering the consultant's services. All of that content comes from `branding.yam
 | 4 | Playwright rendering, screenshots, accessibility checks | Done |
 | 5 | PageSpeed performance + Agentic Browsing checks | Done |
 | 6 | Models, Celery task, live progress page | Done |
-| 7 | Report page, treatment plan, proposal, PDF | Next |
-| 8 | Security & abuse protection | Planned |
+| 7 | Report page, treatment plan, proposal, PDF | Done |
+| 8 | Security & abuse protection | Next |
 | 9 | Landing page, lead capture, admin, privacy | Planned |
 | 10 | Final docs, sample report, release tag | Planned |

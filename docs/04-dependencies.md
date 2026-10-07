@@ -101,6 +101,24 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 | **How** | `async with async_playwright() as p: browser = await p.chromium.launch()`, then `page.goto(url)`, `page.screenshot()` and `page.evaluate(js)` |
 | **Browser** | Playwright downloads its own Chromium: `python -m playwright install --only-shell chromium` (done by `start.sh`, the Dockerfile and CI). `--only-shell` means the small headless build only. |
 
+### PyYAML `6.0.3`
+
+| | |
+|---|---|
+| **What** | Reads YAML files |
+| **Why** | `branding.yaml` is YAML because it's easy for a person to edit (no brackets or quotes). Python can't read YAML by itself. |
+| **Where** | `bizzcheckup/reports/branding.py` |
+| **How** | `yaml.safe_load(file)` gives a dict, and Pydantic validates it. Always use `safe_load`, never `load`: `load` can create arbitrary Python objects from a malicious file. |
+
+### segno `1.6.6`
+
+| | |
+|---|---|
+| **What** | Makes QR codes |
+| **Why** | Pure Python with no other dependencies (no Pillow), and it outputs **SVG**, which stays sharp in the PDF and needs no image file |
+| **Where** | `bizzcheckup/reports/builder.py::qr_code_svg` |
+| **How** | `segno.make(url, error="m").svg_inline(scale=4)` gives an `<svg>` string placed straight into the contact section |
+
 ### gunicorn `26.2.0`
 
 | | |
@@ -129,6 +147,7 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 | **mypy** `1.19.1` | Static type checker | Reads type hints and catches mistakes like passing a `str` where an `int` is expected, before the code runs |
 | **pytest-asyncio** `1.4.0` | Runs `async def` tests | The engine is async. With `asyncio_mode = "auto"` in `pyproject.toml`, any `async def test_...` just works. |
 | **respx** `0.23.1` | Fakes HTTP responses for httpx | Tests describe a fake website ("`GET https://shop.test/` returns this HTML"), so they never touch the real internet and always give the same result |
+| **types-PyYAML** | Type information for PyYAML | So mypy understands `yaml.safe_load` |
 | **django-stubs** `5.2.9` | Type information for Django | Django has no type hints of its own. This adds them, so mypy understands models, querysets and settings. Version 5.2 matches Django 5.2. It needs mypy below 1.20, so mypy is pinned to 1.19.1. |
 
 See [Testing & code quality](13-testing-and-quality.md) for how to run them.
@@ -140,15 +159,10 @@ See [Testing & code quality](13-testing-and-quality.md) for how to run them.
 | Tool | Where | Why |
 |------|-------|-----|
 | axe-core `4.14.0` (`axe.min.js`) | `bizzcheckup/engine/vendor/` | The industry-standard accessibility rules engine by Deque (also used by Lighthouse). It's a JavaScript file we run inside the browser page. It's stored in the repo (vendored) so audits never download code at runtime. Licence: MPL-2.0, see `AXE-LICENSE.txt`. |
+| htmx `2.0.11` (`htmx.min.js`) | `static/vendor/` | Live progress updates from plain HTML attributes. Zero-Clause BSD licence. |
 | Tailwind CSS standalone CLI `v4.3.3` | `.bin/` (local), Dockerfile (image) | Builds our CSS. A single program, so no Node.js is needed. |
 | Fonts: Bricolage Grotesque, Public Sans, JetBrains Mono | `static/fonts/` | Self-hosted, SIL Open Font License. Faster, private (no Google requests) and reliable in PDFs. |
 | PostgreSQL 17, Redis 8 | Docker images in `compose.yaml` | Database and job queue |
 
 ---
 
-## Coming in later phases (already approved)
-
-| Library | Phase | For |
-|---------|-------|-----|
-| PyYAML, types-PyYAML | 7 | Reading `branding.yaml` |
-| segno | 7 | QR code (SVG) on the contact page |

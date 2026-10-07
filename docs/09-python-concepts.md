@@ -716,3 +716,86 @@ with patch.object(tasks, "run_audit", fake_engine(report)):
 
 `patch.object` swaps something out for the length of the `with` block and puts it back
 afterwards.
+
+---
+
+# Phase 7: concepts in the report
+
+## `functools.lru_cache`: remember a function's answer
+
+```python
+@lru_cache(maxsize=1)
+def _cached(path: str, modified: float) -> Branding:
+    return read_branding(Path(path))
+
+def load_branding() -> Branding:
+    path = Path(settings.BRANDING_FILE)
+    return _cached(str(path), path.stat().st_mtime)   # new mtime → re-read the file
+```
+
+The first call reads the file. Later calls with the **same arguments** return the saved
+result instantly. Passing the file's modified time as an argument means editing the file
+automatically gives a fresh result.
+
+## Dataclasses as "view models" (`builder.py`)
+
+```python
+@dataclass
+class ReportView:
+    checkup: Checkup
+    vital_signs: list[VitalSign]
+    summary: list[str]
+    ...
+```
+
+A view model is a small object holding exactly what a page displays. Templates read
+`view.summary` and `view.vital_signs`, and all the deciding happens in Python.
+
+## `max()` / `min()` with `key=`
+
+```python
+best = max(scored, key=lambda s: (s.score.score or 0, CATEGORY_WEIGHTS[s.category]))
+```
+
+`key` says *what to compare*. A tuple compares item by item, so equal scores are decided
+by the category weight.
+
+## Django system checks (`reports/apps.py`)
+
+```python
+class ReportsConfig(AppConfig):
+    def ready(self) -> None:          # runs once when Django starts
+        checks.register(check_branding_file)
+
+def check_branding_file(...) -> list[checks.CheckMessage]:
+    return [checks.Error("branding.yaml has a mistake.", hint=str(error), id="reports.E002")]
+```
+
+Your own checks run with `manage.py check`, `runserver` and the test runner, just like
+Django's built-in ones.
+
+## Templates: `{% include ... with %}` and `|safe`
+
+```django
+{% include "reports/_sections.html" with pdf=True %}   {# pass a value into the piece #}
+{{ view.qr_svg|safe }}                                  {# don't escape this HTML #}
+```
+
+`|safe` switches off Django's automatic HTML escaping. **Use it only for HTML that
+**our own code** made** (the QR SVG from segno), never for anything a visitor typed.
+
+## A test that leaked into other tests: import style matters
+
+```python
+from .pdf import ensure_pdf          # copies the function into this module, once
+ensure_pdf(checkup)
+
+from . import pdf as pdf_module      # keeps a reference to the module
+pdf_module.ensure_pdf(checkup)       # looks the function up every time
+```
+
+One test temporarily replaced `pdf.ensure_pdf` with a fake. `reports/views.py` happened
+to be imported *during* that test, so `from .pdf import ensure_pdf` kept the fake
+**forever**, and other tests got fake PDFs. Calling it through the module
+(`pdf_module.ensure_pdf`) always uses the current function. That's why the code uses
+this style wherever tests patch something.

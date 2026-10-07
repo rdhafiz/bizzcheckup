@@ -262,3 +262,19 @@ by building a `RenderResult` by hand. See `rendered()` in `test_accessibility.py
 - The fake engine is an `async` function with the same signature as `run_audit`. It
   reports progress, checks the status is `running`, and returns a ready-made report from
   `tests/checkups/conftest.py`.
+
+---
+
+## Report tests (phase 7)
+
+`tests/reports/test_reports.py`:
+
+| Area | Tests |
+|------|-------|
+| branding.yaml | The real file is valid, a wrong category is rejected, the system check reports missing or broken files, the most specific service is chosen |
+| Builder | Vital signs split into problems / healthy, the exact three summary sentences, the service mapping (3+ areas also suggest the rebuild), no services for a healthy site, top-risk order, QR SVG |
+| Report page | All six sections present, contact links from branding.yaml, Download PDF, share link |
+| PDF | Download headers, the stored PDF reused (rendered once), friendly 503 on failure, 404 while not finished, static file lookup (only under `/static/`), and **one real Chromium render** (marked `browser`) |
+
+The check-up tests switch off real PDF rendering with an autouse fixture in
+`tests/checkups/conftest.py`, so they stay fast.

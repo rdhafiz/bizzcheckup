@@ -46,7 +46,13 @@ bizzcheckup/
 │   │   ├── progress.py       Steps shown on the progress page
 │   │   ├── views.py          CONTROLLER: start, detail, progress (HTMX), screenshot
 │   │   └── urls.py           /checkups/new/, /checkups/<uuid>/, .../progress/, .../screenshot.jpg
-│   └── reports/              (phase 7) Report page, branding loader, PDF
+│   └── reports/              Django app: the Health Report (docs/16-health-report.md)
+│       ├── apps.py           Registers the branding.yaml system check
+│       ├── branding.py       Reads and validates branding.yaml (Pydantic)
+│       ├── builder.py        Report data: vital signs, diagnosis, risks, services, QR
+│       ├── pdf.py            Headless Chromium → PDF, with no network access
+│       ├── views.py          report_page (used by checkups.detail), pdf download
+│       └── urls.py           /checkups/<uuid>/report.pdf
 ├── config/                   Django project configuration
 │   ├── __init__.py           Loads the Celery app when Django starts
 │   ├── celery.py             The Celery app (background jobs)
@@ -61,7 +67,8 @@ bizzcheckup/
 │   ├── base.html             Page skeleton every page extends: header, footer, theme
 │   ├── partials/             Small reusable pieces: logo, score ring
 │   ├── core/                 Templates of the core app: home (with form), styleguide
-│   └── checkups/             progress.html, _progress.html (HTMX box), report.html, failed.html
+│   ├── checkups/             progress.html, _progress.html (HTMX box), failed.html
+│   └── reports/              report.html (web), report_pdf.html (PDF), _sections.html (shared), ...
 ├── frontend/tailwind.css     Design system source (colours, fonts, components)
 ├── static/                   Files sent to the browser as they are
 │   ├── css/app.css           BUILT by Tailwind (not in git)
