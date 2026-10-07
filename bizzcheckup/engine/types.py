@@ -163,6 +163,39 @@ class ProbeResults(BaseModel):
     link_sources: dict[str, list[str]] = Field(default_factory=dict)
 
 
+class AxeRule(BaseModel):
+    """One axe-core accessibility rule that failed on the rendered page."""
+
+    id: str  # e.g. "color-contrast"
+    impact: str  # "critical" | "serious" | "moderate" | "minor"
+    help: str  # short description from axe
+    help_url: str
+    nodes: int  # how many elements fail it
+    targets: list[str] = Field(default_factory=list)  # CSS selectors of a few of them
+
+
+class Cookie(BaseModel):
+    name: str
+    domain: str
+    third_party: bool
+
+
+class RenderResult(BaseModel):
+    """What a real browser (Chromium via Playwright) saw on the homepage."""
+
+    url: str
+    html: str  # the page after JavaScript ran
+    text_length: int  # characters of visible text after JavaScript
+    console_errors: list[str] = Field(default_factory=list)
+    cookies: list[Cookie] = Field(default_factory=list)
+    libraries: dict[str, str] = Field(default_factory=dict)  # name -> version
+    axe_violations: list[AxeRule] = Field(default_factory=list)
+    axe_passes: list[str] = Field(default_factory=list)  # ids of rules that passed
+    blocked_requests: list[str] = Field(default_factory=list)  # stopped by the SSRF guard
+    # The picture for the report cover. exclude=True keeps it out of the JSON.
+    screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
+
+
 class CheckStatus(StrEnum):
     RAN = "ran"
     SKIPPED = "skipped"  # a requirement (e.g. PageSpeed key) was missing
@@ -202,6 +235,8 @@ class AuditReport(BaseModel):
     health_band: Band | None
     results: list[CheckResult]
     notes: list[str] = Field(default_factory=list)
+    # Homepage screenshot (JPEG). Saved as a file by the web app, not in the JSON.
+    screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
 
     @property
     def findings(self) -> list[Finding]:

@@ -14,5 +14,6 @@ from ..fetcher import Fetcher
 Collector = Callable[[AuditContext, Fetcher, EngineConfig], Awaitable[None]]
 
 from .probes import collect_probes  # noqa: E402 (needs Collector defined first)
+from .render import collect_render  # noqa: E402
 
-DEFAULT_COLLECTORS: list[Collector] = [collect_probes]
+DEFAULT_COLLECTORS: list[Collector] = [collect_probes, collect_render]

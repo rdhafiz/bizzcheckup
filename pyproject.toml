@@ -61,3 +61,4 @@ addopts = "--strict-markers"
 # async def tests run automatically, no @pytest.mark.asyncio needed
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+markers = ["browser: starts real headless Chromium (slower)"]

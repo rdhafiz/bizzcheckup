@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 
 from selectolax.lexbor import LexborHTMLParser
 
-from .types import CrawlResult, Page, ProbeResults, RobotsInfo, SitemapInfo
+from .types import CrawlResult, Page, ProbeResults, RenderResult, RobotsInfo, SitemapInfo
 
 # Names of optional data sources. A check lists the ones it needs in `requires`;
 # if a source is missing (e.g. no PageSpeed API key) the check is skipped.
@@ -22,6 +22,7 @@ class AuditContext:
     crawl: CrawlResult
     capabilities: set[str] = field(default_factory=set)
     probes: ProbeResults = field(default_factory=ProbeResults)  # filled by PROBES collector
+    render: RenderResult | None = None  # filled by RENDER collector
     _trees: dict[str, LexborHTMLParser] = field(default_factory=dict, repr=False)
 
     @property

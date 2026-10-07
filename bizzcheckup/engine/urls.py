@@ -61,6 +61,27 @@ def domain(url: str) -> str:
     return (urlsplit(url).hostname or "").lower()
 
 
+# Second-level labels used under country domains, e.g. shop.co.uk, shop.com.bd.
+_SECOND_LEVEL = {"co", "com", "net", "org", "gov", "edu", "ac", "or", "ne", "go"}
+
+
+def site_domain(host: str) -> str:
+    """The "registrable" part of a host name: www.shop.co.uk -> shop.co.uk.
+
+    A simple rule instead of the full Public Suffix List: last two labels, or
+    last three for common country patterns like .co.uk / .com.bd.
+    """
+    labels = host.lower().strip(".").split(".")
+    if len(labels) >= 3 and len(labels[-1]) == 2 and labels[-2] in _SECOND_LEVEL:
+        return ".".join(labels[-3:])
+    return ".".join(labels[-2:])
+
+
+def same_site(host: str, other: str) -> bool:
+    """True when both hosts belong to the same website (ignores www./sub-domains)."""
+    return site_domain(host) == site_domain(other)
+
+
 def same_origin(a: str, b: str) -> bool:
     return origin(a) == origin(b)
 

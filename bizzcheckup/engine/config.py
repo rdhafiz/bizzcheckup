@@ -15,5 +15,8 @@ class EngineConfig(BaseModel):
     max_redirects: int = 5
     max_page_bytes: int = 5 * 1024 * 1024  # 5 MB
     max_link_checks: int = 50  # internal links whose status we check
+    render_timeout: float = 45.0  # seconds for the browser to load the homepage
+    viewport_width: int = 1280
+    viewport_height: int = 800
     total_timeout: float = 180.0  # whole check-up, seconds
     psi_api_key: str = ""

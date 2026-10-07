@@ -129,6 +129,7 @@ async def _run(
         health_band=band_for(overall),
         results=results,
         notes=notes,
+        screenshot_jpeg=ctx.render.screenshot_jpeg if ctx.render else None,
     )
 
 
