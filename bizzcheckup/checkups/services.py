@@ -3,6 +3,8 @@
 Views stay thin: they call these functions instead of doing the work themselves.
 """
 
+import logging
+
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -13,6 +15,12 @@ from bizzcheckup.engine.types import AuditReport, Category
 from bizzcheckup.engine.urls import domain, normalize_url
 
 from .models import Checkup, Finding, Lead
+
+logger = logging.getLogger(__name__)
+
+QUEUE_DOWN_ERROR = (
+    "Our check-up service is busy or temporarily unavailable. Please try again in a few minutes."
+)
 
 
 def engine_config() -> EngineConfig:
@@ -38,11 +46,20 @@ def create_checkup(raw_url: str, *, ip_hash: str = "", lead: Lead | None = None)
     url = normalize_url(raw_url)
     checkup = Checkup.objects.create(url=url, domain=domain(url), ip_hash=ip_hash, lead=lead)
 
+    # Only queue the job once the row is really saved, or the worker might not find it.
+    transaction.on_commit(lambda: enqueue(checkup))
+    return checkup
+
+
+def enqueue(checkup: Checkup) -> None:
+    """Send the check-up to the worker. If the job queue is down, fail it politely."""
     from .tasks import run_checkup  # imported here to avoid a circular import
 
-    # Only queue the job once the row is really saved, or the worker might not find it.
-    transaction.on_commit(lambda: run_checkup.delay(str(checkup.pk)))
-    return checkup
+    try:
+        run_checkup.delay(str(checkup.pk))
+    except Exception:  # e.g. Redis unreachable
+        logger.exception("Could not queue check-up %s", checkup.pk)
+        mark_failed(checkup, QUEUE_DOWN_ERROR)
 
 
 def save_report(checkup: Checkup, report: AuditReport) -> None:

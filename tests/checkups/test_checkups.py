@@ -45,6 +45,18 @@ def test_create_checkup_normalises_url_and_queues_job(django_capture_on_commit_c
     delay.assert_called_once_with(str(checkup.pk))
 
 
+def test_queue_down_fails_checkup_politely(django_capture_on_commit_callbacks) -> None:  # type: ignore[no-untyped-def]
+    with (
+        patch.object(tasks.run_checkup, "delay", side_effect=ConnectionError("redis down")),
+        django_capture_on_commit_callbacks(execute=True),
+    ):
+        checkup = services.create_checkup("shop.test")
+
+    checkup.refresh_from_db()
+    assert checkup.status == Checkup.Status.FAILED
+    assert checkup.error_message == services.QUEUE_DOWN_ERROR
+
+
 def test_create_checkup_rejects_bad_urls() -> None:
     with pytest.raises(InvalidURLError):
         services.create_checkup("ftp://shop.test")

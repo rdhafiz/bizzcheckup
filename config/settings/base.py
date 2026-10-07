@@ -91,6 +91,9 @@ CELERY_TASK_IGNORE_RESULT = True
 # so a crashed worker doesn't lose a check-up.
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TASK_ACKS_LATE = True
+# If Redis is down, give up queueing within about a second instead of hanging the page.
+CELERY_TASK_PUBLISH_RETRY_POLICY = {"max_retries": 2, "interval_start": 0, "interval_step": 0.3}
+CELERY_BROKER_CONNECTION_TIMEOUT = 2
 
 
 # --- Passwords --------------------------------------------------------------
