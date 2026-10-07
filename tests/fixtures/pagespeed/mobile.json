@@ -1,0 +1,40 @@
+{
+  "id": "https://shop.test/",
+  "loadingExperience": {
+    "id": "https://shop.test/",
+    "metrics": {
+      "LARGEST_CONTENTFUL_PAINT_MS": {"percentile": 3100, "category": "AVERAGE"},
+      "CUMULATIVE_LAYOUT_SHIFT_SCORE": {"percentile": 5, "category": "FAST"},
+      "INTERACTION_TO_NEXT_PAINT": {"percentile": 650, "category": "SLOW"},
+      "FIRST_CONTENTFUL_PAINT_MS": {"percentile": 1500, "category": "FAST"}
+    },
+    "overall_category": "AVERAGE"
+  },
+  "lighthouseResult": {
+    "requestedUrl": "https://shop.test/",
+    "finalUrl": "https://shop.test/",
+    "categories": {"performance": {"id": "performance", "score": 0.42}},
+    "audits": {
+      "largest-contentful-paint": {"numericValue": 5200.4},
+      "cumulative-layout-shift": {"numericValue": 0.31},
+      "total-blocking-time": {"numericValue": 820},
+      "first-contentful-paint": {"numericValue": 2400},
+      "speed-index": {"numericValue": 6100},
+      "total-byte-weight": {"numericValue": 5452595},
+      "render-blocking-resources": {
+        "details": {
+          "type": "opportunity",
+          "overallSavingsMs": 1350,
+          "items": [
+            {"url": "https://shop.test/css/theme.css", "wastedMs": 900},
+            {"url": "https://shop.test/js/jquery.js", "wastedMs": 450}
+          ]
+        }
+      },
+      "offscreen-images": {
+        "details": {"items": [{"url": "https://shop.test/img/gallery-1.jpg"}, {"url": "https://shop.test/img/gallery-2.jpg"}]}
+      },
+      "unsized-images": {"details": {"items": [{"url": "https://shop.test/img/logo.png"}]}}
+    }
+  }
+}
