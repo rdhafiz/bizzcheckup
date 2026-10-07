@@ -220,6 +220,64 @@
   background: var(--band-soft);
 }
 
+/* --- Forms & landing page ----------------------------------------------------- */
+
+@utility field-label {
+  @apply block text-sm font-semibold;
+}
+@utility field-input {
+  @apply mt-2 block min-h-12 w-full rounded-xl border border-line bg-paper px-4 text-ink
+    placeholder:text-muted/70 focus-visible:outline-primary aria-invalid:border-urgent;
+}
+@utility field-error {
+  @apply mt-2 text-sm font-semibold text-urgent;
+}
+
+@layer components {
+  .alert {
+    @apply rounded-xl px-4 py-3 text-sm font-semibold;
+    color: var(--band);
+    background: var(--band-soft);
+  }
+  .tick {
+    @apply inline-block size-5 shrink-0 rounded-full;
+    background: var(--healthy-soft)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2315803d'%3E%3Cpath d='M8.3 13.3 4.9 9.9l-1.2 1.2 4.6 4.6 8-8-1.2-1.2z'/%3E%3C/svg%3E")
+      center / 14px no-repeat;
+  }
+  .sign-card {
+    @apply rounded-2xl border border-line bg-paper p-5 transition-colors hover:border-primary;
+  }
+  .sign-icon {
+    @apply inline-flex size-11 items-center justify-center rounded-xl bg-primary-soft text-primary;
+  }
+  .steps {
+    counter-reset: step;
+  }
+  .steps > li {
+    @apply relative border-t-2 border-primary pt-6;
+    counter-increment: step;
+  }
+  .steps > li::before {
+    @apply absolute -top-4 left-0 flex size-8 items-center justify-center rounded-full bg-primary
+      font-mono text-sm font-bold text-on-primary;
+    content: counter(step);
+  }
+  .prose-page h2 {
+    @apply mt-10 text-2xl font-bold;
+  }
+  .prose-page p,
+  .prose-page ul {
+    @apply mt-4 leading-relaxed;
+  }
+  .prose-page ul {
+    @apply list-disc space-y-2 pl-6;
+  }
+  .prose-page .lead {
+    @apply mt-5 text-lg text-muted;
+  }
+}
+
 /* --- Report ------------------------------------------------------------------ */
 
 @utility chip {
