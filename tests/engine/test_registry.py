@@ -131,3 +131,13 @@ def test_helpers_fill_in_check_id_and_category() -> None:
 def test_load_builtin_checks_imports_the_checks_package() -> None:
     registry = load_builtin_checks()
     assert isinstance(registry, Registry)
+
+
+def test_builtin_checks_are_registered_with_matching_id_prefix() -> None:
+    registry = load_builtin_checks()
+    checks = registry.all()
+
+    assert len(checks) >= 23  # 11 SEO + 12 best practices
+    for check in checks:
+        assert check.id.startswith(f"{check.category.value}."), check.id
+        assert check.title
