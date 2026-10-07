@@ -1,5 +1,6 @@
 """Values every template can use without the view passing them in."""
 
+from django.conf import settings
 from django.http import HttpRequest
 
 from bizzcheckup import __version__
@@ -13,4 +14,5 @@ def brand(request: HttpRequest) -> dict[str, str]:
         "product_name": PRODUCT_NAME,
         "tagline": TAGLINE,
         "app_version": __version__,
+        "turnstile_site_key": settings.TURNSTILE_SITE_KEY if settings.TURNSTILE_SECRET_KEY else "",
     }

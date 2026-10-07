@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "bizzcheckup.core.security.SecurityHeadersMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -142,6 +143,19 @@ BRANDING_FILE = BASE_DIR / "branding.yaml"
 CHECKUP_MAX_PAGES = env.int("CHECKUP_MAX_PAGES", default=10)
 CHECKUP_TIMEOUT_SECONDS = env.int("CHECKUP_TIMEOUT_SECONDS", default=180)
 CHECKUP_MAX_PAGE_BYTES = env.int("CHECKUP_MAX_PAGE_BYTES", default=5 * 1024 * 1024)
+
+# Abuse protection (see docs/17-security.md).
+CHECKUP_RATE_LIMIT_PER_HOUR = env.int("CHECKUP_RATE_LIMIT_PER_HOUR", default=5)
+CHECKUP_QUEUE_CAP = env.int("CHECKUP_QUEUE_CAP", default=20)  # waiting + running, everyone
+CHECKUP_REUSE_HOURS = env.int("CHECKUP_REUSE_HOURS", default=24)
+# Secret salt for hashing visitor IPs. Defaults to the secret key; set its own value
+# in production so rotating the secret key doesn't reset rate limits.
+IP_HASH_SALT = env("IP_HASH_SALT", default=SECRET_KEY)
+# Only turn on behind a reverse proxy that sets X-Forwarded-For itself.
+TRUST_X_FORWARDED_FOR = env.bool("TRUST_X_FORWARDED_FOR", default=False)
+# Cloudflare Turnstile "are you human?" check. Off unless both keys are set.
+TURNSTILE_SITE_KEY = env("TURNSTILE_SITE_KEY", default="")
+TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
 
 # The worker stops a check-up that runs past the timeout, with some extra room.
 CELERY_TASK_SOFT_TIME_LIMIT = CHECKUP_TIMEOUT_SECONDS + 30
