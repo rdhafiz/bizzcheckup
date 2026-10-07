@@ -6,6 +6,7 @@ DATABASE_URL is set (CI sets it to a real PostgreSQL).
 
 import os
 
+os.environ["BIZZCHECKUP_IGNORE_DOTENV"] = "1"  # never use the developer's .env in tests
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-only-secret-key")
 os.environ.setdefault("DATABASE_URL", "sqlite://:memory:")
 
