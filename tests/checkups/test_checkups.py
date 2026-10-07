@@ -1,9 +1,11 @@
 """Check-up models, services, the Celery task and the status flow."""
 
 from collections.abc import Awaitable, Callable
+from typing import Any
 from unittest.mock import patch
 
 import pytest
+from pytest_django.fixtures import Settings
 
 from bizzcheckup.checkups import services, tasks
 from bizzcheckup.checkups.models import Checkup, Finding
@@ -159,3 +161,55 @@ def test_engine_config_comes_from_settings(settings) -> None:  # type: ignore[no
 )
 def test_progress_steps(progress: int, states: list[str]) -> None:
     assert [step.state for step in steps_for(progress)] == states
+
+
+def test_dev_fallback_runs_checkup_in_a_thread_without_a_queue(
+    settings: Settings,
+    django_capture_on_commit_callbacks: Any,
+) -> None:
+    settings.DEBUG = True
+    settings.CHECKUP_RUN_WITHOUT_QUEUE = True
+    with (
+        patch.object(services, "run_in_background_thread") as thread,
+        patch.object(tasks.run_checkup, "delay") as delay,
+        django_capture_on_commit_callbacks(execute=True),
+    ):
+        checkup = services.create_checkup("shop.test")
+
+    thread.assert_called_once_with(str(checkup.pk))
+    delay.assert_not_called()
+
+
+def test_dev_fallback_never_runs_without_debug(
+    settings: Settings,
+    django_capture_on_commit_callbacks: Any,
+) -> None:
+    settings.DEBUG = False  # e.g. production with the variable set by mistake
+    settings.CHECKUP_RUN_WITHOUT_QUEUE = True
+    with (
+        patch.object(services, "run_in_background_thread") as thread,
+        patch.object(tasks.run_checkup, "delay") as delay,
+        django_capture_on_commit_callbacks(execute=True),
+    ):
+        services.create_checkup("shop.test")
+
+    thread.assert_not_called()
+    delay.assert_called_once()
+
+
+def test_background_thread_runs_the_worker_task() -> None:
+    import threading
+
+    done = threading.Event()
+    with patch.object(tasks, "run_checkup", side_effect=lambda pk: done.set()) as task:
+        services.run_in_background_thread("abc")
+        assert done.wait(timeout=5)
+    task.assert_called_once_with("abc")
+
+
+def test_production_settings_disable_the_dev_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    import importlib
+
+    monkeypatch.setenv("CHECKUP_RUN_WITHOUT_QUEUE", "True")
+    prod = importlib.reload(importlib.import_module("config.settings.prod"))
+    assert prod.CHECKUP_RUN_WITHOUT_QUEUE is False

@@ -4,6 +4,7 @@ from .base import *  # noqa: F403
 from .base import env
 
 DEBUG = False
+CHECKUP_RUN_WITHOUT_QUEUE = False  # production always uses the real worker
 
 # Compressed, cache-busted static files ("app.3f9c1a.css") served by WhiteNoise.
 STORAGES = {

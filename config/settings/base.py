@@ -73,6 +73,9 @@ TEMPLATES = [
 
 # Example: postgres://user:password@host:5432/dbname
 DATABASES = {"default": env.db("DATABASE_URL")}
+if DATABASES["default"]["ENGINE"].endswith("sqlite3"):
+    # SQLite allows one writer at a time; wait for it instead of failing at once.
+    DATABASES["default"].setdefault("OPTIONS", {})["timeout"] = 20
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
@@ -156,6 +159,11 @@ TRUST_X_FORWARDED_FOR = env.bool("TRUST_X_FORWARDED_FOR", default=False)
 # Cloudflare Turnstile "are you human?" check. Off unless both keys are set.
 TURNSTILE_SITE_KEY = env("TURNSTILE_SITE_KEY", default="")
 TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
+
+# DEVELOPMENT ONLY: with no job queue (no Redis/Docker), run check-ups in a background
+# thread of the dev server instead. start.sh turns this on when Docker isn't running.
+# Production always has it off (config/settings/prod.py).
+CHECKUP_RUN_WITHOUT_QUEUE = env.bool("CHECKUP_RUN_WITHOUT_QUEUE", default=False)
 
 # The worker stops a check-up that runs past the timeout, with some extra room.
 CELERY_TASK_SOFT_TIME_LIMIT = CHECKUP_TIMEOUT_SECONDS + 30

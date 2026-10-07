@@ -128,7 +128,9 @@ if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
   fi
 else
   warn "Docker isn't running, so PostgreSQL, Redis and the worker are skipped."
-  warn "Pages work; check-ups need Docker (install Docker Desktop and start it)."
+  warn "Check-ups will run inside the dev server instead (development only)."
+  warn "For the real setup, install Docker Desktop and start it."
+  export CHECKUP_RUN_WITHOUT_QUEUE=True
   if [[ "$(env_value DATABASE_URL)" != sqlite* ]]; then
     info "Switching .env to SQLite so the site can still start."
     sed -i.bak "s|^DATABASE_URL=.*|DATABASE_URL=sqlite:///db.sqlite3|" .env && rm -f .env.bak

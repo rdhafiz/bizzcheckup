@@ -4,6 +4,7 @@ Views stay thin: they call these functions instead of doing the work themselves.
 """
 
 import logging
+import threading
 
 from django.conf import settings
 from django.db import transaction
@@ -62,11 +63,34 @@ def enqueue(checkup: Checkup) -> None:
     """Send the check-up to the worker. If the job queue is down, fail it politely."""
     from .tasks import run_checkup  # imported here to avoid a circular import
 
+    if settings.CHECKUP_RUN_WITHOUT_QUEUE and settings.DEBUG:
+        run_in_background_thread(str(checkup.pk))
+        return
     try:
         run_checkup.delay(str(checkup.pk))
     except Exception:  # e.g. Redis unreachable
         logger.exception("Could not queue check-up %s", checkup.pk)
         mark_failed(checkup, QUEUE_DOWN_ERROR)
+
+
+def run_in_background_thread(checkup_id: str) -> None:
+    """DEVELOPMENT ONLY: run the worker's task in a thread of the dev server.
+
+    The visitor's request still returns at once (the redirect to the progress page);
+    the check-up continues in the thread. Only used when CHECKUP_RUN_WITHOUT_QUEUE and
+    DEBUG are both on, so it can never happen in production.
+    """
+    from django.db import connection
+
+    from .tasks import run_checkup
+
+    def work() -> None:
+        try:
+            run_checkup(checkup_id)  # the exact same code the Celery worker runs
+        finally:
+            connection.close()  # each thread has its own database connection
+
+    threading.Thread(target=work, name=f"checkup-{checkup_id}", daemon=True).start()
 
 
 def save_report(checkup: Checkup, report: AuditReport) -> None:
