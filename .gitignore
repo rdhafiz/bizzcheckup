@@ -26,3 +26,6 @@ static/css/app.css
 
 # start.sh logs and markers
 .run/
+
+# Headless Chromium installed by start.sh
+.playwright/

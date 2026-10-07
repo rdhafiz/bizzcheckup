@@ -97,8 +97,10 @@ else
   info "Libraries are up to date."
 fi
 
+# Chromium goes inside the project (.playwright/), so every process finds the same one.
+export PLAYWRIGHT_BROWSERS_PATH="$PWD/.playwright"
 PW_VERSION="$("$PY" -c "from importlib.metadata import version; print(version('playwright'))")"
-if [ "$(cat "$RUN_DIR/playwright.version" 2>/dev/null || true)" != "$PW_VERSION" ]; then
+if [ "$(cat "$RUN_DIR/playwright.version" 2>/dev/null || true)" != "$PW_VERSION" ] || [ ! -d .playwright ]; then
   step "Installing headless Chromium for the browser checks (one-time, ~150 MB)"
   "$PY" -m playwright install --only-shell chromium
   echo "$PW_VERSION" > "$RUN_DIR/playwright.version"

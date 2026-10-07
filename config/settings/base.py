@@ -4,6 +4,7 @@ Values that change per machine or are secret come from environment variables,
 read with django-environ. See docs/06-configuration.md for every variable.
 """
 
+import os
 from pathlib import Path
 
 import environ
@@ -12,8 +13,19 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 env = environ.Env()
-# Read .env if it exists. Real environment variables (e.g. from Docker) win.
-environ.Env.read_env(BASE_DIR / ".env")
+# Read .env if it exists.
+# - On a server (Docker, prod): real environment variables win over .env.
+# - On your computer (dev settings): .env wins, so an old value left in a terminal
+#   (e.g. an empty PSI_API_KEY from before you added it) can't hide the real one.
+# - Tests skip .env (see test.py), so local settings can't change test results.
+if not os.environ.get("BIZZCHECKUP_IGNORE_DOTENV"):
+    developing = os.environ.get("DJANGO_SETTINGS_MODULE", "").endswith(".dev")
+    environ.Env.read_env(BASE_DIR / ".env", overwrite=developing)
+
+# Headless Chromium installed inside the project (start.sh does this), so every process,
+# however it was started, uses the same browser. Docker sets its own path instead.
+if (BASE_DIR / ".playwright").is_dir():
+    os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", str(BASE_DIR / ".playwright"))
 
 
 # --- Core -------------------------------------------------------------------
