@@ -84,6 +84,23 @@ def test_sixth_checkup_from_one_ip_within_an_hour_is_refused(client: Client) -> 
     assert Checkup.objects.count() == 5
 
 
+def test_checkups_that_never_started_do_not_count(client: Client) -> None:
+    """If OUR queue was down, those failed check-ups aren't held against the visitor."""
+    for number in range(5):
+        start(client, f"site{number}.test")
+    Checkup.objects.update(status=Checkup.Status.FAILED, started_at=None)
+
+    assert start(client, "retry.test").status_code == 302
+
+
+def test_failed_checkups_that_ran_still_count(client: Client) -> None:
+    for number in range(5):
+        start(client, f"site{number}.test")
+    Checkup.objects.update(status=Checkup.Status.FAILED, started_at=timezone.now())
+
+    assert start(client, "again.test").status_code == 429
+
+
 def test_rate_limit_is_per_ip(client: Client) -> None:
     for number in range(5):
         start(client, f"site{number}.test", ip="203.0.113.1")

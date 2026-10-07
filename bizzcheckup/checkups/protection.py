@@ -36,7 +36,13 @@ def over_rate_limit(ip_hash: str) -> bool:
     if not ip_hash:
         return False
     since = timezone.now() - timedelta(hours=1)
-    started = Checkup.objects.filter(ip_hash=ip_hash, created_at__gte=since).count()
+    started = (
+        Checkup.objects.filter(ip_hash=ip_hash, created_at__gte=since)
+        # Check-ups that never started because OUR job queue was down aren't the
+        # visitor's fault, so they don't count.
+        .exclude(status=Checkup.Status.FAILED, started_at__isnull=True)
+        .count()
+    )
     return started >= int(settings.CHECKUP_RATE_LIMIT_PER_HOUR)
 
 
