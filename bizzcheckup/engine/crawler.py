@@ -191,6 +191,9 @@ async def fetch_page(fetcher: Fetcher, url: str, errors: dict[str, str]) -> Page
     except (FetchError, BlockedURLError) as error:
         errors[url] = str(error)
         return None
+    if not page.ok:
+        errors[url] = f"HTTP {page.status_code}"
+        return None
     if not page.is_html:
         return None
     if not same_origin(page.final_url, url):  # redirected off-site

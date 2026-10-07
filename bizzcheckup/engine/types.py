@@ -152,6 +152,17 @@ class CrawlResult(BaseModel):
         return self.pages[0]
 
 
+class ProbeResults(BaseModel):
+    """Extra requests made after crawling (see collectors/probes.py)."""
+
+    # What happens when someone visits the http:// version of the homepage.
+    http_final_url: str | None = None  # where http:// ended up
+    http_error: str = ""  # set when http:// could not be reached at all
+    # Internal link -> HTTP status (0 = unreachable), and the pages it appears on.
+    link_status: dict[str, int] = Field(default_factory=dict)
+    link_sources: dict[str, list[str]] = Field(default_factory=dict)
+
+
 class CheckStatus(StrEnum):
     RAN = "ran"
     SKIPPED = "skipped"  # a requirement (e.g. PageSpeed key) was missing

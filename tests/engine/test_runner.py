@@ -6,12 +6,13 @@ import pytest
 import respx
 
 from bizzcheckup.engine.checks.base import Check
+from bizzcheckup.engine.collectors import Collector
 from bizzcheckup.engine.config import EngineConfig
 from bizzcheckup.engine.context import PAGESPEED, AuditContext
 from bizzcheckup.engine.fetcher import Fetcher
 from bizzcheckup.engine.netguard import NetGuard
 from bizzcheckup.engine.registry import Registry
-from bizzcheckup.engine.runner import AuditError, Collector, run_audit, run_check
+from bizzcheckup.engine.runner import AuditError, run_audit, run_check
 from bizzcheckup.engine.types import (
     AuditReport,
     Band,
@@ -119,6 +120,7 @@ async def test_full_audit_scores_and_handles_skips_and_crashes(site: respx.Route
         "https://shop.test/",
         EngineConfig(retries=0),
         registry=registry,
+        collectors=(),
         guard=NetGuard(fake_resolver),
         transport=httpx.MockTransport(site.async_handler),
         on_progress=on_progress,
@@ -207,6 +209,7 @@ async def test_total_timeout(router: respx.Router) -> None:
             "https://shop.test/",
             EngineConfig(total_timeout=0.1, retries=0),
             registry=registry_with(HasTitle),
+            collectors=(),
             guard=NetGuard(fake_resolver),
             transport=httpx.MockTransport(router.async_handler),
         )

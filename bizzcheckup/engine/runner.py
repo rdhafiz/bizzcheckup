@@ -15,6 +15,7 @@ from itertools import groupby
 import httpx
 
 from .checks.base import Check
+from .collectors import DEFAULT_COLLECTORS, Collector
 from .config import EngineConfig
 from .context import PAGESPEED, PROBES, RENDER, AuditContext
 from .crawler import UnusableHomepageError, crawl
@@ -28,8 +29,6 @@ logger = logging.getLogger(__name__)
 
 # on_progress(percent, step) is awaited after every stage.
 ProgressCallback = Callable[[int, str], Awaitable[None]]
-# A collector adds data to the context and marks capabilities (phases 4-5).
-Collector = Callable[[AuditContext, Fetcher, EngineConfig], Awaitable[None]]
 
 SKIP_REASONS = {
     RENDER: "We couldn't open your site in a browser, so this wasn't checked.",
@@ -47,12 +46,17 @@ async def run_audit(
     config: EngineConfig,
     *,
     registry: Registry | None = None,
-    collectors: Sequence[Collector] = (),
+    collectors: Sequence[Collector] | None = None,
     on_progress: ProgressCallback | None = None,
     guard: NetGuard | None = None,
     transport: httpx.AsyncBaseTransport | None = None,
 ) -> AuditReport:
-    """Audit `url` (already normalised). Raises AuditError with a friendly message."""
+    """Audit `url` (already normalised). Raises AuditError with a friendly message.
+
+    `collectors=None` uses DEFAULT_COLLECTORS; pass `()` to run checks on the crawl only.
+    """
+    if collectors is None:
+        collectors = DEFAULT_COLLECTORS
     try:
         async with asyncio.timeout(config.total_timeout):
             return await _run(url, config, registry, collectors, on_progress, guard, transport)

@@ -64,8 +64,11 @@ class Fetcher:
             await self._client.aclose()
             self._client = None
 
-    async def get(self, url: str, *, user_agent: str | None = None) -> Page:
-        """Fetch `url`, following redirects safely. Raises BlockedURLError or FetchError."""
+    async def get(self, url: str, *, user_agent: str | None = None, method: str = "GET") -> Page:
+        """Fetch `url`, following redirects safely. Raises BlockedURLError or FetchError.
+
+        method="HEAD" asks only for the status and headers (no page body).
+        """
         if self._client is None:
             raise RuntimeError("Use Fetcher inside 'async with'.")
 
@@ -76,7 +79,7 @@ class Fetcher:
 
         for _ in range(self.config.max_redirects + 1):
             await self.guard.check_url(current)  # every hop, not just the first
-            response = await self._send_with_retries(current, headers)
+            response = await self._send_with_retries(method, current, headers)
             try:
                 location = response.headers.get("location")
                 if response.status_code in REDIRECT_CODES and location:
@@ -104,14 +107,30 @@ class Fetcher:
 
         raise FetchError(f"Too many redirects (more than {self.config.max_redirects}).")
 
-    async def _send_with_retries(self, url: str, headers: dict[str, str]) -> httpx.Response:
+    async def status(self, url: str) -> int:
+        """HTTP status of `url` after redirects, or 0 if it can't be reached.
+
+        Tries a cheap HEAD request first; some servers refuse HEAD, so it falls
+        back to GET for those.
+        """
+        try:
+            page = await self.get(url, method="HEAD")
+            if page.status_code in (403, 405, 501):
+                page = await self.get(url)
+        except (FetchError, BlockedURLError):
+            return 0
+        return page.status_code
+
+    async def _send_with_retries(
+        self, method: str, url: str, headers: dict[str, str]
+    ) -> httpx.Response:
         assert self._client is not None  # noqa: S101 (checked in get())
         attempts = self.config.retries + 1
         for attempt in range(attempts):
             last_try = attempt == attempts - 1
             try:
                 async with self._semaphore:
-                    request = self._client.build_request("GET", url, headers=headers)
+                    request = self._client.build_request(method, url, headers=headers)
                     response = await self._client.send(request, stream=True)
             except httpx.TransportError as error:  # timeouts, refused connections, DNS
                 if last_try:

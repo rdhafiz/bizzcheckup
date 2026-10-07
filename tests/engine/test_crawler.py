@@ -133,3 +133,17 @@ def test_parse_sitemap_survives_billion_laughs() -> None:
         f'<?xml version="1.0"?><!DOCTYPE l [<!ENTITY lol0 "lol">{entities}]><urlset>&lol9;</urlset>'
     )
     assert parse_sitemap(bomb) is None
+
+
+async def test_extra_page_with_error_status_is_left_out(
+    fetcher: Fetcher, router: respx.Router
+) -> None:
+    router.get("https://shop.test/").mock(return_value=html('<a href="/old">x</a>'))
+    router.get("https://shop.test/robots.txt").respond(404)
+    router.get("https://shop.test/sitemap.xml").respond(404)
+    router.get("https://shop.test/old").respond(404, html="<h1>Not found</h1>")
+
+    result = await crawl(fetcher, "https://shop.test/")
+
+    assert len(result.pages) == 1
+    assert result.errors == {"https://shop.test/old": "HTTP 404"}
