@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Our apps
     "bizzcheckup.core",
+    "bizzcheckup.checkups",
 ]
 
 MIDDLEWARE = [
@@ -132,3 +133,12 @@ PSI_API_KEY = env("PSI_API_KEY", default="")
 
 # Branding that fills the report's cover, proposal and contact pages.
 BRANDING_FILE = BASE_DIR / "branding.yaml"
+
+# Audit limits (see docs/14-audit-engine.md).
+CHECKUP_MAX_PAGES = env.int("CHECKUP_MAX_PAGES", default=10)
+CHECKUP_TIMEOUT_SECONDS = env.int("CHECKUP_TIMEOUT_SECONDS", default=180)
+CHECKUP_MAX_PAGE_BYTES = env.int("CHECKUP_MAX_PAGE_BYTES", default=5 * 1024 * 1024)
+
+# The worker stops a check-up that runs past the timeout, with some extra room.
+CELERY_TASK_SOFT_TIME_LIMIT = CHECKUP_TIMEOUT_SECONDS + 30
+CELERY_TASK_TIME_LIMIT = CHECKUP_TIMEOUT_SECONDS + 60
