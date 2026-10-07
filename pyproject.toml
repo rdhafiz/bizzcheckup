@@ -5,6 +5,7 @@ name = "bizzcheckup"
 version = "0.1.0a0"
 description = "Check your business's online health"
 requires-python = ">=3.12"
+license = "MIT"
 
 # --- Ruff: linter + formatter ------------------------------------------------
 [tool.ruff]

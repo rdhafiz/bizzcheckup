@@ -98,6 +98,7 @@ bizzcheckup/
 ├── pyproject.toml            Settings for Ruff, mypy and pytest
 ├── branding.yaml             Consultant details used in the report
 ├── CHANGELOG.md              What changed in each version
+├── LICENSE                   MIT licence: anyone may use, change and share the code
 ├── manage.py                 Django command-line tool
 ├── .env / .env.example       Your secrets (not in git) / the template (in git)
 ├── .gitignore                Files git never saves

@@ -88,6 +88,7 @@ First public release: the complete check-up flow from landing page to PDF.
   that starts the full `docker compose` stack from a fresh clone.
 - README with screenshots, an architecture diagram, scoring, how to add a check,
   deployment and responsible-use notes, plus a sample report of ridwanulhafiz.me.
+- MIT licence.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).
 

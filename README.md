@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/python-3.12+-0f6e66" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/django-5.2_LTS-0f6e66" alt="Django 5.2 LTS">
   <img src="https://img.shields.io/badge/version-0.1.0--alpha-b45309" alt="v0.1.0-alpha">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0f6e66" alt="MIT licence"></a>
 </p>
 
 BizzCheckup is a free website **health check-up for business owners**. Enter an address
@@ -213,6 +214,12 @@ Everything is explained step by step, for beginners, in [docs/](docs/README.md):
 the folder layout, every library and why it's used, Django's Model-View-Template,
 the database, the engine, scoring, the report and PDF, security, testing, and the Python
 concepts used along the way. Changes: [CHANGELOG.md](CHANGELOG.md).
+
+## Licence
+
+[MIT](LICENSE) © 2026 Ridwanul Hafiz. Third-party files keep their own licences: fonts
+(SIL OFL, `static/fonts/`), axe-core (MPL-2.0, `bizzcheckup/engine/vendor/`) and htmx
+(0BSD, `static/vendor/`).
 
 ---
 
