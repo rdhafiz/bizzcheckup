@@ -54,6 +54,7 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 | `max_pages` | 10 | Enough to judge a small business site. Never more than 50 (out of scope). |
 | `max_concurrency` | 2 | Polite: never hammer a small business's server |
 | `request_timeout` | 15 s | One slow page shouldn't hold everything up |
+| (headers) | `Accept`, `Accept-Language` like a browser | Some CDNs (for example Hostinger's) answer **403** to requests without them, even with an honest User-Agent. We still identify as `BizzCheckup/0.1`. |
 | `retries` | 2 | Retry temporary failures (timeouts, 429, 502, 503, 504) with growing waits |
 | `max_redirects` | 5 | Stop redirect loops |
 | `max_page_bytes` | 5 MB | Huge pages are cut off (`truncated=True`) so they can't exhaust memory |

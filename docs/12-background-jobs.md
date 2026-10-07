@@ -92,6 +92,17 @@ locked").
 | `CELERY_TASK_SOFT_TIME_LIMIT` | timeout + 30 s | Celery raises `SoftTimeLimitExceeded` in the task, as a backup |
 | `CELERY_TASK_TIME_LIMIT` | timeout + 60 s | Celery kills the worker process, as a last resort |
 
+### No Redis on your computer? (development only)
+
+With `CHECKUP_RUN_WITHOUT_QUEUE=True` and `DEBUG` on, `services.enqueue()` doesn't
+contact Redis. `services.run_in_background_thread()` starts a Python **thread** that
+runs `run_checkup()`, the exact same function the worker runs. The visitor's request
+still returns immediately. The thread closes its own database connection when it's done,
+because every thread gets its own connection. With SQLite, the setting
+`OPTIONS["timeout"] = 20` (in `base.py`) makes the thread and the web requests wait for
+each other instead of failing with "database is locked". `start.sh` turns this mode on
+automatically when Docker isn't running. Production never uses it.
+
 ### When Redis is down
 
 `services.enqueue()` catches the error and marks the check-up `failed` with "Our

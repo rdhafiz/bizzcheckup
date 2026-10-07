@@ -6,6 +6,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Fixed
+- Sites behind CDNs that reject requests without browser `Accept` headers (for example
+  Hostinger's) failed with "HTTP 403". The fetcher now sends `Accept` and
+  `Accept-Language` like a browser, and still identifies itself as BizzCheckup.
+- Check-ups that never started because the job queue was down no longer count towards
+  the visitor's hourly limit.
+
+### Added
+- Development without Docker: when there's no Redis, `start.sh` lets the dev server run
+  check-ups in a background thread (`CHECKUP_RUN_WITHOUT_QUEUE`; never in production).
+- The development settings allow 50 check-ups per hour (production keeps 5).
+- SQLite waits up to 20 s for the database instead of failing with "database is locked".
+
 ## [0.1.0-alpha] - 2026-10-07
 
 First public release: the complete check-up flow from landing page to PDF.

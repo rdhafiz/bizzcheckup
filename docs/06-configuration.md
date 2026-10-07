@@ -48,6 +48,7 @@ what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variab
 | `IP_HASH_SALT` | prod: yes | the secret key | Secret used to hash visitor IPs |
 | `TRUST_X_FORWARDED_FOR` | no | `False` | Read the client IP from the proxy header |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | no | empty | Cloudflare Turnstile on the form |
+| `CHECKUP_RUN_WITHOUT_QUEUE` | dev only | `False` | Run check-ups in a dev-server thread when there's no Redis. `start.sh` sets it automatically. Always off in production. |
 
 The security-related ones are explained in [Security](17-security.md).
 

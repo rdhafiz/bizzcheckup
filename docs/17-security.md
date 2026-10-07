@@ -34,6 +34,12 @@ in the last hour. The 6th is refused with HTTP 429 and "You've started several
 check-ups in the last hour…". The count comes from the **database**, so it works with
 any number of web servers. Change it with `CHECKUP_RATE_LIMIT_PER_HOUR`.
 
+- Check-ups that **never started** because *our* job queue was down don't count. That
+  wasn't the visitor's fault. Check-ups that ran and then failed (for example, an
+  unreachable site) do count, because they still cost resources.
+- The development settings (`config/settings/dev.py`) default to 50 per hour, because you
+  start many check-ups yourself while working. Production keeps 5.
+
 ## 3. Report reuse: same site within 24 hours
 
 When a finished check-up of the **same normalised URL** exists from the last 24 hours
