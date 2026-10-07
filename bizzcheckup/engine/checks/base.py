@@ -33,6 +33,10 @@ class Check(ABC):
     weight: ClassVar[int] = 5  # 1-10: importance within its category
     requires: ClassVar[frozenset[str]] = frozenset()  # e.g. frozenset({RENDER})
 
+    # A check can set this in run() for partial credit, e.g. 0.9 when 9 of 10
+    # pages are fine. Left as None, the score comes from the worst finding.
+    partial: float | None = None
+
     def __init_subclass__(cls, register: bool = True, **kwargs: Any) -> None:
         """Runs automatically whenever a subclass is defined: registers it.
 
@@ -48,7 +52,9 @@ class Check(ABC):
         """Inspect the context and return findings (at least one)."""
 
     def score(self, findings: list[Finding]) -> float:
-        """0.0-1.0. Default: based on the worst finding. Override for partial credit."""
+        """0.0-1.0: `partial` if run() set it, otherwise based on the worst finding."""
+        if self.partial is not None:
+            return self.partial
         return severity_score(findings)
 
     # --- helpers so checks stay short -------------------------------------------

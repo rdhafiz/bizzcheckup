@@ -1,5 +1,7 @@
 """Tiny helpers that build engine objects for tests with sensible defaults."""
 
+from pathlib import Path
+
 from bizzcheckup.engine.context import AuditContext
 from bizzcheckup.engine.types import (
     Category,
@@ -30,6 +32,14 @@ def make_page(
         text=html,
         size_bytes=len(html.encode()),
     )
+
+
+FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "html"
+
+
+def fixture_html(name: str) -> str:
+    """Read tests/fixtures/html/<name>.html"""
+    return (FIXTURES / f"{name}.html").read_text(encoding="utf-8")
 
 
 def make_context(
