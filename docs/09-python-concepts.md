@@ -799,3 +799,71 @@ to be imported *during* that test, so `from .pdf import ensure_pdf` kept the fak
 **forever**, and other tests got fake PDFs. Calling it through the module
 (`pdf_module.ensure_pdf`) always uses the current function. That's why the code uses
 this style wherever tests patch something.
+
+---
+
+# Phase 8: concepts in the security code
+
+## `hmac` and `hashlib`: one-way fingerprints
+
+```python
+hmac.new(salt.encode(), ip.encode(), hashlib.sha256).hexdigest()
+# "198.51.100.23" → "4f1c…" (64 hex characters); impossible to turn back without the salt
+```
+
+- `.encode()` turns text into bytes, because hashing works on bytes.
+- **HMAC** mixes in a secret key. Without it, anyone could hash every possible IP and
+  look the answer up.
+
+## Querying with lookups (`protection.py`)
+
+```python
+Checkup.objects.filter(ip_hash=h, created_at__gte=since).count()
+Checkup.objects.filter(status__in=(QUEUED, RUNNING))
+```
+
+A double underscore adds a *lookup*: `__gte` means "greater than or equal", and `__in`
+means "one of these". `.count()` runs `SELECT COUNT(*)` without loading the rows.
+
+## `timedelta`: amounts of time
+
+```python
+since = timezone.now() - timedelta(hours=1)
+```
+
+`timezone.now()` is "now" with a time zone (Django's `USE_TZ = True`). Never use
+`datetime.now()` in Django code.
+
+## Middleware (`core/security.py`)
+
+```python
+class SecurityHeadersMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response          # the next layer (finally the view)
+
+    def __call__(self, request):
+        response = self.get_response(request)    # let the view do its work...
+        response.setdefault("Content-Security-Policy", ...)   # ...then add headers
+        return response
+```
+
+Middleware wraps every request like the layers of an onion. It's listed in
+`MIDDLEWARE` in `settings/base.py`.
+
+## `httpx` without async
+
+```python
+response = httpx.post(url, data={...}, timeout=5)
+```
+
+httpx works synchronously too. That's used for the quick Turnstile check inside a normal
+Django view.
+
+## "Fail closed"
+
+```python
+except (httpx.HTTPError, ValueError):
+    return False          # can't verify? then treat it as NOT verified
+```
+
+A security check that fails should **deny**, not allow.

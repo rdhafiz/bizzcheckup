@@ -70,6 +70,8 @@ Keep it current whenever the structure changes.
 - User-facing copy is friendly and non-technical. Business impact comes first, then
   the fix. The health check-up theme is used without gimmicks.
 - Branding and proposal content come only from `branding.yaml`.
+- No inline `<script>` or `style=""`: the Content Security Policy forbids them
+  ([Security](17-security.md)).
 - New dependencies need approval first, and each one gets documented in
   [Dependencies](04-dependencies.md).
 - Commits are small, one per module or task, with a short one-line message.

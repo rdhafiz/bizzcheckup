@@ -7,6 +7,8 @@ bizzcheckup/
 │   ├── core/                 Django app: site-wide pages and helpers
 │   │   ├── apps.py           App configuration (name "bizzcheckup.core")
 │   │   ├── context_processors.py  Puts product_name/tagline into every template
+│   │   ├── security.py       IP hashing, Turnstile, security headers middleware
+│   │   ├── templatetags/bizz.py  Template filters: band, band_label, severity_label...
 │   │   ├── tasks.py          Celery jobs (just "ping" for now)
 │   │   ├── urls.py           URLs of this app: /, /healthz/, /styleguide/
 │   │   └── views.py          CONTROLLER: functions that handle requests
@@ -42,6 +44,7 @@ bizzcheckup/
 │   │   ├── migrations/       Database changes (0001_initial.py)
 │   │   ├── forms.py          CheckupForm: the URL field
 │   │   ├── services.py       Business logic: create_checkup, save_report, mark_failed
+│   │   ├── protection.py     Report reuse, rate limit, global capacity
 │   │   ├── tasks.py          Celery job run_checkup: runs the engine in the worker
 │   │   ├── progress.py       Steps shown on the progress page
 │   │   ├── views.py          CONTROLLER: start, detail, progress (HTMX), screenshot

@@ -278,3 +278,21 @@ by building a `RenderResult` by hand. See `rendered()` in `test_accessibility.py
 
 The check-up tests switch off real PDF rendering with an autouse fixture in
 `tests/checkups/conftest.py`, so they stay fast.
+
+---
+
+## Security tests (phase 8)
+
+`tests/security/test_security.py` follows the acceptance checklist: 9 internal or
+invalid addresses refused at the form, the 6th check-up from one IP refused (and the
+limit is per IP and per hour), 24-hour reuse (also for running check-ups, not counted
+towards the limit, and expiring after 24 h), the global cap, the honeypot, Turnstile
+(off by default, token verified, fails closed), IP hashing and salts, ignoring
+`X-Forwarded-For` unless trusted, every security header, CSRF, and production settings.
+
+**Offline DNS everywhere:** `tests/conftest.py` gives every test an SSRF guard with fake
+DNS. `*.test` resolves to a public address and `internal.test` to `10.0.0.7`, so the
+real SSRF rules run without touching the internet.
+
+Turnstile tests fake Cloudflare with `respx.mock()` and check what was sent (secret and
+token).

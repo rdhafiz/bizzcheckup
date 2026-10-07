@@ -39,6 +39,17 @@ what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variab
 | `DJANGO_SECURE_SSL_REDIRECT` | prod only | `True` | Redirect http to https |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | prod only | empty | e.g. `https://bizzcheckup.example.com` |
 | `WORKER_CONCURRENCY` | compose only | `3` | How many check-ups run at once |
+| `CHECKUP_MAX_PAGES` | no | `10` | Pages crawled per check-up |
+| `CHECKUP_TIMEOUT_SECONDS` | no | `180` | Total time per check-up |
+| `CHECKUP_MAX_PAGE_BYTES` | no | `5242880` | Largest page body read (5 MB) |
+| `CHECKUP_RATE_LIMIT_PER_HOUR` | no | `5` | Check-ups per visitor per hour |
+| `CHECKUP_QUEUE_CAP` | no | `20` | Waiting + running check-ups for everyone |
+| `CHECKUP_REUSE_HOURS` | no | `24` | Reuse a finished report of the same URL this long |
+| `IP_HASH_SALT` | prod: yes | the secret key | Secret used to hash visitor IPs |
+| `TRUST_X_FORWARDED_FOR` | no | `False` | Read the client IP from the proxy header |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | no | empty | Cloudflare Turnstile on the form |
+
+The security-related ones are explained in [Security](17-security.md).
 
 ### Getting a PageSpeed API key (free)
 

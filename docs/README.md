@@ -24,6 +24,7 @@ Read them in order the first time. Later, jump to the page you need.
 | 14 | [The audit engine](14-audit-engine.md) | Crawler, SSRF guard, checks, scoring: how a website gets examined |
 | 15 | [Checks reference](15-checks-reference.md) | Every check: what it looks at, when it passes, warns or fails |
 | 16 | [The Health Report](16-health-report.md) | The six report sections, branding.yaml, how the PDF is made |
+| 17 | [Security & abuse protection](17-security.md) | SSRF, rate limits, reuse, bots, IP privacy, headers |
 
 ## What is BizzCheckup?
 
@@ -52,6 +53,6 @@ offering the consultant's services. All of that content comes from `branding.yam
 | 5 | PageSpeed performance + Agentic Browsing checks | Done |
 | 6 | Models, Celery task, live progress page | Done |
 | 7 | Report page, treatment plan, proposal, PDF | Done |
-| 8 | Security & abuse protection | Next |
-| 9 | Landing page, lead capture, admin, privacy | Planned |
+| 8 | Security & abuse protection | Done |
+| 9 | Landing page, lead capture, admin, privacy | Next |
 | 10 | Final docs, sample report, release tag | Planned |
