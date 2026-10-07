@@ -497,3 +497,74 @@ WHY = (
 
 This reads an attribute whose name is in a variable, or returns a default. The tests
 use it to name parametrized cases: `ids=lambda value: getattr(value, "id", "")`.
+
+---
+
+# Phase 4: concepts in the browser collector
+
+## Event handlers (callbacks)
+
+```python
+def on_console(message: ConsoleMessage) -> None:
+    if message.type == "error":
+        errors.append(message.text)
+
+page.on("console", on_console)   # "call this function every time a console message appears"
+```
+
+You hand Playwright a function. It calls the function later, whenever the event
+happens. `on_console` can use `errors` from the surrounding function (a closure).
+
+## `contextlib.suppress`
+
+```python
+with contextlib.suppress(PlaywrightError):
+    await page.wait_for_load_state("networkidle", timeout=5000)
+```
+
+"Try this, and if that specific error happens, just carry on." It's a shorter way to
+write `try: ... except PlaywrightError: pass`.
+
+## `itertools.pairwise`
+
+```python
+for previous, current in pairwise([1, 2, 4]):   # (1, 2), then (2, 4)
+```
+
+This compares each item with the one before it. It's how `HeadingOrder` spots a jump
+from H2 to H4.
+
+## Reading files next to the code
+
+```python
+AXE_SOURCE = (Path(__file__).resolve().parent.parent / "vendor" / "axe.min.js").read_text(encoding="utf-8")
+```
+
+`__file__` is this module's own path. Going up and into `vendor/` finds the file no
+matter which folder you start Python from.
+
+## `bytes`
+
+```python
+screenshot: bytes                      # raw binary data, not text
+screenshot[:2] == b"\xff\xd8"          # b"..." is a bytes literal; JPEGs start with FF D8
+bytes.fromhex("474946...")             # build bytes from hex digits (the test GIF)
+```
+
+## Running JavaScript from Python
+
+```python
+libraries = await page.evaluate("() => ({ jQuery: window.jQuery?.fn?.jquery })")
+```
+
+`page.evaluate` sends JavaScript to the browser, runs it inside the page and returns
+the result converted to Python (`dict`, `list`, `str`…).
+
+## `Field(exclude=True)` in Pydantic
+
+```python
+screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
+```
+
+The field exists on the object, but `model_dump()` (the JSON saved to the database)
+leaves it out, and `print()` doesn't show 80 KB of binary data.

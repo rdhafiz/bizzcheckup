@@ -206,3 +206,33 @@ is needed.
 | `tests/engine/checks/test_seo.py` | All 11 SEO checks |
 | `tests/engine/checks/test_best_practices.py` | All 12 best-practice checks |
 | `tests/engine/test_probes.py` | Link statuses, http→https probe, HEAD→GET fallback, link limit |
+
+---
+
+## Browser tests (phase 4)
+
+`tests/engine/test_render.py` starts **real headless Chromium** against a tiny web
+server running inside the test (Python's built-in `http.server`, on `127.0.0.1` and
+a random free port). There's still no internet.
+
+The test page deliberately misbehaves: a JavaScript error, an image redirecting to
+`10.0.0.1`, an image pointing at the cloud metadata address, a cookie set from another
+host, a fake old jQuery, and an image without alt text. The test then checks that
+everything was recorded **and** that both internal addresses were blocked.
+
+`LocalTestGuard` is the real `NetGuard` with one exception: the test server itself is
+allowed. Every other address follows the normal SSRF rules.
+
+These tests are marked `@pytest.mark.browser`:
+
+| Command | Runs |
+|---------|------|
+| `pytest` | Everything, including browser tests (about 2 extra seconds) |
+| `pytest -m "not browser"` | Everything except browser tests |
+| `pytest -m browser` | Only browser tests |
+
+If Chromium isn't installed, the browser test is **skipped** with a hint, not failed.
+CI installs Chromium, so it always runs there.
+
+Browser-only *checks* (axe scan, console errors, cookies) are tested without a browser
+by building a `RenderResult` by hand. See `rendered()` in `test_accessibility.py`.

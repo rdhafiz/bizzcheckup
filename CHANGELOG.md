@@ -36,5 +36,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   X-Content-Type-Options, frame protection, Referrer-Policy, outdated jQuery, Bootstrap,
   AngularJS and Lodash, doctype, charset, viewport.
 - Healthy and neglected HTML fixtures, with a test for every check.
+- Browser collector (Playwright + headless Chromium): rendered HTML, screenshot,
+  JavaScript errors, cookies, runtime library versions and an axe-core 4.14 scan. Every
+  browser request and redirect hop passes the SSRF guard; WebSockets and service workers
+  are blocked.
+- 6 accessibility checks: image alt text, page language, heading order, form labels,
+  link/button names, and the axe-core scan (by impact, without double-counting).
+- Best-practice checks for JavaScript errors and third-party cookies; the outdated
+  libraries check also uses versions detected in the running page.
+- Chromium installed in the Docker image, CI and `start.sh`.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).

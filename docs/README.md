@@ -47,8 +47,8 @@ offering the consultant's services. All of that content comes from `branding.yam
 | 1 | Project setup: Django, Docker Compose, Celery, CI, Tailwind, brand style | Done |
 | 2 | Engine core: crawler, Check/Finding models, registry, scoring | Done |
 | 3 | SEO and Best Practices checks | Done |
-| 4 | Playwright rendering, screenshots, accessibility checks | Next |
-| 5 | PageSpeed performance + Agentic Browsing checks | Planned |
+| 4 | Playwright rendering, screenshots, accessibility checks | Done |
+| 5 | PageSpeed performance + Agentic Browsing checks | Next |
 | 6 | Models, Celery task, live progress page | Planned |
 | 7 | Report page, treatment plan, proposal, PDF | Planned |
 | 8 | Security & abuse protection | Planned |

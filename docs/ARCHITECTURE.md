@@ -36,7 +36,9 @@ Keep it current whenever the structure changes.
 3. Every check is **one class** that registers itself (through `__init_subclass__`).
 4. **Scoring** turns findings into category scores and the Business Health Score.
 5. **Safety**: every outgoing request, and every redirect hop, passes the SSRF guard
-   (`netguard.py`). There are size, time and concurrency limits on everything.
+   (`netguard.py`). That includes every request headless Chromium makes, through
+   `_SafeRouter` in `collectors/render.py`. There are size, time and concurrency limits
+   on everything.
 
 ## Scoring
 

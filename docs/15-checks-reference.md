@@ -49,20 +49,41 @@ links, and `seo.duplicate_titles` when only one page was crawled.
 | `best_practices.nosniff` | File type protection | 2 | `X-Content-Type-Options` | `nosniff` | Missing | — |
 | `best_practices.frame_protection` | Protection from being framed | 3 | `X-Frame-Options`, or CSP `frame-ancestors` | DENY / SAMEORIGIN / frame-ancestors | Missing | — |
 | `best_practices.referrer_policy` | Referrer privacy | 2 | `Referrer-Policy` header or meta tag | A safe policy | Missing, or `unsafe-url` / `no-referrer-when-downgrade` | — |
-| `best_practices.outdated_libraries` | Outdated code libraries | 5 | Version numbers in `<script src>` | None outdated | — | jQuery < 3.5, Bootstrap < 4.3.1, AngularJS 1.x, Lodash < 4.17.21 |
+| `best_practices.outdated_libraries` | Outdated code libraries | 5 | Version numbers in `<script src>`, plus versions read from the running page when the browser ran | None outdated | — | jQuery < 3.5, Bootstrap < 4.3.1, AngularJS 1.x, Lodash < 4.17.21 |
 | `best_practices.doctype` | Modern page standard | 2 | `<!doctype html>` at the start | Present | Missing | — |
 | `best_practices.charset` | Character encoding | 2 | `charset` in the header or the first 1024 bytes | Declared | Missing | — |
 | `best_practices.viewport` | Mobile-friendly setup | 7 | `<meta name="viewport">` | Has `width=device-width` | Present but fixed width | Missing (high impact) |
+| `best_practices.console_errors` | JavaScript errors | 4 | Errors in the browser console (needs RENDER) | None | Any (duplicates counted once; up to 3 shown) | — |
+| `best_practices.third_party_cookies` | Third-party cookies | 3 | Cookies from other sites when the homepage loads (needs RENDER) | None | Any, with the company domains listed | — |
 
 The HTTPS-only checks (`http_redirect`, `mixed_content`, `hsts`) don't apply to a
 site that is plain `http://`. The `https` check already reports that problem.
 
-**Coming in phase 4** (these need the real browser): console errors, third-party
-cookies, and libraries detected from the running page instead of only from file names.
+## Accessibility (`bizzcheckup/engine/checks/accessibility.py`)
 
-## Accessibility, Performance, Agentic browsing
+The first five checks read every crawled page, using the browser-rendered homepage
+when available (`ctx.dom()`).
 
-Added in phases 4 and 5.
+| Id | Title | Weight | Looks at | Pass | Warn | Fail |
+|----|-------|--------|----------|------|------|------|
+| `accessibility.image_alt` | Image descriptions | 8 | `<img>` without an `alt` attribute (partial). `alt=""` is fine for decoration. | All have alt | — | Any missing (high impact) |
+| `accessibility.html_lang` | Page language | 5 | `<html lang>` on the homepage | Valid code (`en`, `en-GB`, `bn`) | Invalid code | Missing |
+| `accessibility.heading_order` | Heading structure | 3 | Heading levels in page order (partial) | No skipped levels | A skip such as H2 to H4 | — |
+| `accessibility.form_labels` | Form field labels | 8 | `input`/`select`/`textarea` (not hidden or buttons) need a `<label for>`, a wrapping `<label>`, `aria-label`, `aria-labelledby` or `title`. A placeholder is **not** a label. (partial) | All labelled | — | Any unlabelled (high impact) |
+| `accessibility.accessible_names` | Link and button names | 6 | `<a href>`, `<button>` and submit inputs need text, `aria-label`, `title` or an image alt (partial) | All named | Any nameless | — |
+| `accessibility.axe_scan` | Automated accessibility scan | 10 | axe-core on the rendered homepage, **excluding** rules the checks above already cover (needs RENDER) | Nothing found | Moderate issues | Serious or critical issues (high impact). Minor issues give **info**. |
+
+The axe scan gives **one finding per failing rule**, with plain-language business
+impact for common rules (contrast, landmarks…) and a link to Deque's step-by-step fix
+guide. Its partial score is (rules checked − penalties) ÷ rules checked, where the
+penalties are critical 1.0, serious 0.7, moderate 0.3 and minor 0.1.
+
+Not applicable: `image_alt` with no images, `heading_order` with no headings,
+`form_labels` with no form fields, and `accessible_names` with no links or buttons.
+
+## Performance, Agentic browsing
+
+Added in phase 5.
 
 ---
 

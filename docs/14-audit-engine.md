@@ -89,13 +89,58 @@ need. When it succeeds, it adds its **capability** name. Checks that list that n
 | Collector | Capability | Adds | Used by |
 |-----------|------------|------|---------|
 | `collect_probes` (`collectors/probes.py`) | `PROBES` | `ctx.probes.http_final_url` (where `http://` ends up); `ctx.probes.link_status` (internal link to HTTP status, 0 = unreachable); `ctx.probes.link_sources` (which pages contain each link) | `seo.broken_links`, `best_practices.http_redirect` |
-| Browser (phase 4) | `RENDER` | Rendered HTML, screenshot, console errors, cookies, axe results | Accessibility checks |
+| `collect_render` (`collectors/render.py`) | `RENDER` | `ctx.render`: rendered HTML, visible text length, JPEG screenshot, console errors, cookies (first- or third-party), library versions, axe-core violations and passes, blocked requests | `accessibility.axe_scan`, `best_practices.console_errors`, `best_practices.third_party_cookies`, `best_practices.outdated_libraries`, and all accessibility checks (through `ctx.dom()`) |
 | PageSpeed (phase 5) | `PAGESPEED` | Lighthouse scores and Core Web Vitals | Performance checks |
 
 Link probing uses cheap `HEAD` requests, falling back to `GET` when a server refuses
 `HEAD` (403/405/501). It checks at most `max_link_checks` (50) same-origin links that
 robots.txt allows. `run_audit()` uses `DEFAULT_COLLECTORS` unless you pass
 `collectors=()`.
+
+## The browser collector (`collectors/render.py`)
+
+It opens the homepage in headless Chromium at 1280×800, waits for it to load (plus up
+to 5 seconds for late scripts), then collects the data below. A typical site takes
+3–6 seconds.
+
+| Data | How |
+|------|-----|
+| Rendered HTML and text length | `page.content()`, `document.body.innerText.length` |
+| Screenshot | `page.screenshot(type="jpeg", quality=70)`, saved on `AuditReport.screenshot_jpeg` (kept out of the JSON) |
+| JavaScript errors | `console.error` messages and uncaught exceptions |
+| Cookies | `context.cookies()`. Third-party means a different *site* (`urls.site_domain()`: `www.shop.co.uk` and `shop.co.uk` count as the same site) |
+| Library versions | Reads `jQuery.fn.jquery`, Bootstrap's `VERSION`, `angular.version` and lodash `_.VERSION` from the running page |
+| Accessibility | Runs axe-core with the WCAG 2.0/2.1/2.2 A and AA rules plus best practices |
+
+**`ctx.dom(page)`**: accessibility checks read the *rendered* homepage when the
+browser ran, and the raw HTML otherwise. A site built with JavaScript (React, Vue…)
+is judged on what visitors actually see.
+
+### SSRF safety inside the browser
+
+The browser loads images, scripts and frames by itself, so it could be tricked into
+visiting internal addresses just like the fetcher. An experiment showed that
+**Playwright's request interception does not see redirect hops**. A page could
+redirect an image request to `http://10.0.0.1/` without the interception hook noticing.
+So `_SafeRouter` handles **every** browser request itself:
+
+1. Run `NetGuard.check_url()` on the URL. If it's blocked, abort the request.
+2. Fetch it with `route.fetch(max_redirects=0)`.
+3. If the answer is a redirect, check the next address (back to step 1).
+4. Hand the final response to the browser with `route.fulfill()`.
+
+On top of that, WebSockets are closed and service workers are disabled, because both
+would bypass interception. Blocked addresses are listed in `render.blocked_requests`,
+and the console errors they cause are filtered out (they aren't the site's fault).
+`tests/engine/test_render.py` proves that the metadata address and a redirect to
+`10.0.0.1` are both stopped.
+
+axe-core is run with `page.evaluate()` rather than an injected `<script>` tag. That
+way the site's Content-Security-Policy can't block the scan.
+
+If the browser fails (timeout, crash), the collector's error is logged, `RENDER` isn't
+added, and browser-only checks are **skipped** with "We couldn't open your site in a
+browser". They aren't failed.
 
 ## Crawling rules (`crawler.py`)
 

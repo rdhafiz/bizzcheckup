@@ -23,12 +23,17 @@ bizzcheckup/
 │   │   ├── treatment.py      Treatment plan ordering, quick wins
 │   │   ├── runner.py         run_audit(): ties it all together
 │   │   ├── collectors/       Extra data gathered after the crawl
-│   │   │   └── probes.py     Internal link statuses + does http:// redirect to https://
+│   │   │   ├── probes.py     Internal link statuses + does http:// redirect to https://
+│   │   │   └── render.py     Headless Chromium: rendered page, screenshot, axe scan
+│   │   ├── vendor/           Third-party files shipped with the engine
+│   │   │   ├── axe.min.js    axe-core 4.14.0 accessibility scanner (MPL-2.0)
+│   │   │   └── AXE-LICENSE.txt
 │   │   └── checks/           One module per category (docs/15-checks-reference.md)
 │   │       ├── base.py       The Check base class
 │   │       ├── _helpers.py   meta_content(), on_pages(), share_score()...
 │   │       ├── seo.py        11 SEO checks
-│   │       └── best_practices.py  12 security & standards checks
+│   │       ├── best_practices.py  14 security & standards checks
+│   │       └── accessibility.py   6 accessibility checks
 │   ├── checkups/             (phase 6) Checkup / Finding / Lead models, Celery task
 │   └── reports/              (phase 7) Report page, branding loader, PDF
 ├── config/                   Django project configuration

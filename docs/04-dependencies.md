@@ -91,6 +91,16 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 | **Where** | `engine/crawler.py` (links), `engine/context.py` (`ctx.tree(page)`), and every check |
 | **How** | `LexborHTMLParser(html).css_first("title").text()` |
 
+### playwright `1.63.0`
+
+| | |
+|---|---|
+| **What** | Controls a real web browser (headless Chromium) from Python |
+| **Why** | Many sites build their pages with JavaScript, so the raw HTML isn't what visitors see. Only a real browser can take a screenshot, run JavaScript, report JavaScript errors and cookies, and run the axe accessibility scanner. Playwright is modern, async and well maintained, and it can intercept every request the browser makes (needed for SSRF safety). |
+| **Where** | `bizzcheckup/engine/collectors/render.py` only |
+| **How** | `async with async_playwright() as p: browser = await p.chromium.launch()`, then `page.goto(url)`, `page.screenshot()` and `page.evaluate(js)` |
+| **Browser** | Playwright downloads its own Chromium: `python -m playwright install --only-shell chromium` (done by `start.sh`, the Dockerfile and CI). `--only-shell` means the small headless build only. |
+
 ### gunicorn `26.2.0`
 
 | | |
@@ -129,6 +139,7 @@ See [Testing & code quality](13-testing-and-quality.md) for how to run them.
 
 | Tool | Where | Why |
 |------|-------|-----|
+| axe-core `4.14.0` (`axe.min.js`) | `bizzcheckup/engine/vendor/` | The industry-standard accessibility rules engine by Deque (also used by Lighthouse). It's a JavaScript file we run inside the browser page. It's stored in the repo (vendored) so audits never download code at runtime. Licence: MPL-2.0, see `AXE-LICENSE.txt`. |
 | Tailwind CSS standalone CLI `v4.3.3` | `.bin/` (local), Dockerfile (image) | Builds our CSS. A single program, so no Node.js is needed. |
 | Fonts: Bricolage Grotesque, Public Sans, JetBrains Mono | `static/fonts/` | Self-hosted, SIL Open Font License. Faster, private (no Google requests) and reliable in PDFs. |
 | PostgreSQL 17, Redis 8 | Docker images in `compose.yaml` | Database and job queue |
@@ -139,6 +150,5 @@ See [Testing & code quality](13-testing-and-quality.md) for how to run them.
 
 | Library | Phase | For |
 |---------|-------|-----|
-| playwright | 4 | Headless Chromium: JS rendering, screenshots, axe-core, PDF |
 | PyYAML, types-PyYAML | 7 | Reading `branding.yaml` |
 | segno | 7 | QR code (SVG) on the contact page |
