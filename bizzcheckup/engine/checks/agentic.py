@@ -13,6 +13,7 @@ from selectolax.lexbor import LexborHTMLParser
 from ..config import AI_CRAWLERS
 from ..context import PROBES, RENDER, AuditContext
 from ..types import AgentProbe, Category, Finding, Level, Severity
+from ..urls import origin
 from .accessibility import accessible_text
 from .base import Check
 
@@ -51,6 +52,7 @@ class LlmsTxt(Check):
                     self.WHY,
                     self.FIX,
                     impact=Level.MEDIUM,
+                    urls=[f"{origin(ctx.homepage.final_url)}/llms.txt"],
                 )
             ]
         findings = [self.passed("Your website has an llms.txt guide for AI assistants.", self.WHY)]

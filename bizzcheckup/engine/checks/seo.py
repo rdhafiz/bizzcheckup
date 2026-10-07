@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from ..context import PROBES, AuditContext
 from ..types import Category, Finding, Level, Severity
-from ..urls import domain
+from ..urls import domain, origin
 from ._helpers import links_with_rel, meta_content, meta_property, on_pages, share_score, title_text
 from .base import Check
 
@@ -335,7 +335,7 @@ class Sitemap(Check):
                     "Create /sitemap.xml (most website builders and SEO plugins can do this "
                     'automatically) and add a "Sitemap:" line to robots.txt.',
                     impact=Level.MEDIUM,
-                    urls=sitemap.checked,
+                    urls=sitemap.checked or [f"{origin(ctx.homepage.final_url)}/sitemap.xml"],
                 )
             ]
         if not sitemap.urls:
