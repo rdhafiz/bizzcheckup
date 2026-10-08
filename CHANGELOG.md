@@ -8,9 +8,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ### Added
 - **Scroll reveal and parallax** on the homepage (`static/js/motion.js`, no library):
-  sections and footer columns fade in and rise as they scroll into view (staggered, and
-  again on every return); the hero and benefits photos drift slower than the page while the
-  hero text moves slightly against them. Fails open (nothing hidden without the script),
+  every section (the hero included) and the footer columns fade in as they scroll into view,
+  every time, in both directions: rising when scrolling down, coming down from above when
+  scrolling back up (staggered, nearest first). The hero and benefits photos drift slower
+  than the page while the hero text moves against them. Fails open (nothing hidden without the script),
   off with reduced motion, parallax off below 768px, keyboard focus and #anchors show hidden
   content at once, and a watchdog shows everything if reveals stall.
 - **`/llms.txt`**: a Markdown guide to BizzCheckup for AI assistants (llmstxt.org format):

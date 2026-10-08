@@ -80,6 +80,7 @@ bizzcheckup/
 │   ├── img/favicon.svg       Browser tab icon
 │   ├── js/theme.js           Light/dark mode switch
 │   ├── js/motion.js          Scroll reveal and parallax (see 19-motion.md)
+│   ├── js/motion-boot.js     Hides animated content before the first paint (see 19-motion.md)
 │   └── vendor/htmx.min.js    htmx 2.0.11 (+ licence)
 ├── tests/                    pytest tests, mirroring the package layout
 │   ├── core/                 Tests for the core app
