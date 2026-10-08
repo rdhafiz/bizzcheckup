@@ -5,6 +5,7 @@ is reported by `python manage.py check` before the site starts, not as a broken
 report in front of a client.
 """
 
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 
@@ -19,6 +20,14 @@ class Service(BaseModel):
     name: str
     description: str
     related_categories: list[Category] = Field(min_length=1)
+
+
+class Legal(BaseModel):
+    """Details the legal pages need: who runs the service and under which law."""
+
+    operator: str
+    country: str
+    updated: date
 
 
 class CallToAction(BaseModel):
@@ -50,6 +59,7 @@ class Branding(BaseModel):
 
     services: list[Service] = Field(default_factory=list)
     call_to_action: CallToAction
+    legal: Legal
 
     @property
     def first_name(self) -> str:
