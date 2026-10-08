@@ -7,6 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **`/llms.txt`**: a Markdown guide to BizzCheckup for AI assistants (llmstxt.org format):
+  what it does, the five vital signs, the limits, and links to the main and legal pages.
+  A test checks that BizzCheckup passes its own llms.txt and AI-crawler checks.
 - **`/robots.txt`** and **`/sitemap.xml`**: the sitemap lists the homepage and the legal
   pages (with their "last updated" date); robots.txt points to it and keeps crawlers out
   of the private reports (`/checkups/`), admin, health check and style guide.

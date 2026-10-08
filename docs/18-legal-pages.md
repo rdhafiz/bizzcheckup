@@ -1,4 +1,4 @@
-# 18. Legal pages, the footer, robots.txt and the sitemap
+# 18. Legal pages, the footer, and files for crawlers
 
 BizzCheckup has five legal pages, linked from the footer on every page:
 
@@ -116,9 +116,39 @@ The real Django class isn't generic, and `Sitemap[str]` would crash when the app
 `if TYPE_CHECKING:` (only true while mypy reads the code) gives mypy the typed version and
 the running app the plain class.
 
+## llms.txt (for AI assistants)
+
+`/llms.txt` is a short guide to the site written for AI assistants such as ChatGPT or
+Claude, in the [llmstxt.org](https://llmstxt.org) format: Markdown with
+
+1. the name as the first heading (`# BizzCheckup`),
+2. a one-paragraph summary starting with `>`,
+3. a few plain paragraphs (who runs it, the five vital signs, the limits),
+4. `##` sections of links: main pages, policies, the consultant's profiles, and "Optional"
+   (the sitemap; "Optional" tells an AI it may skip these when short of space).
+
+It also asks AI assistants not to index or summarise reports, which are private.
+
+| Layer | File |
+|-------|------|
+| URL | `config/urls.py` → `path("llms.txt", llms_txt)` |
+| View | `core.views.llms_txt`: passes the vital signs, the limits from the settings and the site's base address (links must be absolute) |
+| Template | `templates/core/llms.txt` |
+
+**Why a template with `{% autoescape off %}`?** Django normally turns `'` into `&#x27;` to make
+HTML safe. This file isn't HTML but plain text, so escaping would break "business's". It is
+safe to switch off here because every value comes from our own code, settings and
+`branding.yaml`, never from a visitor.
+
+**We pass our own check.** BizzCheckup tells other websites to have an llms.txt and to let AI
+crawlers in. A test (`test_our_own_ai_checks_pass_on_our_site`) runs the engine's own
+`agentic.LlmsTxt` and `agentic.AiCrawlers` checks against our `/llms.txt` and `/robots.txt`, so we
+always practise what we preach.
+
 ## Tests
 
 `tests/core/test_legal.py` checks that every page opens, shows the operator and links to
 all the others; that the terms use the country and the real limits from the settings; that
 the cookie policy names every cookie and storage key; that the footer is on every page; that `robots.txt` blocks the private areas and points to the
-sitemap; and that the sitemap lists exactly the public pages with their dates.
+sitemap; that the sitemap lists exactly the public pages with their dates; and that `llms.txt` follows the
+format, links to every legal page and passes BizzCheckup's own AI-readiness checks.
