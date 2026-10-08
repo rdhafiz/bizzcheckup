@@ -5,9 +5,9 @@
 <footer class="site-footer on-dark" aria-labelledby="footer-title">
   <h2 id="footer-title" class="sr-only">About {{ product_name }}</h2>
   <div class="container-wide">
-    <div class="site-footer__grid">
+    <div class="site-footer__grid" data-reveal-group>
       {# Brand and the main call to action #}
-      <div class="site-footer__brand">
+      <div class="site-footer__brand" data-reveal>
         <a href="{% url 'core:home' %}" class="inline-block no-underline hover:no-underline" aria-label="{{ product_name }} home">
           {% include "partials/logo.html" %}
         </a>
@@ -20,7 +20,7 @@
         </a>
       </div>
 
-      <nav aria-label="Product">
+      <nav aria-label="Product" data-reveal>
         <h3 class="site-footer__heading">Product</h3>
         <ul class="site-footer__links">
           <li><a href="{% url 'core:home' %}#start">Start a check-up</a></li>
@@ -30,7 +30,7 @@
         </ul>
       </nav>
 
-      <nav aria-label="Legal">
+      <nav aria-label="Legal" data-reveal>
         <h3 class="site-footer__heading">Legal</h3>
         <ul class="site-footer__links">
           <li><a href="{% url 'core:privacy' %}">Privacy policy</a></li>
@@ -41,7 +41,7 @@
         </ul>
       </nav>
 
-      <div>
+      <div data-reveal>
         <h3 class="site-footer__heading">Get in touch</h3>
         <ul class="site-footer__contact">
           <li>

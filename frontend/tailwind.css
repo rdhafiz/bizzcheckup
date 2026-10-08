@@ -411,10 +411,17 @@
 
   /* Hero: full screen. Background image, a dark backdrop for contrast, then two columns. */
   .hero-full {
-    @apply relative isolate flex min-h-screen items-center bg-cover bg-center;
+    @apply relative isolate flex min-h-screen items-center overflow-hidden;
     min-height: 100dvh; /* phones: the visible height, without the browser bars */
-    background-image: url("../img/hero-bg.webp");
     background-color: #0c1517; /* shown until the image has loaded */
+  }
+  /* The photo, as its own layer so it can drift slower than the page (parallax).
+     Scaled 1.24 = what motion.js computes for this section at rest (1 + 2 x 0.12),
+     so nothing jumps when the script starts. */
+  .hero-full__photo {
+    @apply absolute inset-0 -z-20 bg-cover bg-center;
+    background-image: url("../img/hero-bg.webp");
+    transform: scale(1.24);
   }
   .hero-full::before {
     @apply absolute inset-0 -z-10;
@@ -545,7 +552,7 @@
 
   /* Vital-sign cards: one pastel tone each, a coloured glow underneath, a lift on hover. */
   .sign-card {
-    @apply relative isolate flex flex-col overflow-hidden rounded-3xl p-6 text-ink no-underline
+    @apply relative isolate flex h-full flex-col overflow-hidden rounded-3xl p-6 text-ink no-underline
       transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:no-underline;
     border: 1px solid color-mix(in srgb, var(--tone) 12%, transparent);
     background: linear-gradient(165deg, var(--card) 35%, var(--tone-soft));
@@ -629,7 +636,7 @@
     @apply relative py-16 sm:py-20 lg:max-w-[40rem] lg:py-28;
   }
   .benefits__art {
-    @apply order-last aspect-[4/3] w-full;
+    @apply order-last aspect-[4/3] w-full overflow-hidden; /* clips the parallax photo */
     /* Phones and tablets: the photo sits below the text and fades in at its top edge. */
     mask-image: linear-gradient(to bottom, transparent, #000 25%);
   }
@@ -699,12 +706,6 @@
   }
   .btn-pill--glow:hover .btn-pill__arrow {
     @apply translate-x-1;
-  }
-  .benefits__art {
-    @apply aspect-[4/3] overflow-hidden lg:aspect-auto;
-  }
-  .benefits__art img {
-    @apply size-full object-cover object-center;
   }
 }
 
@@ -1136,6 +1137,65 @@
 .report-pdf {
   @apply bg-white;
   font-size: 11pt;
+}
+
+/* --- Motion: scroll reveal and parallax (static/js/motion.js, docs/19-motion.md) ------- */
+/* FAIL OPEN: nothing below hides anything unless motion.js has added .motion-ready to
+   <html>. Without the script (blocked, failed, reduced motion) the page is plain content.
+   Outside @layer on purpose, so utilities on the same element can't override it. */
+
+html.motion-ready [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 32px, 0);
+  /* Transitions, not keyframe animations: they replay by just toggling a class, and
+     they reverse smoothly if the visitor scrolls back mid-way. Longhands, so the delay
+     can't be reset by a shorthand. Ease-out: fast start, slow settle. */
+  transition-property: opacity, transform;
+  transition-duration: 750ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms); /* the stagger, set by motion.js */
+  /* Give each one its own GPU layer up front. Otherwise the browser creates (and paints)
+     the layer the moment the entrance starts, in the middle of a scroll frame; with soft
+     shadows inside, that cost dropped frames on a slow CPU. */
+  will-change: transform, opacity;
+}
+html.motion-ready [data-reveal="scale"] {
+  transform: scale(0.94);
+}
+/* Sideways entrances only on wide screens: an element pushed sideways still takes up
+   space, and on a phone that would make the page scroll horizontally. */
+@media (min-width: 768px) {
+  html.motion-ready [data-reveal="left"] {
+    transform: translate3d(-40px, 0, 0);
+  }
+  html.motion-ready [data-reveal="right"] {
+    transform: translate3d(40px, 0, 0);
+  }
+}
+html.motion-ready [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+/* Keyboard focus or an #anchor landed on it: show it at once. */
+html.motion-ready [data-reveal].reveal-instant {
+  transition: none;
+}
+/* Belt and braces against sideways overflow from anything offset. `clip`, not `hidden`,
+   so it doesn't create a scroll container (sticky bars keep working). */
+html.motion-ready main {
+  overflow-x: clip;
+}
+
+html.parallax-on [data-parallax] {
+  will-change: transform; /* its own GPU layer: moving it costs no layout or paint */
+}
+
+@media print {
+  html.motion-ready [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 @keyframes draw {

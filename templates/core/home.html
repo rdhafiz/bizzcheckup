@@ -13,14 +13,20 @@
 {% block content %}
   {# --- Hero: full screen, background image + dark backdrop, text left and form right --- #}
   <section class="hero-full" aria-labelledby="hero-title">
+    {# The photo is its own layer so it can drift slower than the page (parallax). #}
+    <div class="hero-full__photo" data-parallax="0.12" data-parallax-fill aria-hidden="true"></div>
     <div class="hero container-wide">
-      <div class="hero__text on-dark">
+      {% comment %}
+        No entrance animation here: this is the first thing on screen (LCP). It only moves
+        slightly against the photo while scrolling, for depth.
+      {% endcomment %}
+      <div class="hero__text on-dark" data-parallax="-0.05">
         <p class="hero-pill">
           <span class="hero-pill__icon" aria-hidden="true"><svg class="size-5" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           Free website check-up
         </p>
         <h1 id="hero-title" class="hero__title">
-          <svg class="deco-spark hero__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 8 18M30 8 20 20M34 24l-12-1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+          <svg data-parallax="-0.05" class="deco-spark hero__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 8 18M30 8 20 20M34 24l-12-1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
           <span class="sr-only">{{ product_name }}: </span>Is your business website
           <span class="hero__highlight">healthy<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span>?
         </h1>
@@ -125,20 +131,21 @@
     {# Decoration only: soft shapes, dot grids and sparkle strokes. #}
     <span class="dot-grid signs__dots--left" aria-hidden="true"></span>
     <span class="dot-grid signs__dots--right" aria-hidden="true"></span>
-    <svg class="deco-spark signs__spark--left" viewBox="0 0 40 40" aria-hidden="true"><path d="M22 4l6 18M8 22l14 8M18 16l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-    <svg class="deco-spark signs__spark--right" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 4 8 26M12 34l22-6M20 22l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg data-parallax="-0.05" class="deco-spark signs__spark--left" viewBox="0 0 40 40" aria-hidden="true"><path d="M22 4l6 18M8 22l14 8M18 16l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg data-parallax="-0.05" class="deco-spark signs__spark--right" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 4 8 26M12 34l22-6M20 22l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
 
     <div class="container-wide relative">
-      <div class="grid items-center gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <div>
+      <div class="grid items-center gap-6 lg:grid-cols-[1.3fr_1fr]" data-reveal-group>
+        <div data-reveal>
           <p class="eyebrow-dash">What we examine</p>
           <h2 id="signs-title" class="mt-3 text-3xl font-bold sm:text-[2.75rem] sm:leading-[1.1]">Five vital signs of a<br class="hidden sm:inline">
             <span class="text-highlight">healthy<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span> business website</h2>
         </div>
-        <p class="signs__intro">We check the key areas that impact your visibility, trust and conversions, and give clear, actionable advice.</p>
+        <p class="signs__intro" data-reveal="right">We check the key areas that impact your visibility, trust and conversions, and give clear, actionable advice.</p>
       </div>
-      <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+      <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-5" data-reveal-group>
         {% for sign in vital_signs %}
+          <div data-reveal>
           <a href="#start" class="sign-card tone-{{ sign.tone }}">
             <svg class="sign-card__wave" viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true"><path d="M30 0c18 28 46 34 74 30 26-4 40 10 56 34V0z"/></svg>
             <span class="sign-badge" aria-hidden="true">{% include "partials/icon.html" with name=sign.icon css="size-8" %}</span>
@@ -147,6 +154,7 @@
             <span class="sign-card__go" aria-hidden="true">{% include "partials/icon.html" with name="arrow" css="size-4" %}</span>
             <span class="sr-only">Check my {{ sign.title|lower }}</span>
           </a>
+          </div>
         {% endfor %}
       </div>
     </div>
@@ -155,13 +163,15 @@
   {# --- How it works ------------------------------------------------------------------- #}
   <section class="how" aria-labelledby="how-title">
     <div class="container-wide relative">
-      <p class="eyebrow-dash">How it works</p>
-      <h2 id="how-title" class="mt-3 text-3xl font-bold sm:text-4xl">From address to <span class="text-primary">treatment plan</span></h2>
-      <p class="how__note" aria-hidden="true">Simple.<br>Fast.<br>Actionable.
+      <div data-reveal>
+        <p class="eyebrow-dash">How it works</p>
+        <h2 id="how-title" class="mt-3 text-3xl font-bold sm:text-4xl">From address to <span class="text-primary">treatment plan</span></h2>
+      </div>
+      <p class="how__note" aria-hidden="true" data-reveal="scale">Simple.<br>Fast.<br>Actionable.
         <svg viewBox="0 0 60 60" class="how__note-arrow"><path d="M48 4c8 18 2 36-26 44M22 48l10-10M22 48l13 4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </p>
-      <ol class="how__steps">
-        <li class="tone-teal">
+      <ol class="how__steps" data-reveal-group>
+        <li class="tone-teal" data-reveal>
           <span class="how__num">01</span>
           <div>
             <h3 class="text-lg font-bold">Enter your address</h3>
@@ -169,7 +179,7 @@
           </div>
           <svg class="how__arrow" viewBox="0 0 90 30" aria-hidden="true"><path d="M2 22C25 4 60 2 84 18M84 18l-9-1M84 18l-3-8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"/></svg>
         </li>
-        <li class="tone-blue">
+        <li class="tone-blue" data-reveal>
           <span class="how__num">02</span>
           <div>
             <h3 class="text-lg font-bold">Watch the check-up</h3>
@@ -177,7 +187,7 @@
           </div>
           <svg class="how__arrow" viewBox="0 0 90 30" aria-hidden="true"><path d="M2 22C25 4 60 2 84 18M84 18l-9-1M84 18l-3-8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"/></svg>
         </li>
-        <li class="tone-violet">
+        <li class="tone-violet" data-reveal>
           <span class="how__num">03</span>
           <div>
             <h3 class="text-lg font-bold">Get your treatment plan</h3>
@@ -192,21 +202,25 @@
   <section class="benefits" aria-labelledby="benefits-title">
     {# The photo fills the right side and fades into the background behind the text. #}
     <div class="benefits__art">
-      <img src="{% static 'img/healthier-website.webp' %}" alt="A BizzCheckup health report with a score of 92 on a laptop, a desktop screen and a phone, on a sunny office desk" width="1448" height="1086" loading="lazy" decoding="async">
+      <img data-parallax="0.08" data-parallax-fill src="{% static 'img/healthier-website.webp' %}" alt="A BizzCheckup health report with a score of 92 on a laptop, a desktop screen and a phone, on a sunny office desk" width="1448" height="1086" loading="lazy" decoding="async">
     </div>
     <div class="container-wide relative">
       <div class="benefits__text">
-        <svg class="deco-spark benefits__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 13 22M16 34l18-9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+        <svg data-parallax="-0.05" class="deco-spark benefits__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 13 22M16 34l18-9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+        <div data-reveal="left">
         <p class="eyebrow-dash">A healthier website means</p>
         <h2 id="benefits-title" class="benefits__title">More visibility.<br>More trust.<br>
           <span class="benefits__growth">More growth.<svg viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="growth-fade" x1="0" x2="1"><stop offset="0" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><path d="M4 16C60 2 110 4 150 14s100 10 146-4" fill="none" stroke="url(#growth-fade)" stroke-width="5" stroke-linecap="round"/></svg></span>
         </h2>
-        <ul class="benefits__list">
-          <li class="tone-teal"><span class="benefit-tile">{% include "partials/icon.html" with name="users" css="size-6" %}</span><span><strong>Attract</strong> more customers</span></li>
-          <li class="tone-rose"><span class="benefit-tile">{% include "partials/icon.html" with name="handshake" css="size-6" %}</span><span><strong>Build</strong> more trust</span></li>
-          <li class="tone-violet"><span class="benefit-tile">{% include "partials/icon.html" with name="growth" css="size-6" %}</span><span><strong>Turn visitors</strong> into real opportunities</span></li>
+        </div>
+        <ul class="benefits__list" data-reveal-group>
+          <li class="tone-teal" data-reveal><span class="benefit-tile">{% include "partials/icon.html" with name="users" css="size-6" %}</span><span><strong>Attract</strong> more customers</span></li>
+          <li class="tone-rose" data-reveal><span class="benefit-tile">{% include "partials/icon.html" with name="handshake" css="size-6" %}</span><span><strong>Build</strong> more trust</span></li>
+          <li class="tone-violet" data-reveal><span class="benefit-tile">{% include "partials/icon.html" with name="growth" css="size-6" %}</span><span><strong>Turn visitors</strong> into real opportunities</span></li>
         </ul>
-        <a href="#start" class="btn-pill btn-pill--glow mt-12">Start your free check-up <span class="btn-pill__arrow">{% include "partials/icon.html" with name="arrow" css="size-5" %}</span></a>
+        <div class="mt-12" data-reveal>
+          <a href="#start" class="btn-pill btn-pill--glow">Start your free check-up <span class="btn-pill__arrow">{% include "partials/icon.html" with name="arrow" css="size-5" %}</span></a>
+        </div>
       </div>
     </div>
   </section>
