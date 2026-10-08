@@ -1372,6 +1372,24 @@
     background-image: url("../img/hero-bg.webp");
     transform: scale(1.5);
   }
+  /* The audited site's own screenshot instead of the photo (picked per screen size). */
+  .report-hero__photo--site {
+    background-image: none;
+    /* gentler parallax (0.07 instead of 0.18) so the site stays recognisable, not zoomed */
+    transform: scale(1.2);
+  }
+  .report-hero:has(.report-hero__photo--site)::before {
+    background:
+      radial-gradient(40rem 22rem at 85% 30%, color-mix(in srgb, var(--brand) 18%, transparent), transparent 70%),
+      linear-gradient(100deg, rgb(5 14 16 / 0.93) 0%, rgb(5 14 16 / 0.8) 50%, rgb(5 14 16 / 0.55) 100%);
+    backdrop-filter: blur(4px); /* the site's own text stays behind ours, not beside it */
+  }
+  .report-hero__shot {
+    @apply block size-full object-cover object-top;
+  }
+  .report-hero__photo picture {
+    @apply block size-full;
+  }
   .report-hero::before {
     @apply absolute inset-0 -z-10;
     content: "";

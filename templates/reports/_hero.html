@@ -1,13 +1,30 @@
 {% load bizz %}
 {% comment %}
-  The report's opening band, in the homepage hero's style: the same photo behind a dark
-  backdrop, the green badge, the highlighted title with its swoosh, and frosted cards.
+  The report's opening band, in the homepage hero's style: the audited site's own
+  screenshot behind a dark backdrop, the green badge, the highlighted title with its
+  swoosh, and frosted cards.
   Web: full width above the dashboard, with parallax and the reveal cascade.
   PDF: the cover (no motion, no buttons).
 {% endcomment %}
 {% with report=view.report checkup=view.checkup brand=view.branding %}
 <section id="overview" class="report-hero" aria-labelledby="overview-title">
-  <div class="report-hero__photo" {% if not pdf %}data-parallax="0.18" data-parallax-fill{% endif %} aria-hidden="true"></div>
+  {% comment %}
+    Behind the band: the audited site itself. Each screen size shows the screenshot taken
+    at that size (phone under 768 px, tablet under 1024 px, desktop above), falling back
+    to the next one, and to the homepage's photo when there's no screenshot at all.
+    The PDF always uses the desktop one.
+  {% endcomment %}
+  <div class="report-hero__photo {% if checkup.screenshot %}report-hero__photo--site{% endif %}" {% if not pdf %}data-parallax="{% if checkup.screenshot %}0.07{% else %}0.18{% endif %}" data-parallax-fill{% endif %} aria-hidden="true">
+    {% if checkup.screenshot %}
+      <picture>
+        {% if not pdf %}
+          {% if view.has_phone %}<source media="(max-width: 767.98px)" srcset="{% url 'checkups:image' checkup.pk 'mobile' %}">{% endif %}
+          {% if view.has_tablet %}<source media="(max-width: 1023.98px)" srcset="{% url 'checkups:image' checkup.pk 'tablet' %}">{% endif %}
+        {% endif %}
+        <img class="report-hero__shot" src="{% url 'checkups:screenshot' checkup.pk %}" alt="" width="1280" height="800" fetchpriority="high">
+      </picture>
+    {% endif %}
+  </div>
   <div class="report-hero__inner {% if pdf %}px-8{% else %}container-report{% endif %}">
     <div class="report-hero__text on-dark" data-reveal-group>
       {% if pdf %}

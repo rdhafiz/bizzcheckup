@@ -6,8 +6,13 @@ A finished check-up is shown at its own address, `/checkups/<uuid>/`, as the
 
 ## Look: the homepage's theme
 
-The report opens with a **dark band** (`_hero.html`) in the homepage hero's style: the
-same photo behind a dark backdrop (with the same slow parallax), the green "Health
+The report opens with a **dark band** (`_hero.html`) in the homepage hero's style. Behind
+it is **the audited site itself**: a `<picture>` picks the screenshot taken at the
+visitor's screen size (the phone one under 768 px, the tablet one under 1024 px, the
+desktop one above; the PDF uses the desktop one). A missing size falls back to the next,
+and with no screenshot at all the homepage's photo is used. A `<picture>` rather than a
+CSS background, because each report's pictures differ and our Content Security Policy
+forbids inline styles. On top: a dark backdrop (with a gentle parallax), the green "Health
 report" badge, the domain in the green gradient with its swoosh, the diagnosis and the
 actions, and a frosted panel with the score gauge and four counters (the homepage's
 glossy round icons, one colour each). The header sits on the photo, as on the homepage.

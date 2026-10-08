@@ -7,6 +7,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Changed
+- The report's opening band shows **the audited site's own screenshot** behind it: the
+  desktop, tablet or phone one to match the visitor's screen.
 - **The report wears the homepage's theme**: a dark opening band with the hero photo,
   parallax, the green badge, the domain in the green gradient with its swoosh and a
   frosted score panel (the PDF's cover too); the header on the photo; soft colour blobs
