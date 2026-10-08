@@ -81,7 +81,7 @@ def test_reveals_are_vertical_or_zoom_only() -> None:
     """Content comes up, down or zooms in, never from the side (design rule)."""
     templates = "".join(t.read_text(encoding="utf-8") for t in (ROOT / "templates").rglob("*.html"))
     variants = set(re.findall(r'data-reveal="([^"]*)"', templates))
-    assert variants <= {"", "rise", "scale"}, variants
+    assert variants <= {"", "rise", "scale", "words"}, variants
     assert '[data-reveal="left"]' not in CSS
     assert '[data-reveal="right"]' not in CSS
 

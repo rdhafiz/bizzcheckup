@@ -1358,10 +1358,11 @@
 html.motion-ready [data-reveal] {
   opacity: 0;
   transform: translate3d(0, 32px, 0);
+  filter: blur(8px); /* sharpens as it arrives */
   /* Transitions, not keyframe animations: they replay by just toggling a class, and
      they reverse smoothly if the visitor scrolls back mid-way. Longhands, so the delay
      can't be reset by a shorthand. Ease-out: fast start, slow settle. */
-  transition-property: opacity, transform;
+  transition-property: opacity, transform, filter;
   transition-duration: 1100ms;
   /* A gentle ease-out (easeOutCubic): starts briskly but glides evenly into place, instead
      of doing most of the movement in the first few frames. Never ease-in. */
@@ -1370,7 +1371,7 @@ html.motion-ready [data-reveal] {
   /* Give each one its own GPU layer up front. Otherwise the browser creates (and paints)
      the layer the moment the entrance starts, in the middle of a scroll frame; with soft
      shadows inside, that cost dropped frames on a slow CPU. */
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter;
 }
 html.motion-ready [data-reveal="scale"] {
   transform: scale(0.94);
@@ -1387,6 +1388,43 @@ html.motion-ready .hero-full [data-reveal] {
 html.motion-ready [data-reveal].is-revealed {
   opacity: 1;
   transform: none;
+  filter: none;
+}
+
+/* Headings: the heading itself stays put; each word (split by motion.js) rises a little and
+   sharpens out of a blur, one after another. Until the split has happened, the heading is
+   hidden as a whole, so the unsplit text never flashes. */
+html.motion-ready [data-reveal="words"] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition: none;
+  will-change: auto;
+}
+html.motion-ready [data-reveal="words"]:not(.words-ready) {
+  opacity: 0;
+}
+html.motion-ready [data-reveal="words"] .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 0.5em, 0);
+  filter: blur(9px);
+  transition-property: opacity, transform, filter;
+  transition-duration: 1100ms;
+  transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--word-delay, 0ms));
+  will-change: transform, opacity, filter;
+}
+html.motion-ready [data-reveal="words"][data-from="above"] .word {
+  transform: translate3d(0, -0.5em, 0);
+}
+html.motion-ready [data-reveal="words"].is-revealed .word {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+html.motion-ready [data-reveal="words"].reveal-instant .word {
+  transition: none;
 }
 /* Fail-safe for motion-boot.js, which hides content before motion.js has loaded: if
    motion.js never takes over (it removes .motion-boot), show everything after 1.5 s. */
@@ -1394,7 +1432,7 @@ html.motion-boot [data-reveal]:not(.is-revealed) {
   animation: reveal-failsafe 1ms 1.5s both;
 }
 @keyframes reveal-failsafe {
-  to { opacity: 1; transform: none; }
+  to { opacity: 1; transform: none; filter: none; }
 }
 /* Keyboard focus or an #anchor landed on it: show it at once. */
 html.motion-ready [data-reveal].reveal-instant {
@@ -1417,9 +1455,11 @@ html.parallax-on [data-parallax] {
 }
 
 @media print {
-  html.motion-ready [data-reveal] {
+  html.motion-ready [data-reveal],
+  html.motion-ready [data-reveal] .word {
     opacity: 1 !important;
     transform: none !important;
+    filter: none !important;
     transition: none !important;
   }
 }

@@ -8,6 +8,8 @@
 // Reveal:   <div data-reveal>               fade in and rise (default); scrolling back up,
 //                                            it comes down from above instead
 //           data-reveal="scale"              zoom in instead (no sideways entrances, by design)
+//           data-reveal="words"              a heading: each word sharpens out of a blur in turn
+//           data-word (inside a heading)     keep this part as one word (gradient text, highlights)
 //           data-reveal-once                 settle for good, don't replay
 //           data-reveal-group on a parent    children entering together are staggered
 // Parallax: data-parallax="0.12"            move at 12% of the scroll (negative = against it)
@@ -21,6 +23,8 @@
   var ENTER_RATIO = 0.15; // reveal when 15% is visible...
   var STAGGER_MS = 110; // ...siblings 110ms apart...
   var STAGGER_CAP_MS = 550; // ...but never more than 550ms in total
+  var WORD_MS = 90; // headings: each word 90ms after the previous one...
+  var WORD_CAP_MS = 900; // ...the last one starting by 900ms at most
   var WATCHDOG_MS = 2000;
   var MAX_STRENGTH = 0.3; // more than this reads as a glitch, not depth
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -95,6 +99,43 @@
     el.setAttribute("data-from", from);
     void getComputedStyle(el).transform; // apply the new start position now...
     el.classList.remove("reveal-instant"); // ...so the entrance transition starts from it
+  }
+
+  // Wrap each word of a heading in <span class="word"> so the words can blur in one by one.
+  // Only text is split: tags inside stay as they are. Parts marked data-word (gradient text,
+  // highlights) move as one word, because splitting would break their colouring. Screen-reader
+  // only text is left alone. The spaces between words stay real spaces, so the heading reads
+  // exactly as before.
+  function splitWords(heading) {
+    var walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        if (node.parentElement.closest("[data-word], .sr-only, svg")) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach(function (node) {
+      var pieces = document.createDocumentFragment();
+      node.nodeValue.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        if (/^\s+$/.test(part)) {
+          pieces.appendChild(document.createTextNode(part));
+        } else {
+          var word = document.createElement("span");
+          word.className = "word";
+          word.textContent = part;
+          pieces.appendChild(word);
+        }
+      });
+      node.parentNode.replaceChild(pieces, node);
+    });
+    heading.querySelectorAll("[data-word]").forEach(function (unit) { unit.classList.add("word"); });
+    heading.querySelectorAll(".word").forEach(function (word, i) {
+      word.style.setProperty("--word-delay", Math.min(i * WORD_MS, WORD_CAP_MS) + "ms");
+    });
+    heading.classList.add("words-ready");
   }
 
   function inPageOrder(a, b) {
@@ -322,6 +363,7 @@
   function start() {
     if (!("IntersectionObserver" in window) || !window.requestAnimationFrame) return;
     revealables = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
+    if (!reducedMotion.matches) document.querySelectorAll('[data-reveal="words"]').forEach(splitWords);
     collectParallax();
 
     arm();
