@@ -60,6 +60,17 @@ AXE_RUN = (
       help_url: v.helpUrl,
       nodes: v.nodes.length,
       targets: v.nodes.slice(0, MAX_TARGETS).map((n) => String(n.target)),
+      details: v.nodes.slice(0, MAX_TARGETS).map((n) => ({
+        target: String(n.target),
+        html: (n.html || "").slice(0, 400),
+        summary: (n.failureSummary || "").slice(0, 600),
+        text: (() => {
+          try {
+            const el = document.querySelector(String(n.target));
+            return el ? (el.innerText || el.getAttribute("alt") || "").trim().slice(0, 80) : "";
+          } catch (e) { return ""; }
+        })(),
+      })),
     })),
     passes: result.passes.map((p) => p.id),
   };
@@ -175,6 +186,8 @@ async def collect_render(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
             screenshot = await page.screenshot(type="jpeg", quality=70)
             libraries: dict[str, str] = await page.evaluate(LIBRARIES_JS)
             axe = await _run_axe(page)
+            violations = [AxeRule.model_validate(v) for v in axe.get("violations", [])]
+            element_shots = await _photograph_elements(page, violations)
             cookies = await context.cookies()
             await context.close()
             views = await asyncio.gather(
@@ -198,10 +211,11 @@ async def collect_render(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
             for c in cookies
         ],
         libraries={str(k): str(v) for k, v in libraries.items()},
-        axe_violations=[AxeRule.model_validate(v) for v in axe.get("violations", [])],
+        axe_violations=violations,
         axe_passes=[str(p) for p in axe.get("passes", [])],
         blocked_requests=router.blocked,
         screenshot_jpeg=screenshot,
+        element_shots=element_shots,
         devices=[view for view in views if view is not None],
     )
     ctx.capabilities.add(RENDER)
@@ -364,3 +378,69 @@ async def _view_on_device(
         screenshot_jpeg=screenshot,
         **measured,
     )
+
+
+# --- pictures of the elements axe flagged -------------------------------------------------
+
+MAX_ELEMENT_SHOTS = 10  # screenshots per check-up (they take ~0.5 s each)
+SHOTS_PER_RULE = 3
+SHOT_PADDING = 32  # CSS pixels of surroundings around the element
+SHOT_MIN_WIDTH = 360  # enough context to recognise the spot on the page
+SHOT_MAX_HEIGHT = 420
+
+# Scrolls the element to the middle of the screen, outlines it and dims the rest, and
+# returns the area to photograph (screen coordinates), or null if it can't be seen.
+HIGHLIGHT_JS = """(args) => {
+  const [selector, padding, minWidth, maxHeight] = args;
+  let el = null;
+  try { el = document.querySelector(selector); } catch (e) { return null; }
+  if (!el) return null;
+  el.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+  const box = el.getBoundingClientRect();
+  if (box.width === 0 || box.height === 0) return null;
+  const mark = document.createElement("div");
+  mark.id = "__bizzcheckup_mark";
+  Object.assign(mark.style, {
+    position: "fixed", left: (box.left - 4) + "px", top: (box.top - 4) + "px",
+    width: (box.width + 8) + "px", height: (box.height + 8) + "px",
+    border: "3px solid #e11d48", borderRadius: "6px", pointerEvents: "none",
+    boxShadow: "0 0 0 9999px rgba(15, 23, 42, 0.35)", zIndex: "2147483647",
+  });
+  document.documentElement.appendChild(mark);
+  const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+  const width = Math.min(vw, Math.max(minWidth, box.width + 2 * padding));
+  const height = Math.min(vh, maxHeight, box.height + 2 * padding);
+  const centerX = box.left + box.width / 2, centerY = box.top + box.height / 2;
+  const x = Math.max(0, Math.min(vw - width, centerX - width / 2));
+  const y = Math.max(0, Math.min(vh - height, centerY - height / 2));
+  return { x: x, y: y, width: width, height: height };
+}"""
+UNHIGHLIGHT_JS = """() => {
+  const mark = document.getElementById("__bizzcheckup_mark");
+  if (mark) mark.remove();
+}"""
+
+
+async def _photograph_elements(page: BrowserPage, rules: list[AxeRule]) -> dict[str, bytes]:
+    """Screenshot a few flagged elements, outlined in red. Fills in AxeNode.image."""
+    shots: dict[str, bytes] = {}
+    for rule in rules:
+        for node in rule.details[:SHOTS_PER_RULE]:
+            if len(shots) >= MAX_ELEMENT_SHOTS:
+                return shots
+            key = f"element-{len(shots) + 1}"
+            try:
+                clip = await page.evaluate(
+                    HIGHLIGHT_JS, [node.target, SHOT_PADDING, SHOT_MIN_WIDTH, SHOT_MAX_HEIGHT]
+                )
+                if not clip:
+                    continue
+                await page.wait_for_timeout(400)  # let scroll animations settle
+                shots[key] = await page.screenshot(type="jpeg", quality=75, clip=clip)
+                node.image = key
+            except PlaywrightError as error:
+                logger.info("Couldn't photograph %s: %s", node.target, error)
+            finally:
+                with contextlib.suppress(PlaywrightError):
+                    await page.evaluate(UNHIGHLIGHT_JS)
+    return shots

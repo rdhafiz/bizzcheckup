@@ -75,7 +75,9 @@ class Snippet(BaseModel):
 
     title: str = Field(min_length=1)  # what it is for, e.g. "About page · https://... (missing)"
     code: str = Field(min_length=1)
-    language: str = "html"
+    language: str = "html"  # "html" = ready to paste, "text" = an explanation
+    image: str = ""  # a picture of where it is: a key of the report's pictures
+    note: str = ""  # what's wrong, in words, shown above the code
 
 
 class Finding(BaseModel):
@@ -203,6 +205,16 @@ class ProbeResults(BaseModel):
     og_image: bytes | None = Field(default=None, exclude=True, repr=False)
 
 
+class AxeNode(BaseModel):
+    """One element that fails an axe rule: where it is, what it is, and what's wrong."""
+
+    target: str  # CSS selector
+    html: str = ""  # the element's opening HTML (shortened)
+    summary: str = ""  # axe's explanation, e.g. the colours and the contrast ratio
+    text: str = ""  # its visible text, to recognise it
+    image: str = ""  # key of its screenshot in the report's pictures ("" = none)
+
+
 class AxeRule(BaseModel):
     """One axe-core accessibility rule that failed on the rendered page."""
 
@@ -212,6 +224,7 @@ class AxeRule(BaseModel):
     help_url: str
     nodes: int  # how many elements fail it
     targets: list[str] = Field(default_factory=list)  # CSS selectors of a few of them
+    details: list[AxeNode] = Field(default_factory=list)  # the same few, in detail
 
 
 class Cookie(BaseModel):
@@ -268,6 +281,8 @@ class RenderResult(BaseModel):
     axe_passes: list[str] = Field(default_factory=list)  # ids of rules that passed
     blocked_requests: list[str] = Field(default_factory=list)  # stopped by the SSRF guard
     devices: list[DeviceView] = Field(default_factory=list)  # the phone and tablet views
+    # Screenshots of flagged elements, outlined: "element-1" -> JPEG (AxeNode.image).
+    element_shots: dict[str, bytes] = Field(default_factory=dict, exclude=True, repr=False)
 
     def device(self, name: str) -> "DeviceView | None":
         return next((view for view in self.devices if view.name == name), None)

@@ -11,7 +11,7 @@ from itertools import pairwise
 from selectolax.lexbor import LexborNode
 
 from ..context import RENDER, AuditContext
-from ..types import AxeRule, Category, Finding, Level, Severity
+from ..types import AxeNode, AxeRule, Category, Finding, Level, Severity, Snippet
 from ._helpers import on_pages, share_score
 from .base import Check
 
@@ -281,6 +281,20 @@ class AccessibleNames(Check):
 
 
 # axe rules already reported by the checks above (so they aren't counted twice).
+EM_DASH = chr(0x2014)
+
+# Plain advice for the rules sites fail most often (axe's guide link covers the rest).
+RULE_FIX = {
+    "color-contrast": (
+        "Make the text darker or its background lighter (or the other way round) until the "
+        "contrast reaches the ratio shown. A free checker: "
+        "https://webaim.org/resources/contrastchecker/"
+    ),
+    "region": "Put all visible content inside <header>, <nav>, <main> or <footer>.",
+    "landmark-one-main": "Wrap the page's main content in one <main> element.",
+    "link-in-text-block": "Underline links inside text so they don't rely on colour alone.",
+}
+
 COVERED_BY_OTHER_CHECKS = {
     "image-alt",
     "html-has-lang",
@@ -358,15 +372,55 @@ class AxeScan(Check):
             "serious": (Severity.FAIL, Level.HIGH),
             "moderate": (Severity.WARN, Level.LOW),
         }.get(rule.impact, (Severity.INFO, Level.LOW))
-        examples = ", ".join(f"`{target}`" for target in rule.targets[:3])
         elements = "1 element" if rule.nodes == 1 else f"{rule.nodes} elements"
+        advice = RULE_FIX.get(rule.id, "")
+        if rule.details:
+            shown = len(rule.details)
+            if rule.nodes == 1:
+                which = "Below you can see the element"
+            elif shown < rule.nodes:
+                which = f"Below you can see the first {shown}"
+            else:
+                which = "Below you can see each one"
+            fix = (
+                f"{which}: where it is on the page (outlined in red), what exactly is wrong, "
+                f"and its HTML. {advice}"
+            )
+        else:  # reports made before element details were collected
+            examples = ", ".join(f"`{target}`" for target in rule.targets[:3])
+            fix = f"Fix the affected elements, for example {examples}. {advice}"
         return self.finding(
             severity,
             f"{rule.help} ({elements} on your homepage).",
             RULE_IMPACT.get(rule.id, WHO),
-            f"Fix the affected elements, for example {examples}. Step-by-step guidance: "
-            f"{rule.help_url}",
+            f"{fix.strip()} Step-by-step guidance: {rule.help_url}",
             effort=Level.LOW if rule.nodes <= 5 else Level.MEDIUM,
             impact=impact,
             urls=[url],
+            snippets=[element_snippet(index, node) for index, node in enumerate(rule.details, 1)],
         )
+
+
+def problem_text(summary: str) -> str:
+    """axe's explanation without its "Fix any of the following:" headings."""
+    lines = [line.strip() for line in summary.splitlines()]
+    return " ".join(line for line in lines if line and not line.lower().startswith("fix "))
+
+
+def element_snippet(index: int, node: AxeNode) -> Snippet:
+    """One flagged element, described so a non-developer can find it."""
+    problem = problem_text(node.summary)
+    short = problem.split(" (")[0].rstrip(".") if problem else "Doesn't pass this rule"
+    text = " ".join(node.text.split())  # one line, however the page wraps it
+    if len(text) > 60:
+        text = text[:57].rstrip() + "..."
+    name = f'"{text}"' if text else f"Element {index}"
+    lines = [f"HTML: {node.html}"] if node.html else []
+    lines.append(f"CSS selector: {node.target}")
+    return Snippet(
+        title=f"{name} {EM_DASH} {short}",
+        code="\n\n".join(lines),
+        language="element",
+        image=node.image,
+        note=problem,
+    )

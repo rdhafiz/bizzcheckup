@@ -5,7 +5,7 @@ import pytest
 from bizzcheckup.engine.checks import accessibility as a11y
 from bizzcheckup.engine.checks.base import Check
 from bizzcheckup.engine.context import RENDER, AuditContext
-from bizzcheckup.engine.types import AxeRule, Level, RenderResult, Severity
+from bizzcheckup.engine.types import AxeNode, AxeRule, Level, RenderResult, Severity
 
 from ..factories import fixture_html, make_context, make_page
 
@@ -217,3 +217,57 @@ def test_axe_scan_reports_each_rule_by_impact_and_skips_covered_rules() -> None:
 def test_axe_scan_all_clear() -> None:
     findings = a11y.AxeScan().run(axe_context([], passes=["document-title", "bypass"]))
     assert [f.severity for f in findings] == [Severity.PASS]
+
+
+CONTRAST_SUMMARY = (
+    "Fix any of the following:\n  Element has insufficient color contrast of 2.81 "
+    "(foreground color: #9ca3af, background color: #ffffff, font size: 9.0pt (12px), "
+    "font weight: normal). Expected contrast ratio of 4.5:1"
+)
+
+
+def test_axe_finding_shows_each_element_with_its_picture_and_problem() -> None:
+    rule = axe_rule("color-contrast", "serious", nodes=1)
+    rule.details = [
+        AxeNode(
+            target="#audience-panel-0 > .relative > .bottom-4",
+            html='<span class="bottom-4">Our audience</span>',
+            summary=CONTRAST_SUMMARY,
+            text="Our audience",
+            image="element-1",
+        )
+    ]
+    [finding] = a11y.AxeScan().run(axe_context([rule], passes=["bypass"]))
+    assert finding.how_to_fix.startswith("Below you can see the element: where it is on the page")
+    assert "webaim.org/resources/contrastchecker" in finding.how_to_fix
+    assert "#audience-panel-0" not in finding.how_to_fix  # the selector moved to the details
+    [snippet] = finding.snippets
+    assert snippet.title == '"Our audience" — Element has insufficient color contrast of 2.81'
+    assert snippet.language == "element"
+    assert snippet.image == "element-1"
+    assert snippet.note == (
+        "Element has insufficient color contrast of 2.81 (foreground color: "
+        "#9ca3af, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). "
+        "Expected contrast ratio of 4.5:1"
+    )
+    assert snippet.code == (
+        'HTML: <span class="bottom-4">Our audience</span>\n\n'
+        "CSS selector: #audience-panel-0 > .relative > .bottom-4"
+    )
+
+
+def test_older_reports_without_element_details_still_name_examples() -> None:
+    [finding] = a11y.AxeScan().run(axe_context([axe_rule("region", "moderate")], ["bypass"]))
+    assert finding.how_to_fix.startswith("Fix the affected elements, for example `.a`, `.b`.")
+    assert finding.snippets == []
+
+
+def test_element_names_are_one_short_line() -> None:
+    node = AxeNode(
+        target=".x",
+        text="Bizzacquire helped\n  HustleBlaze book 18 qualified appointments with UK firms",
+    )
+    assert a11y.element_snippet(1, node).title.startswith(
+        '"Bizzacquire helped HustleBlaze book 18 qualified appointm..."'
+    )
+    assert a11y.element_snippet(2, AxeNode(target=".y")).title.startswith("Element 2")

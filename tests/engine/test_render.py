@@ -167,6 +167,13 @@ async def test_render_collects_browser_data_safely(server_port: int) -> None:
 
     # axe-core ran: the first image has no alt text
     assert "image-alt" in {v.id for v in render.axe_violations}
+    # ... and each flagged element is described, with a picture of where it is
+    image_alt = next(v for v in render.axe_violations if v.id == "image-alt")
+    [node] = image_alt.details
+    assert node.html.startswith('<img src="/photo.gif"')
+    assert "alt" in node.summary.lower()
+    assert node.image.startswith("element-")
+    assert render.element_shots[node.image][:3] == bytes([0xFF, 0xD8, 0xFF])  # a JPEG
     assert render.axe_passes
 
 
