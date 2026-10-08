@@ -1,0 +1,37 @@
+# Production override for self-hosting (docs/20-self-hosting.md). Use it on top of
+# compose.yaml, with the secrets in .env.prod (never committed):
+#   docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod up -d --build
+# compose.yaml on its own still runs everything locally, unchanged.
+
+# Settings shared by the web and worker containers. Values listed here replace the
+# local ones in compose.yaml; everything else (IP_HASH_SALT, Turnstile keys, ...) comes
+# from .env.prod through env_file.
+x-prod-app: &prod-app
+  env_file: .env.prod
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.prod
+    # ":?" stops with an error instead of falling back to the local defaults.
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set it in .env.prod}
+    DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?set it in .env.prod}
+    DATABASE_URL: postgres://bizzcheckup:${POSTGRES_PASSWORD:?set it in .env.prod}@postgres:5432/bizzcheckup
+    CHECKUP_RUNNER: celery
+  restart: unless-stopped
+
+services:
+  web:
+    <<: *prod-app
+
+  worker:
+    <<: *prod-app
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set it in .env.prod}
+    # Only the containers need the database and Redis: don't publish their ports at all.
+    # (web stays on 127.0.0.1:8000, for the Cloudflare Tunnel on this machine.)
+    ports: !reset []
+    restart: unless-stopped
+
+  redis:
+    ports: !reset []
+    restart: unless-stopped
