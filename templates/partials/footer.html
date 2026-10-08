@@ -1,0 +1,81 @@
+{% comment %}
+  Site footer, on every page (hidden when printing and in the PDF). Contact details come
+  from branding.yaml through the `branding` context processor.
+{% endcomment %}
+<footer class="site-footer on-dark" aria-labelledby="footer-title">
+  <h2 id="footer-title" class="sr-only">About {{ product_name }}</h2>
+  <div class="container-wide">
+    <div class="site-footer__grid">
+      {# Brand and the main call to action #}
+      <div class="site-footer__brand">
+        <a href="{% url 'core:home' %}" class="inline-block no-underline hover:no-underline" aria-label="{{ product_name }} home">
+          {% include "partials/logo.html" %}
+        </a>
+        <p class="mt-4 max-w-xs text-muted">
+          Free website health check-ups for business owners, explained in plain language.
+          Made by {{ branding.name }}, {{ branding.title }}.
+        </p>
+        <a href="{% url 'core:home' %}#start" class="btn-primary mt-6">
+          Start a free check-up {% include "partials/icon.html" with name="arrow" css="size-4" %}
+        </a>
+      </div>
+
+      <nav aria-label="Product">
+        <h3 class="site-footer__heading">Product</h3>
+        <ul class="site-footer__links">
+          <li><a href="{% url 'core:home' %}#start">Start a check-up</a></li>
+          <li><a href="{% url 'core:home' %}#signs-title">What we examine</a></li>
+          <li><a href="{% url 'core:home' %}#how-title">How it works</a></li>
+          <li><a href="{% url 'core:home' %}#benefits-title">Why it matters</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Legal">
+        <h3 class="site-footer__heading">Legal</h3>
+        <ul class="site-footer__links">
+          <li><a href="{% url 'core:privacy' %}">Privacy policy</a></li>
+          <li><a href="{% url 'core:terms' %}">Terms of service</a></li>
+          <li><a href="{% url 'core:cookies' %}">Cookie policy</a></li>
+          <li><a href="{% url 'core:acceptable_use' %}">Acceptable use</a></li>
+          <li><a href="{% url 'core:disclaimer' %}">Disclaimer</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <h3 class="site-footer__heading">Get in touch</h3>
+        <ul class="site-footer__contact">
+          <li>
+            <span class="site-footer__contact-icon">{% include "partials/icon.html" with name="mail" css="size-4" %}</span>
+            <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>
+          </li>
+          {% if branding.whatsapp_url %}
+            <li>
+              <span class="site-footer__contact-icon">{% include "partials/icon.html" with name="chat" css="size-4" %}</span>
+              <a href="{{ branding.whatsapp_url }}" rel="noopener" target="_blank">Message on WhatsApp</a>
+            </li>
+          {% endif %}
+          {% if branding.website %}
+            <li>
+              <span class="site-footer__contact-icon">{% include "partials/icon.html" with name="globe" css="size-4" %}</span>
+              <a href="{{ branding.website }}" rel="noopener" target="_blank">{{ branding.website.host }}</a>
+            </li>
+          {% endif %}
+        </ul>
+        <ul class="site-footer__social" aria-label="Profiles">
+          {% if branding.github %}<li><a href="{{ branding.github }}" rel="noopener" target="_blank" aria-label="GitHub">{% include "partials/icon.html" with name="github" css="size-5" %}</a></li>{% endif %}
+          {% if branding.portfolio_url %}<li><a href="{{ branding.portfolio_url }}" rel="noopener" target="_blank" aria-label="Portfolio">{% include "partials/icon.html" with name="why" css="size-5" %}</a></li>{% endif %}
+          {% if branding.cv_url %}<li><a href="{{ branding.cv_url }}" rel="noopener" target="_blank" aria-label="CV">{% include "partials/icon.html" with name="file" css="size-5" %}</a></li>{% endif %}
+          {% if branding.website %}<li><a href="{{ branding.website }}" rel="noopener" target="_blank" aria-label="Website">{% include "partials/icon.html" with name="globe" css="size-5" %}</a></li>{% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>© {% now "Y" %} {{ branding.legal.operator }}. All rights reserved.</p>
+      <p class="flex items-center gap-4">
+        <span class="font-mono text-xs">v{{ app_version }}</span>
+        <a href="#main" class="inline-flex min-h-11 items-center gap-1.5">Back to top {% include "partials/icon.html" with name="arrow-up" css="size-4" %}</a>
+      </p>
+    </div>
+  </div>
+</footer>

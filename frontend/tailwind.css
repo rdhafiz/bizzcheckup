@@ -708,6 +708,126 @@
   }
 }
 
+/* --- Site footer (templates/partials/footer.html) ------------------------------- */
+
+@layer components {
+  /* Always dark (the .on-dark palette), with a soft green glow in the top corner. */
+  .site-footer {
+    @apply relative isolate overflow-hidden pt-16 pb-6 text-sm sm:pt-20;
+    background:
+      radial-gradient(40rem 20rem at 10% 0%, color-mix(in srgb, var(--brand) 18%, transparent), transparent 70%),
+      #0a1412;
+  }
+  .site-footer::before {
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px;
+    content: "";
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--brand) 70%, transparent), transparent);
+  }
+  .site-footer__grid {
+    @apply grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr] lg:gap-12;
+  }
+  .site-footer__heading {
+    @apply font-sans text-xs font-semibold tracking-[0.18em] text-ink uppercase;
+  }
+  .site-footer__links {
+    @apply mt-4 space-y-1;
+  }
+  .site-footer__links a,
+  .site-footer__contact a,
+  .site-footer__bottom a {
+    @apply text-muted no-underline transition-colors hover:text-primary hover:no-underline;
+  }
+  .site-footer__links a {
+    @apply inline-flex min-h-9 items-center;
+  }
+  .site-footer__contact {
+    @apply mt-4 space-y-3;
+  }
+  .site-footer__contact li {
+    @apply flex items-center gap-3 break-all;
+  }
+  .site-footer__contact-icon {
+    @apply inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-primary;
+    background: rgb(255 255 255 / 0.06);
+  }
+  .site-footer__social {
+    @apply mt-6 flex gap-2;
+  }
+  .site-footer__social a {
+    @apply inline-flex size-11 items-center justify-center rounded-full text-muted transition-colors
+      hover:text-on-brand;
+    background: rgb(255 255 255 / 0.06);
+    border: 1px solid rgb(255 255 255 / 0.1);
+  }
+  .site-footer__social a:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+  .site-footer__bottom {
+    @apply mt-14 flex flex-col gap-2 border-t border-line pt-4 text-muted sm:flex-row sm:items-center
+      sm:justify-between;
+  }
+
+  /* Legal pages (templates/core/legal/). */
+  .legal-hero {
+    @apply border-b border-line py-14 sm:py-16;
+    background: linear-gradient(160deg, var(--card) 30%, color-mix(in srgb, var(--primary-soft) 70%, var(--card)));
+  }
+  .legal-nav {
+    @apply text-sm lg:sticky lg:top-6 lg:self-start;
+  }
+  .legal-nav ul a {
+    @apply flex min-h-10 items-center rounded-lg px-3 text-muted no-underline transition-colors
+      hover:bg-primary-soft hover:text-primary hover:no-underline;
+  }
+  .legal-nav ul a[aria-current="page"] {
+    @apply bg-primary-soft font-semibold text-primary;
+    box-shadow: inset 3px 0 0 var(--brand);
+  }
+  .legal-nav__help {
+    @apply mt-6 rounded-xl border border-line bg-card p-4 text-muted;
+  }
+  .legal-body {
+    @apply max-w-3xl;
+  }
+  .legal-body > h2:first-of-type {
+    @apply mt-10;
+  }
+  .legal-summary {
+    @apply rounded-2xl border border-line bg-card p-5 sm:p-6;
+    box-shadow: inset 4px 0 0 var(--brand);
+  }
+  .legal-summary__title {
+    @apply mt-0! text-xs font-semibold tracking-[0.18em] text-primary uppercase;
+  }
+  .legal-summary ul {
+    @apply mt-3 list-none space-y-1.5 pl-0;
+  }
+  .legal-summary li {
+    @apply relative pl-6;
+  }
+  .legal-summary li::before {
+    @apply absolute left-0 font-bold;
+    content: "✓";
+    color: var(--primary);
+  }
+  .legal-table {
+    @apply mt-4 overflow-x-auto rounded-xl border border-line;
+  }
+  .legal-table table {
+    @apply w-full text-left text-sm;
+  }
+  .legal-table th {
+    @apply bg-card px-4 py-3 font-semibold;
+  }
+  .legal-table td {
+    @apply border-t border-line px-4 py-3 align-top text-muted;
+  }
+  .legal-table code {
+    @apply font-mono text-xs whitespace-nowrap text-ink;
+  }
+}
+
 /* --- Report ------------------------------------------------------------------ */
 
 @utility chip {
