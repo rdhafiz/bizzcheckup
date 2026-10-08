@@ -42,21 +42,26 @@ same class names (`bg-paper`, `text-ink`) in both themes.
 | `ink` | `#0e1b1e` | `#e7efec` | Main text |
 | `muted` | `#4a5a5e` | `#9fb1b0` | Secondary text |
 | `line` | `#e2ded4` | `#2b4045` | Borders |
-| `brand` | `#31ac64` | `#31ac64` | **The theme colour.** Buttons (with dark text), logo mark, favicon, progress bars, underlines, glows |
-| `on-brand` | `#06200f` | `#06200f` | Text on a `brand` background |
+| `brand` | `#31ac64` | `#31ac64` | **The theme colour.** Buttons, logo mark, favicon, progress bars, underlines, glows |
+| `on-brand` | `#ffffff` | `#ffffff` | Text and icons on a `brand` background: always white |
 | `primary` | `#1d8047` | `#5cc98a` | The same green, adjusted for **text**: links, green words, focus rings |
 | `urgent` | `#c62828` | `#f26b6b` | 0–49 "Needs urgent care" |
 | `attention` | `#b45309` | `#f5a524` | 50–89 "Needs attention" |
 | `healthy` | `#15803d` | `#4ade80` | 90–100 "Healthy" |
 
-**Why two greens?** The theme colour `#31ac64` is bright. White text on it only reaches
-2.9:1 contrast and green text in that shade on the cream page 2.7:1, both below the 4.5:1
-that WCAG asks for normal text. So:
+**Why two greens?** The theme colour `#31ac64` is bright:
 
-- **filled things** (buttons, logo, bars) use `brand`, the exact theme colour, with *dark*
-  text on top (5.2:1). Spotify does the same with its green;
+- **filled things** (buttons, logo, bars) use `brand`, the exact theme colour, with
+  **white** text. White on this green is 2.9:1 contrast, below the 4.5:1 that WCAG asks
+  for normal text; that is a deliberate brand choice. To keep it as readable as possible
+  the button text is **bold**, and hovers and gradients only ever go *darker*
+  (`brand-hover`, `#2a9757`), never lighter;
 - **green text** (links, "check-up" in the form title) uses `primary`, a deeper shade of
   the same green that reaches 4.6:1 on the page. In dark mode it is a lighter shade instead.
+
+If accessibility audits matter later, the easiest fix is a slightly deeper button green
+(for example `#22874c`, which reaches 4.6:1 with white) while keeping `#31ac64` for the
+logo and decoration.
 
 To change the theme colour later, change `--brand` (and pick a `--primary` that still
 passes 4.5:1 on `--paper`) in the three token blocks at the top of `frontend/tailwind.css`.
