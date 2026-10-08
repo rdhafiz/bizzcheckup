@@ -1426,6 +1426,18 @@ html.motion-ready [data-reveal="words"].is-revealed .word {
 html.motion-ready [data-reveal="words"].reveal-instant .word {
   transition: none;
 }
+/* Small screens (under 768px): no blur. Phones have the least power to spare and
+   blur is the most expensive part of a reveal; the fade, the rise and the word-by-word
+   timing stay. Same selectors as above, so these win by coming later. */
+@media (max-width: 767.98px) {
+  html.motion-ready [data-reveal],
+  html.motion-ready [data-reveal="words"] .word {
+    filter: none;
+    transition-property: opacity, transform;
+    will-change: transform, opacity;
+  }
+}
+
 /* Fail-safe for motion-boot.js, which hides content before motion.js has loaded: if
    motion.js never takes over (it removes .motion-boot), show everything after 1.5 s. */
 html.motion-boot [data-reveal]:not(.is-revealed) {
