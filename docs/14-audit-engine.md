@@ -148,6 +148,7 @@ to 5 seconds for late scripts), then collects the data below. A typical site tak
 | Cookies | `context.cookies()`. Third-party means a different *site* (`urls.site_domain()`: `www.shop.co.uk` and `shop.co.uk` count as the same site) |
 | Library versions | Reads `jQuery.fn.jquery`, Bootstrap's `VERSION`, `angular.version` and lodash `_.VERSION` from the running page |
 | Accessibility | Runs axe-core with the WCAG 2.0/2.1/2.2 A and AA rules plus best practices |
+| Where the problems are | For up to 5 elements per failing rule: the HTML, axe's explanation (`failureSummary`) and the visible text (`AxeNode`). Then up to 3 per rule, 10 in total, are photographed: `HIGHLIGHT_JS` scrolls the element to the middle of the screen, draws a red outline and dims the rest, and a cropped screenshot is taken (`RenderResult.element_shots`, saved as `element-1`, `element-2`…). |
 | Phone and tablet views | Opens the homepage again, at the same time, as a 390×844 phone and an 820×1180 tablet (touch, mobile browser identity, `config.DEVICES`). In each one `MEASURE_JS` records the layout width (980 means "no mobile layout, desktop page shrunk"), the page width (wider means sideways scrolling) and what sticks out, links and buttons smaller than 24×24 px, and how much text is under 12 px, plus a first-screen screenshot. Saved as `ctx.render.devices` (`DeviceView`). If a device fails to load, it's simply left out. |
 
 **`ctx.dom(page)`**: accessibility checks read the *rendered* homepage when the

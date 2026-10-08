@@ -100,6 +100,8 @@ def test_saved_findings_keep_their_suggested_fixes(report: AuditReport) -> None:
             "title": "Homepage: a title",
             "code": "<title>Shop | Fresh cakes</title>",
             "language": "html",
+            "image": "",
+            "note": "",
         }
     ]
 
@@ -149,3 +151,21 @@ def test_screenshot(client: Client) -> None:
 
     empty = make_checkup()
     assert client.get(reverse("checkups:screenshot", args=[empty.pk])).status_code == 404
+
+
+@pytest.mark.parametrize(
+    ("kind", "known"),
+    [
+        ("mobile", True),
+        ("element-1", True),
+        ("element-42", True),
+        ("element-0", False),
+        ("element-100", False),
+        ("element-1/../x", False),
+        ("anything", False),
+    ],
+)
+def test_report_picture_kinds(kind: str, known: bool) -> None:
+    from bizzcheckup.checkups.models import CheckupImage
+
+    assert CheckupImage.is_known_kind(kind) is known

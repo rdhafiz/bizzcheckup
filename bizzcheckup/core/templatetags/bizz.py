@@ -1,5 +1,6 @@
 """Template filters used across BizzCheckup pages: {% load bizz %}."""
 
+import re
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
@@ -51,6 +52,24 @@ def severity_band(severity: str) -> str:
 def first_items(items: list[str], count: int = 5) -> list[str]:
     """The first `count` items of a list (for long URL lists)."""
     return list(items)[:count]
+
+
+HEX_COLOUR = r"#(?:[0-9a-fA-F]{3}){1,2}"
+CONTRAST = re.compile(
+    rf"contrast of (?P<ratio>[0-9.]+) \(foreground color: (?P<fg>{HEX_COLOUR}), "
+    rf"background color: (?P<bg>{HEX_COLOUR}).*?Expected contrast ratio of (?P<expected>[0-9.]+:1)"
+)
+
+
+@register.filter
+def contrast(note: str) -> dict[str, str] | None:
+    """The colours and ratios in axe's colour-contrast explanation, to draw a sample.
+
+    "...contrast of 4.11 (foreground color: #e3b24b, background color: #52504b, ...).
+    Expected contrast ratio of 4.5:1" -> {"fg": "#e3b24b", "bg": "#52504b", ...}
+    """
+    match = CONTRAST.search(note or "")
+    return match.groupdict() if match else None
 
 
 @register.filter

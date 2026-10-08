@@ -32,6 +32,14 @@ Checks that explain rather than fix (heading outlines, image lists, URL suggesti
 broken links with the pages they're on) use the same blocks under **"Page by page"**
 (`Snippet.language == "text"`).
 
+Accessibility scan findings use **"Where on the page"** (`Snippet.language ==
+"element"`): each element gets its screenshot with a red outline (`Snippet.image`),
+"What's wrong" in words (`Snippet.note`) and, below, its HTML and CSS selector. For
+colour contrast the `contrast` template filter reads the two colours and ratios from the
+explanation and draws a sample in an SVG. (An SVG's `fill` is an attribute, not a
+`style`, so the Content Security Policy allows it; the filter only accepts real hex
+colours.)
+
 ### Device screenshots (`templates/reports/_devices.html`)
 
 The overview shows the homepage on a **computer, a tablet and a phone** as tabs

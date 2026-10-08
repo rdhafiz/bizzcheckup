@@ -93,7 +93,7 @@ gets a row here instead of a new column each time.
 | Field | Meaning |
 |-------|---------|
 | `checkup` | Which check-up it belongs to (deleted with it) |
-| `kind` | `link_preview` (the og:image), `mobile` or `tablet` (screenshots). One of each per check-up. |
+| `kind` | `link_preview` (the og:image), `mobile` or `tablet` (screenshots), or `element-1` … `element-99` (elements the accessibility scan flagged, outlined in red). One of each per check-up. `CheckupImage.is_known_kind()` decides what's allowed. |
 | `content_type` | `image/jpeg`, `image/png`, `image/gif` or `image/webp` only, decided from the file's first bytes. SVG is never stored: it can contain scripts. |
 | `data` | The picture itself |
 

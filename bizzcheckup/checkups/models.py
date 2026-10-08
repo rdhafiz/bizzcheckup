@@ -1,5 +1,6 @@
 """Database tables for check-ups (MODEL layer). Explained in docs/07-database.md."""
 
+import re
 import uuid
 
 from django.db import models
@@ -104,9 +105,12 @@ class CheckupImage(models.Model):
 
     # Only real pictures are stored (checked from their first bytes, never SVG).
     ALLOWED_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
+    # Besides the kinds above: "element-1" ... "element-99", pictures of the elements an
+    # accessibility rule flagged, outlined in red.
+    ELEMENT_KIND = re.compile(r"element-[1-9][0-9]?")
 
     checkup = models.ForeignKey(Checkup, on_delete=models.CASCADE, related_name="images")
-    kind = models.CharField(max_length=20, choices=Kind.choices)
+    kind = models.CharField(max_length=20)  # a Kind value, or "element-<n>"
     content_type = models.CharField(max_length=20)
     data = models.BinaryField(editable=False)
 
@@ -117,6 +121,10 @@ class CheckupImage(models.Model):
 
     def __str__(self) -> str:
         return f"{self.checkup_id} {self.kind}"
+
+    @classmethod
+    def is_known_kind(cls, kind: str) -> bool:
+        return kind in cls.Kind.values or cls.ELEMENT_KIND.fullmatch(kind) is not None
 
 
 class Finding(models.Model):

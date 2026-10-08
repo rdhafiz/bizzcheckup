@@ -154,8 +154,8 @@ def screenshot(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
 
 @require_GET
 def image(request: HttpRequest, checkup_id: UUID, kind: str) -> HttpResponse:
-    """A report picture: the link preview picture, or the phone or tablet screenshot."""
-    if kind not in CheckupImage.Kind.values:
+    """A report picture: link preview, phone or tablet screenshot, or a flagged element."""
+    if not CheckupImage.is_known_kind(kind):
         raise Http404
     picture = get_object_or_404(CheckupImage, checkup_id=checkup_id, kind=kind)
     if picture.content_type not in CheckupImage.ALLOWED_TYPES:

@@ -1319,6 +1319,23 @@
   .snippet__title::-webkit-details-marker {
     display: none;
   }
+  /* A flagged element: its picture (outlined in red) beside what's wrong with it. */
+  .element-view {
+    @apply grid gap-4 border-t border-line p-3 md:grid-cols-[auto_minmax(0,1fr)] md:items-start;
+  }
+  .element-view__shot {
+    @apply block h-auto max-h-80 w-auto max-w-full rounded-lg border border-line md:max-w-sm;
+  }
+  .contrast-sample {
+    @apply mt-3 flex flex-wrap items-center gap-3;
+  }
+  .contrast-sample svg {
+    @apply h-12 w-40 shrink-0 rounded-lg border border-line;
+  }
+  .snippet__code.snippet__code--wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
   .snippet__body {
     @apply relative border-t border-line;
   }

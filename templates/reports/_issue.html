@@ -37,7 +37,7 @@
     {% endif %}
     {% if finding.snippets %}
       <div class="issue__part sm:col-span-2">
-        <h4 class="issue__heading">{% include "partials/icon.html" with name="fix" css="size-4" %} {% if finding.snippets.0.language == "text" %}Page by page{% else %}Ready to use: copy, fill in any REPLACE values, paste{% endif %}</h4>
+        <h4 class="issue__heading">{% include "partials/icon.html" with name="fix" css="size-4" %} {% if finding.snippets.0.language == "element" %}Where on the page{% elif finding.snippets.0.language == "text" %}Page by page{% else %}Ready to use: copy, fill in any REPLACE values, paste{% endif %}</h4>
         <div class="mt-2 space-y-2">
           {% for snippet in finding.snippets %}
             <details class="snippet" {% if pdf %}open{% endif %}>
@@ -45,9 +45,32 @@
                 <span class="min-w-0 break-words">{{ snippet.title }}</span>
                 <span class="issue__chevron no-print">{% include "partials/icon.html" with name="chevron" css="size-4" %}</span>
               </summary>
+              {% if snippet.image or snippet.note %}
+                <div class="element-view">
+                  {% if snippet.image and snippet.image in view.image_kinds %}
+                    <img class="element-view__shot" src="{% url 'checkups:image' checkup.pk snippet.image %}"
+                         alt="Where it is on the page, outlined in red: {{ snippet.title }}" loading="lazy">
+                  {% endif %}
+                  {% if snippet.note %}
+                    <div class="min-w-0 text-sm">
+                      <p class="font-semibold">What's wrong</p>
+                      <p class="mt-1 break-words text-muted">{{ snippet.note }}</p>
+                      {% with sample=snippet.note|contrast %}{% if sample %}
+                        <div class="contrast-sample">
+                          <svg viewBox="0 0 160 48" role="img" aria-label="How the text looks now: colour {{ sample.fg }} on {{ sample.bg }}">
+                            <rect width="160" height="48" rx="8" fill="{{ sample.bg }}"/>
+                            <text x="80" y="31" text-anchor="middle" font-size="18" font-weight="700" fill="{{ sample.fg }}">Sample text</text>
+                          </svg>
+                          <p class="text-xs"><span class="font-semibold">Contrast now {{ sample.ratio }}:1</span>, needs at least {{ sample.expected }}.<br>Text {{ sample.fg }} on {{ sample.bg }}.</p>
+                        </div>
+                      {% endif %}{% endwith %}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
               <div class="snippet__body">
                 {% if not pdf %}<button type="button" class="snippet__copy" data-copy-code aria-live="polite">Copy</button>{% endif %}
-                <pre class="snippet__code"><code>{{ snippet.code }}</code></pre>
+                <pre class="snippet__code{% if snippet.language != "html" %} snippet__code--wrap{% endif %}"><code>{{ snippet.code }}</code></pre>
               </div>
             </details>
           {% endfor %}

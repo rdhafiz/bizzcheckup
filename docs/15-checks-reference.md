@@ -129,7 +129,11 @@ when available (`ctx.dom()`).
 
 The axe scan gives **one finding per failing rule**, with plain-language business
 impact for common rules (contrast, landmarks…) and a link to Deque's step-by-step fix
-guide. Its partial score is (rules checked − penalties) ÷ rules checked, where the
+guide. Under **"Where on the page"** it shows up to 5 of the failing elements: a
+screenshot of the spot with the element outlined in red (up to 10 pictures per
+check-up), axe's explanation in words, the element's HTML and its CSS selector. For
+colour contrast the report also draws the text in its real colours with the current and
+required ratio. Its partial score is (rules checked − penalties) ÷ rules checked, where the
 penalties are critical 1.0, serious 0.7, moderate 0.3 and minor 0.1.
 
 Not applicable: `image_alt` with no images, `heading_order` with no headings,

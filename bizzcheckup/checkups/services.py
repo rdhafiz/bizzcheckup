@@ -142,7 +142,7 @@ def save_report(checkup: Checkup, report: AuditReport) -> None:
                 checkup=checkup, kind=kind, content_type=image.content_type, data=image.data
             )
             for kind, image in report.images.items()
-            if kind in CheckupImage.Kind.values and image.content_type in CheckupImage.ALLOWED_TYPES
+            if CheckupImage.is_known_kind(kind) and image.content_type in CheckupImage.ALLOWED_TYPES
         )
 
         checkup.findings.all().delete()

@@ -7,6 +7,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **Accessibility problems show where they are**: each element the scan flags comes
+  with a screenshot of the spot (outlined in red), what's wrong in words, its HTML and
+  CSS selector, and for colour contrast a sample of the text in its real colours with
+  the current and required ratio.
 - **Technical SEO checks**, page by page: heading outline review, image alt text and
   file names, clean URLs (with a suggested clean address for each), and essential meta
   tags (with a complete `<head>` block per page).
