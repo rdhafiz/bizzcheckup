@@ -608,25 +608,47 @@
     @apply translate-x-1;
   }
 
-  /* How it works: intro on the left, a 5-step timeline on the right. One screen tall on
-     wide screens, like the hero and the benefits section. */
+  /* How it works: intro on the left, a 5-step timeline on the right, soft colour blobs in
+     the corners. One screen tall on wide screens, like the hero and the benefits section. */
   .how {
-    @apply flex items-center py-16 sm:py-20;
-    background: color-mix(in srgb, var(--primary-soft) 70%, var(--paper));
+    @apply relative isolate flex items-center py-16 sm:py-20;
+    overflow: clip;
+    background:
+      radial-gradient(28rem 22rem at 0% 100%, color-mix(in srgb, var(--tone-blue-soft) 90%, transparent), transparent 70%),
+      radial-gradient(30rem 24rem at 100% 100%, color-mix(in srgb, var(--tone-amber-soft) 90%, transparent), transparent 70%),
+      radial-gradient(32rem 26rem at 0% 0%, color-mix(in srgb, var(--tone-green-soft) 95%, transparent), transparent 70%),
+      linear-gradient(160deg, color-mix(in srgb, var(--primary-soft) 45%, var(--paper)), var(--paper));
   }
   @media (min-width: 64rem) {
     .how {
-      @apply min-h-screen py-16;
+      @apply min-h-screen py-10;
       min-height: 100dvh;
     }
   }
-  /* Short laptop screens (768px tall): tighter, without the decorative note, so the whole
+  /* Medium-height screens (up to 920px, e.g. 1440x900): a little tighter, everything shown. */
+  @media (min-width: 64rem) and (max-height: 920px) {
+    .how {
+      @apply py-8;
+    }
+    .how .timeline {
+      @apply gap-2;
+    }
+    .how .timeline__body {
+      @apply py-2.5;
+    }
+    .how .timeline__facts {
+      @apply mt-1.5;
+    }
+  }
+  /* Short laptop screens (768px tall): tighter, without the decorations, so the whole
      timeline still fits on one screen. */
   @media (min-width: 64rem) and (max-height: 820px) {
     .how {
       @apply py-6;
     }
-    .how .how__note {
+    .how .how__note,
+    .how .how__art,
+    .how .timeline__art {
       @apply hidden;
     }
     .how .how__stats {
@@ -645,48 +667,76 @@
   .how__layout {
     @apply grid items-center gap-12 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-14;
   }
+  .eyebrow-pill {
+    @apply w-fit rounded-full border border-line bg-card/70 px-4 py-1.5;
+  }
+
+  /* Three key facts as tinted cards. dt comes first in the HTML (as <dl> requires) but is
+     shown last. */
   .how__stats {
-    @apply mt-8 grid max-w-md grid-cols-3 divide-x divide-line;
+    @apply mt-8 grid max-w-md grid-cols-3 gap-3;
   }
-  .how__stats > div {
-    @apply flex flex-col-reverse px-4 first:pl-0;
+  .how__stat {
+    @apply flex min-w-0 flex-col rounded-2xl border px-3 py-3;
+    border-color: color-mix(in srgb, var(--tone) 18%, transparent);
+    background: linear-gradient(160deg, var(--card), var(--tone-soft));
   }
-  .how__stats dd {
-    @apply font-display text-3xl font-bold text-primary;
+  .how__stat-icon {
+    color: var(--tone);
   }
-  .how__stats dt {
-    @apply text-sm text-muted;
+  .how__stat dd {
+    @apply mt-1.5 font-display text-2xl font-bold whitespace-nowrap;
+    color: var(--tone);
+  }
+  .how__stat dt {
+    @apply order-last text-xs whitespace-nowrap text-muted;
   }
   .how__note {
-    @apply mt-8 hidden w-fit rotate-[-4deg] items-end gap-2 text-2xl leading-tight lg:flex;
+    @apply mt-6 hidden w-fit rotate-[-4deg] items-end gap-2 text-2xl leading-tight lg:flex;
     font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
   }
   .how__note-arrow {
     @apply w-14 shrink-0 text-primary;
   }
+  .how__art {
+    @apply mt-4 hidden max-w-[16rem] lg:block;
+  }
 
-  /* The timeline: numbered circles on a line that runs through every step's colour. */
+  /* The timeline: glossy numbered circles joined by a dotted line in each step's colour. */
   .timeline {
     @apply relative grid gap-3;
   }
   .timeline::before {
-    @apply absolute top-6 bottom-6 left-6 w-0.5 -translate-x-1/2 rounded-full;
+    @apply absolute top-6 bottom-6 left-6 w-[3px] -translate-x-1/2;
     content: "";
     background: linear-gradient(var(--primary), var(--tone-blue), var(--tone-violet), var(--tone-amber), var(--tone-rose));
-    opacity: 0.35;
+    /* A dotted line: the gradient shows through 3px dashes with 7px gaps. */
+    mask-image: repeating-linear-gradient(to bottom, #000 0 3px, transparent 3px 10px);
+    opacity: 0.6;
   }
   .timeline__step {
-    @apply relative grid grid-cols-[3rem_minmax(0,1fr)] gap-5;
+    @apply relative grid grid-cols-[3rem_minmax(0,1fr)] items-center gap-5;
   }
   .timeline__num {
     @apply relative z-10 inline-flex size-12 items-center justify-center rounded-full font-mono
       text-base font-bold;
     color: var(--on-tone);
-    background: var(--tone);
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-soft) 70%, var(--paper));
+    background:
+      radial-gradient(circle at 32% 28%, rgb(255 255 255 / 0.45), transparent 55%),
+      var(--tone);
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--tone) 14%, transparent),
+      0 10px 20px -8px var(--tone);
   }
   .timeline__body {
-    @apply rounded-2xl border border-line bg-card px-5 py-3;
+    @apply flex items-center gap-5 rounded-2xl border px-4 py-3;
+    border-color: color-mix(in srgb, var(--tone) 16%, var(--line));
+    background: linear-gradient(100deg, var(--card) 35%, color-mix(in srgb, var(--tone-soft) 85%, var(--card)));
+    box-shadow: 0 12px 30px -24px color-mix(in srgb, var(--tone) 60%, transparent);
+  }
+  .timeline__art {
+    @apply hidden h-20 w-24 shrink-0 rounded-xl p-1 sm:block;
+    background: linear-gradient(160deg, var(--card), var(--tone-soft));
   }
   .timeline__title {
     @apply flex items-center gap-2 text-lg font-bold;
@@ -698,17 +748,72 @@
     @apply mt-1 text-sm leading-relaxed text-muted;
   }
   .timeline__facts {
-    @apply mt-2 flex flex-wrap gap-2;
+    @apply mt-2 flex flex-wrap gap-1.5;
   }
   .timeline__facts li {
-    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold text-ink;
-    background: var(--tone-soft);
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold text-ink;
+    border-color: color-mix(in srgb, var(--tone) 14%, transparent);
+    background: color-mix(in srgb, var(--card) 80%, transparent);
   }
   .timeline__facts li::before {
     @apply size-1.5 rounded-full;
     content: "";
     background: var(--tone);
   }
+
+  /* Illustrations (partials/step_art.html, partials/how_art.html): fills by class. */
+  .step-art,
+  .how-art {
+    @apply block size-full;
+  }
+  .art-shadow { fill: var(--tone); opacity: 0.12; }
+  .art-shadow-plain { fill: var(--ink); opacity: 0.06; }
+  .art-panel { fill: var(--card); }
+  .art-edge { stroke: color-mix(in srgb, var(--ink) 12%, transparent); stroke-width: 1.5; }
+  .art-tone { fill: var(--tone); }
+  .art-soft { fill: var(--tone-soft); }
+  .art-dot { fill: #fff; opacity: 0.85; }
+  .art-line { fill: color-mix(in srgb, var(--ink) 12%, transparent); }
+  .art-stroke { fill: none; stroke: var(--tone); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .art-red { fill: #ef4444; }
+  .art-amber { fill: #f59e0b; }
+  .art-green { fill: #22c55e; }
+  .art-violet { fill: #8b5cf6; }
+  .art-leaf { fill: #4ade80; }
+  .art-leaf-dark { fill: #16a34a; }
+  .art-ink { fill: var(--ink); }
+  .art-ink-soft { fill: color-mix(in srgb, var(--ink) 55%, transparent); }
+  .art-glass { fill: var(--tone-soft); opacity: 0.8; }
+  .art-ring { fill: none; stroke: var(--tone); stroke-width: 5; }
+  .art-handle { stroke: var(--ink); stroke-width: 6; stroke-linecap: round; }
+  .art-gauge-red,
+  .art-gauge-amber,
+  .art-gauge-green { fill: none; stroke-width: 5; stroke-linecap: round; }
+  .art-gauge-red { stroke: #ef4444; }
+  .art-gauge-amber { stroke: #f59e0b; }
+  .art-gauge-green { stroke: #22c55e; }
+  .art-needle { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+  .art-check,
+  .art-pulse,
+  .art-check-big { fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; }
+  .art-check { stroke-width: 1.8; }
+  .art-pulse { stroke-width: 2.6; }
+  .art-check-big { stroke-width: 5; }
+  .art-arrow { fill: none; stroke: #ef4444; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .art-arrow-head { fill: #ef4444; }
+  .art-gear { fill: none; stroke: color-mix(in srgb, var(--ink) 45%, transparent); stroke-width: 6; }
+  .art-gear-teeth { stroke: color-mix(in srgb, var(--ink) 45%, transparent); stroke-width: 5; stroke-linecap: round; }
+  .art-pot { fill: var(--card); stroke: color-mix(in srgb, var(--ink) 12%, transparent); stroke-width: 1.5; }
+  .art-book-green { fill: #0f8f78; }
+  .art-book-amber { fill: #f59e0b; }
+  .art-book-pages { fill: #fef3c7; }
+  .art-laptop-base { fill: color-mix(in srgb, var(--ink) 25%, var(--card)); }
+  .art-laptop-frame { fill: #1f2937; }
+  .art-violet-soft { fill: #c4b5fd; }
+  .art-red-soft { fill: #fca5a5; }
+  .art-mug { fill: var(--card); stroke: color-mix(in srgb, var(--ink) 12%, transparent); stroke-width: 1.5; }
+  .art-mug-handle { fill: none; stroke: color-mix(in srgb, var(--ink) 18%, var(--card)); stroke-width: 6; }
+  .art-spark { stroke: var(--primary); stroke-width: 4; stroke-linecap: round; }
 
   /* Benefits: one scene. The photo fills the right side and fades (a CSS mask) into the
      soft mint background, and the text sits on the faded part. */

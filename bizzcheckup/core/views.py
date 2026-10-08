@@ -52,7 +52,8 @@ def check_count() -> int:
 
 def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
     """The "How it works" timeline. The numbers come from the settings and the engine, so the
-    text can't promise more (or less) than the app does. `icon`: partials/icon.html."""
+    text can't promise more (or less) than the app does. `icon`: partials/icon.html,
+    `art`: partials/step_art.html."""
     return [
         {
             "title": "Enter your address",
@@ -60,6 +61,7 @@ def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
             "to your site. Your name and email are optional, for follow-up tips.",
             "facts": ["No account", "Name and email optional", "Free"],
             "icon": "globe",
+            "art": "address",
             "tone": "teal",
         },
         {
@@ -69,6 +71,7 @@ def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
             "forms.",
             "facts": [f"Up to {max_pages} pages", "Respects robots.txt", "Public pages only"],
             "icon": "seo",
+            "art": "visit",
             "tone": "blue",
         },
         {
@@ -78,6 +81,7 @@ def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
             "live on screen.",
             "facts": ["Google PageSpeed", "Real browser", "Accessibility scan", "AI readiness"],
             "icon": "chart",
+            "art": "checks",
             "tone": "violet",
         },
         {
@@ -87,6 +91,7 @@ def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
             "private page and as a PDF.",
             "facts": ["Score 0 to 100", "Top risks first", "PDF to share"],
             "icon": "file",
+            "art": "report",
             "tone": "amber",
         },
         {
@@ -95,6 +100,7 @@ def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
             "Then check again to see your new score, or book a free review call for a hand.",
             "facts": ["Quick wins first", "Check again anytime", "Free review call"],
             "icon": "growth",
+            "art": "fix",
             "tone": "rose",
         },
     ]

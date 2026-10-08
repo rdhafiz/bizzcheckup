@@ -166,18 +166,18 @@
     <div class="container-wide how__layout">
       <div class="how__intro" data-reveal-group>
         <div data-reveal>
-          <p class="eyebrow-dash">How it works</p>
+          <p class="eyebrow-dash eyebrow-pill">How it works</p>
           <h2 id="how-title" class="mt-3 text-3xl font-bold sm:text-[2.75rem] sm:leading-[1.1]">From address to <span class="text-primary">treatment plan</span></h2>
         </div>
-        <p class="mt-5 max-w-lg text-lg text-muted" data-reveal>
+        <p class="mt-5 max-w-lg text-lg text-muted lg:text-base" data-reveal>
           In about a minute, {{ product_name }} does what a careful web consultant would do first:
           it visits your site, measures it against {{ check_count }} checks across five vital
           signs, and turns the results into a clear plan, most important first.
         </p>
         <dl class="how__stats" data-reveal>
-          <div><dt>to your report</dt><dd>~1 min</dd></div>
-          <div><dt>vital signs</dt><dd>5</dd></div>
-          <div><dt>checks</dt><dd>{{ check_count }}</dd></div>
+          <div class="how__stat tone-green">{% include "partials/icon.html" with name="clock" css="size-6 how__stat-icon" %}<dt>to your report</dt><dd>~1 min</dd></div>
+          <div class="how__stat tone-blue">{% include "partials/icon.html" with name="file" css="size-6 how__stat-icon" %}<dt>vital signs</dt><dd>5</dd></div>
+          <div class="how__stat tone-violet">{% include "partials/icon.html" with name="pass" css="size-6 how__stat-icon" %}<dt>checks</dt><dd>{{ check_count }}</dd></div>
         </dl>
         <p class="how__note" aria-hidden="true" data-reveal="scale">Simple. Fast. Actionable.
           <svg viewBox="0 0 60 50" class="how__note-arrow"><path d="M4 8c14-6 34 0 46 22M50 30l-12-3M50 30l3-12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -185,6 +185,7 @@
         <div class="mt-8" data-reveal>
           <a href="#start" class="btn-pill btn-pill--glow">Start your free check-up <span class="btn-pill__arrow">{% include "partials/icon.html" with name="arrow" css="size-5" %}</span></a>
         </div>
+        <div class="how__art" data-reveal="scale">{% include "partials/how_art.html" %}</div>
       </div>
 
       <ol class="timeline" data-reveal-group>
@@ -192,6 +193,8 @@
           <li class="timeline__step tone-{{ step.tone }}" data-reveal>
             <span class="timeline__num" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
             <div class="timeline__body">
+              <div class="timeline__art">{% include "partials/step_art.html" with name=step.art %}</div>
+              <div class="min-w-0">
               <h3 class="timeline__title">
                 {% include "partials/icon.html" with name=step.icon css="size-5 timeline__icon" %}
                 <span><span class="sr-only">Step {{ forloop.counter }}: </span>{{ step.title }}</span>
@@ -200,6 +203,7 @@
               <ul class="timeline__facts" aria-label="In short">
                 {% for fact in step.facts %}<li>{{ fact }}</li>{% endfor %}
               </ul>
+              </div>
             </div>
           </li>
         {% endfor %}

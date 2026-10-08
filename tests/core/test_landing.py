@@ -103,6 +103,8 @@ def test_how_it_works_steps_use_the_real_numbers(client: Client, settings) -> No
     checks = len(load_builtin_checks().all())
 
     assert html.count('class="timeline__step') == 5
+    assert html.count('class="step-art"') == 5  # one illustration per step
+    assert 'class="how-art"' in html  # and the laptop scene
     assert f"{checks} checks, while you watch" in html  # counted from the engine
     assert "We open up to 12 public pages" in html  # from the settings
     assert "Up to 12 pages" in html
