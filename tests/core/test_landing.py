@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from bizzcheckup.checkups import tasks
 from bizzcheckup.checkups.models import Checkup, Lead
+from bizzcheckup.engine.registry import load_builtin_checks
 
 pytestmark = pytest.mark.django_db
 
@@ -36,8 +37,8 @@ def test_landing_page_shows_brand_and_everything_the_brief_asks_for(client: Clie
     assert "Start my free check-up" in html
     assert reverse("core:privacy") in html  # privacy note link
     assert html.count('class="sign-card tone-') == 5  # the five vital signs
-    # Each sign card and the last section lead to the form.
-    assert html.count('href="#start"') == 6
+    # Each sign card, "How it works" and the last section lead to the form.
+    assert html.count('href="#start"') == 7
     assert 'id="start"' in html
 
 
@@ -94,3 +95,14 @@ def test_privacy_link_in_every_page_footer(client: Client) -> None:
     assert (
         f'href="{reverse("core:privacy")}"' in client.get(reverse("core:privacy")).content.decode()
     )
+
+
+def test_how_it_works_steps_use_the_real_numbers(client: Client, settings) -> None:  # type: ignore[no-untyped-def]
+    settings.CHECKUP_MAX_PAGES = 12
+    html = client.get("/").content.decode()
+    checks = len(load_builtin_checks().all())
+
+    assert html.count('class="timeline__step') == 5
+    assert f"{checks} checks, while you watch" in html  # counted from the engine
+    assert "We open up to 12 public pages" in html  # from the settings
+    assert "Up to 12 pages" in html

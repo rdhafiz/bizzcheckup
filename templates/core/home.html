@@ -161,40 +161,48 @@
     </div>
   </section>
 
-  {# --- How it works ------------------------------------------------------------------- #}
+  {# --- How it works: the whole journey, as a timeline ------------------------------------- #}
   <section class="how" aria-labelledby="how-title">
-    <div class="container-wide relative">
-      <div data-reveal>
-        <p class="eyebrow-dash">How it works</p>
-        <h2 id="how-title" class="mt-3 text-3xl font-bold sm:text-4xl">From address to <span class="text-primary">treatment plan</span></h2>
+    <div class="container-wide how__layout">
+      <div class="how__intro" data-reveal-group>
+        <div data-reveal>
+          <p class="eyebrow-dash">How it works</p>
+          <h2 id="how-title" class="mt-3 text-3xl font-bold sm:text-[2.75rem] sm:leading-[1.1]">From address to <span class="text-primary">treatment plan</span></h2>
+        </div>
+        <p class="mt-5 max-w-lg text-lg text-muted" data-reveal>
+          In about a minute, {{ product_name }} does what a careful web consultant would do first:
+          it visits your site, measures it against {{ check_count }} checks across five vital
+          signs, and turns the results into a clear plan, most important first.
+        </p>
+        <dl class="how__stats" data-reveal>
+          <div><dt>to your report</dt><dd>~1 min</dd></div>
+          <div><dt>vital signs</dt><dd>5</dd></div>
+          <div><dt>checks</dt><dd>{{ check_count }}</dd></div>
+        </dl>
+        <p class="how__note" aria-hidden="true" data-reveal="scale">Simple. Fast. Actionable.
+          <svg viewBox="0 0 60 50" class="how__note-arrow"><path d="M4 8c14-6 34 0 46 22M50 30l-12-3M50 30l3-12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </p>
+        <div class="mt-8" data-reveal>
+          <a href="#start" class="btn-pill btn-pill--glow">Start your free check-up <span class="btn-pill__arrow">{% include "partials/icon.html" with name="arrow" css="size-5" %}</span></a>
+        </div>
       </div>
-      <p class="how__note" aria-hidden="true" data-reveal="scale">Simple.<br>Fast.<br>Actionable.
-        <svg viewBox="0 0 60 60" class="how__note-arrow"><path d="M48 4c8 18 2 36-26 44M22 48l10-10M22 48l13 4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </p>
-      <ol class="how__steps" data-reveal-group>
-        <li class="tone-teal" data-reveal>
-          <span class="how__num">01</span>
-          <div>
-            <h3 class="text-lg font-bold">Enter your address</h3>
-            <p class="mt-2 text-muted">No account, no installation. We visit up to 10 public pages the way a customer, Google and an AI assistant would.</p>
-          </div>
-          <svg class="how__arrow" viewBox="0 0 90 30" aria-hidden="true"><path d="M2 22C25 4 60 2 84 18M84 18l-9-1M84 18l-3-8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"/></svg>
-        </li>
-        <li class="tone-blue" data-reveal>
-          <span class="how__num">02</span>
-          <div>
-            <h3 class="text-lg font-bold">Watch the check-up</h3>
-            <p class="mt-2 text-muted">Speed tests, a real browser, an accessibility scan and dozens of checks run while you watch the progress live.</p>
-          </div>
-          <svg class="how__arrow" viewBox="0 0 90 30" aria-hidden="true"><path d="M2 22C25 4 60 2 84 18M84 18l-9-1M84 18l-3-8" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"/></svg>
-        </li>
-        <li class="tone-violet" data-reveal>
-          <span class="how__num">03</span>
-          <div>
-            <h3 class="text-lg font-bold">Get your treatment plan</h3>
-            <p class="mt-2 text-muted">A Business Health Score, the top risks to your business and quick wins first, as a web page and a PDF.</p>
-          </div>
-        </li>
+
+      <ol class="timeline" data-reveal-group>
+        {% for step in steps %}
+          <li class="timeline__step tone-{{ step.tone }}" data-reveal>
+            <span class="timeline__num" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
+            <div class="timeline__body">
+              <h3 class="timeline__title">
+                {% include "partials/icon.html" with name=step.icon css="size-5 timeline__icon" %}
+                <span><span class="sr-only">Step {{ forloop.counter }}: </span>{{ step.title }}</span>
+              </h3>
+              <p class="timeline__text">{{ step.text }}</p>
+              <ul class="timeline__facts" aria-label="In short">
+                {% for fact in step.facts %}<li>{{ fact }}</li>{% endfor %}
+              </ul>
+            </div>
+          </li>
+        {% endfor %}
       </ol>
     </div>
   </section>

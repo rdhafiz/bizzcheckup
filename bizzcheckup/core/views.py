@@ -1,9 +1,12 @@
+from functools import lru_cache
+
 from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
 from bizzcheckup.checkups.forms import CheckupForm
+from bizzcheckup.engine.registry import load_builtin_checks
 
 # The five vital signs on the homepage. `icon` is a name from templates/partials/icon.html,
 # `tone` one of the accent colours in frontend/tailwind.css (tone-green, tone-blue, ...).
@@ -41,9 +44,75 @@ VITAL_SIGNS = [
 ]
 
 
+@lru_cache(maxsize=1)
+def check_count() -> int:
+    """How many checks the engine runs (45 today). Counted once, then remembered."""
+    return len(load_builtin_checks().all())
+
+
+def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
+    """The "How it works" timeline. The numbers come from the settings and the engine, so the
+    text can't promise more (or less) than the app does. `icon`: partials/icon.html."""
+    return [
+        {
+            "title": "Enter your address",
+            "text": "Type your website's address. No account, no installation, nothing to add "
+            "to your site. Your name and email are optional, for follow-up tips.",
+            "facts": ["No account", "Name and email optional", "Free"],
+            "icon": "globe",
+            "tone": "teal",
+        },
+        {
+            "title": "We visit like a customer",
+            "text": f"We open up to {max_pages} public pages the way a customer, Google and an "
+            "AI assistant would: robots.txt and sitemap first, and we never log in or fill in "
+            "forms.",
+            "facts": [f"Up to {max_pages} pages", "Respects robots.txt", "Public pages only"],
+            "icon": "seo",
+            "tone": "blue",
+        },
+        {
+            "title": f"{checks} checks, while you watch",
+            "text": "Google PageSpeed measures your speed, a real browser opens your homepage, an "
+            "accessibility scan looks for barriers and we test what AI assistants can read, "
+            "live on screen.",
+            "facts": ["Google PageSpeed", "Real browser", "Accessibility scan", "AI readiness"],
+            "icon": "chart",
+            "tone": "violet",
+        },
+        {
+            "title": "Get your Health Report",
+            "text": "A Business Health Score from 0 to 100, your five vital signs and the top "
+            "risks to your business, each explained in plain language with its fix. On a "
+            "private page and as a PDF.",
+            "facts": ["Score 0 to 100", "Top risks first", "PDF to share"],
+            "icon": "file",
+            "tone": "amber",
+        },
+        {
+            "title": "Fix, then check again",
+            "text": "Follow the treatment plan, quick wins first, ticking steps off as you go. "
+            "Then check again to see your new score, or book a free review call for a hand.",
+            "facts": ["Quick wins first", "Check again anytime", "Free review call"],
+            "icon": "growth",
+            "tone": "rose",
+        },
+    ]
+
+
 def home(request: HttpRequest) -> HttpResponse:
     """Landing page with the check-up form."""
-    return render(request, "core/home.html", {"form": CheckupForm(), "vital_signs": VITAL_SIGNS})
+    checks = check_count()
+    return render(
+        request,
+        "core/home.html",
+        {
+            "form": CheckupForm(),
+            "vital_signs": VITAL_SIGNS,
+            "check_count": checks,
+            "steps": how_it_works_steps(settings.CHECKUP_MAX_PAGES, checks),
+        },
+    )
 
 
 # The legal pages: (URL name, menu label). Each has a template in templates/core/legal/.
