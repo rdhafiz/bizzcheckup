@@ -7,6 +7,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **Theme colour #31ac64** (green) across the site: buttons, logo, favicon, links, progress
+  bars and highlights, with a deeper shade for green text so it stays readable.
 - **New homepage**: a full-screen hero ("Is your business website healthy?") on a
   background image with a dark backdrop, the text on the left and the form on the right, colourful cards for the five vital signs, a
   "How it works" strip with numbered steps, and a closing "More visibility. More trust.

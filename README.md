@@ -6,10 +6,10 @@
 
 <p align="center">
   <a href="https://github.com/rdhafiz/bizzcheckup/actions/workflows/ci.yml"><img src="https://github.com/rdhafiz/bizzcheckup/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/python-3.12+-0f6e66" alt="Python 3.12+">
-  <img src="https://img.shields.io/badge/django-5.2_LTS-0f6e66" alt="Django 5.2 LTS">
+  <img src="https://img.shields.io/badge/python-3.12+-31ac64" alt="Python 3.12+">
+  <img src="https://img.shields.io/badge/django-5.2_LTS-31ac64" alt="Django 5.2 LTS">
   <img src="https://img.shields.io/badge/version-0.1.0--alpha-b45309" alt="v0.1.0-alpha">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0f6e66" alt="MIT licence"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-31ac64" alt="MIT licence"></a>
 </p>
 
 BizzCheckup is a free website **health check-up for business owners**. Enter an address

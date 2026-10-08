@@ -42,10 +42,24 @@ same class names (`bg-paper`, `text-ink`) in both themes.
 | `ink` | `#0e1b1e` | `#e7efec` | Main text |
 | `muted` | `#4a5a5e` | `#9fb1b0` | Secondary text |
 | `line` | `#e2ded4` | `#2b4045` | Borders |
-| `primary` | `#0f6e66` | `#3fbfb0` | Brand teal: links, buttons |
+| `brand` | `#31ac64` | `#31ac64` | **The theme colour.** Buttons (with dark text), logo mark, favicon, progress bars, underlines, glows |
+| `on-brand` | `#06200f` | `#06200f` | Text on a `brand` background |
+| `primary` | `#1d8047` | `#5cc98a` | The same green, adjusted for **text**: links, green words, focus rings |
 | `urgent` | `#c62828` | `#f26b6b` | 0–49 "Needs urgent care" |
 | `attention` | `#b45309` | `#f5a524` | 50–89 "Needs attention" |
 | `healthy` | `#15803d` | `#4ade80` | 90–100 "Healthy" |
+
+**Why two greens?** The theme colour `#31ac64` is bright. White text on it only reaches
+2.9:1 contrast and green text in that shade on the cream page 2.7:1, both below the 4.5:1
+that WCAG asks for normal text. So:
+
+- **filled things** (buttons, logo, bars) use `brand`, the exact theme colour, with *dark*
+  text on top (5.2:1). Spotify does the same with its green;
+- **green text** (links, "check-up" in the form title) uses `primary`, a deeper shade of
+  the same green that reaches 4.6:1 on the page. In dark mode it is a lighter shade instead.
+
+To change the theme colour later, change `--brand` (and pick a `--primary` that still
+passes 4.5:1 on `--paper`) in the three token blocks at the top of `frontend/tailwind.css`.
 
 **Rule:** a band colour always comes with its text label, because some people can't
 tell red from green.
@@ -63,7 +77,7 @@ and they are *not* health bands (green here doesn't mean "Healthy").
 | `tone-rose` | `#e11d48` | `#fb7185` | Best practices, "Build more trust" |
 | `tone-violet` | `#7c3aed` | `#a78bfa` | SEO, step 03 |
 | `tone-amber` | `#d97706` | `#fbbf24` | AI readiness |
-| `tone-teal` | brand `primary` | | Step 01, "Attract more customers" |
+| `tone-teal` | `primary` (green) | | Step 01, "Attract more customers" (the name is historical: it follows the theme colour) |
 
 A `tone-*` class sets two variables, `--tone` and `--tone-soft`. `color-mix(in srgb, var(--tone) 22%, var(--card))` mixes a tone with the card colour, so tints and glows work in light and dark mode without extra colours; components such as
 `tone-tile` (the coloured icon square or circle) read them. Same idea as the bands: one
@@ -127,7 +141,7 @@ page can change the header without copying it.
 | File | What |
 |------|------|
 | `templates/base.html` | Skeleton: `<head>`, skip link, header with logo and theme button, footer |
-| `templates/partials/logo.html` | Wordmark: pulse mark + **Bizz** (teal) + **Checkup** (ink) |
+| `templates/partials/logo.html` | Wordmark: pulse mark (`brand` green) + **Bizz** (green) + **Checkup** (ink) |
 | `templates/partials/score_ring.html` | Circular score gauge (see below) |
 | `templates/partials/icon.html` | One SVG icon set for the whole site: severities, vital signs, form fields, homepage |
 | `templates/reports/_gauge.html` | Half-circle gauge for the Business Health Score |
