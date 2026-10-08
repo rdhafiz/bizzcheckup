@@ -52,7 +52,7 @@
   --line: #e2ded4;           /* borders, dividers */
   --brand: #31ac64;          /* the theme colour: buttons, logo, fills, glows */
   --brand-hover: #2a9757;
-  --on-brand: #06200f;       /* text on brand (5.2:1); white would only reach 2.9:1 */
+  --on-brand: #ffffff;       /* text on brand: white, bold (2.9:1 contrast, see docs) */
   --primary: #1d8047;        /* the same green, deeper: links and green text (4.6:1 on paper) */
   --primary-hover: #17683a;
   --on-primary: #ffffff;
@@ -82,8 +82,8 @@
     --muted: #9fb1b0;
     --line: #2b4045;
     --brand: #31ac64;
-    --brand-hover: #3dbd72;
-    --on-brand: #06200f;
+    --brand-hover: #2a9757;
+    --on-brand: #ffffff;
     --primary: #5cc98a;
     --primary-hover: #7dd7a3;
     --on-primary: #06200f;
@@ -113,8 +113,8 @@
   --muted: #9fb1b0;
   --line: #2b4045;
   --brand: #31ac64;
-  --brand-hover: #3dbd72;
-  --on-brand: #06200f;
+  --brand-hover: #2a9757;
+  --on-brand: #ffffff;
   --primary: #5cc98a;
   --primary-hover: #7dd7a3;
   --on-primary: #06200f;
@@ -212,7 +212,7 @@
     disabled:cursor-not-allowed disabled:opacity-60;
 }
 @utility btn-primary {
-  @apply btn bg-brand text-on-brand hover:bg-brand-hover;
+  @apply btn bg-brand font-bold text-on-brand hover:bg-brand-hover;
 }
 @utility btn-secondary {
   @apply btn border border-line bg-card text-ink hover:border-primary;
@@ -379,7 +379,7 @@
 /* --- Homepage (templates/core/home.html) ---------------------------------------- */
 
 @utility btn-pill {
-  @apply btn min-h-13 rounded-full bg-brand px-8 text-base text-on-brand
+  @apply btn min-h-13 rounded-full bg-brand px-8 text-base font-bold text-on-brand
     shadow-[0_12px_30px_-12px_rgb(49_172_100/0.7)] hover:bg-brand-hover;
 }
 
@@ -688,15 +688,14 @@
   /* The pill button's arrow in its own translucent circle; a soft glow below. */
   .btn-pill--glow {
     @apply pr-2 pl-8;
-    background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 82%, #fff), var(--brand));
+    background: linear-gradient(90deg, var(--brand), var(--brand-hover));
     box-shadow: 0 18px 36px -14px color-mix(in srgb, var(--brand) 80%, transparent);
   }
   .btn-pill__arrow {
     @apply ml-3 inline-flex size-10 items-center justify-center rounded-full
       transition-transform duration-200;
-    color: var(--mint);
-    background: var(--on-brand);
-    box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.3);
+    color: var(--on-brand);
+    background: rgb(255 255 255 / 0.22);
   }
   .btn-pill--glow:hover .btn-pill__arrow {
     @apply translate-x-1;
