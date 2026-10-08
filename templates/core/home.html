@@ -51,7 +51,7 @@
         </ul>
       </div>
 
-      <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" data-reveal="right" novalidate>
+      <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" data-reveal="scale" novalidate>
         {% csrf_token %}
         <h2 class="text-2xl font-bold">Start your <span class="text-primary">check-up</span></h2>
         <label for="id_url" class="mt-1 block text-sm text-muted">Enter your website address to get a free report.</label>
@@ -142,7 +142,7 @@
           <h2 id="signs-title" class="mt-3 text-3xl font-bold sm:text-[2.75rem] sm:leading-[1.1]">Five vital signs of a<br class="hidden sm:inline">
             <span class="text-highlight">healthy<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span> business website</h2>
         </div>
-        <p class="signs__intro" data-reveal="right">We check the key areas that impact your visibility, trust and conversions, and give clear, actionable advice.</p>
+        <p class="signs__intro" data-reveal>We check the key areas that impact your visibility, trust and conversions, and give clear, actionable advice.</p>
       </div>
       <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-5" data-reveal-group>
         {% for sign in vital_signs %}
@@ -208,7 +208,7 @@
     <div class="container-wide relative">
       <div class="benefits__text">
         <svg data-parallax="-0.15" class="deco-spark benefits__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 13 22M16 34l18-9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
-        <div data-reveal="left">
+        <div data-reveal>
         <p class="eyebrow-dash">A healthier website means</p>
         <h2 id="benefits-title" class="benefits__title">More visibility.<br>More trust.<br>
           <span class="benefits__growth">More growth.<svg viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="growth-fade" x1="0" x2="1"><stop offset="0" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><path d="M4 16C60 2 110 4 150 14s100 10 146-4" fill="none" stroke="url(#growth-fade)" stroke-width="5" stroke-linecap="round"/></svg></span>

@@ -75,3 +75,12 @@ def test_no_template_syntax_leaks_onto_the_page(client: Client, name: str) -> No
     html = client.get(reverse(f"core:{name}")).content.decode()
     assert "{#" not in html
     assert "{%" not in html
+
+
+def test_reveals_are_vertical_or_zoom_only() -> None:
+    """Content comes up, down or zooms in, never from the side (design rule)."""
+    templates = "".join(t.read_text(encoding="utf-8") for t in (ROOT / "templates").rglob("*.html"))
+    variants = set(re.findall(r'data-reveal="([^"]*)"', templates))
+    assert variants <= {"", "rise", "scale"}, variants
+    assert '[data-reveal="left"]' not in CSS
+    assert '[data-reveal="right"]' not in CSS

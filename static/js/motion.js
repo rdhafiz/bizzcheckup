@@ -7,7 +7,7 @@
 //
 // Reveal:   <div data-reveal>               fade in and rise (default); scrolling back up,
 //                                            it comes down from above instead
-//           data-reveal="scale|left|right"   other entrances
+//           data-reveal="scale"              zoom in instead (no sideways entrances, by design)
 //           data-reveal-once                 settle for good, don't replay
 //           data-reveal-group on a parent    children entering together are staggered
 // Parallax: data-parallax="0.12"            move at 12% of the scroll (negative = against it)
@@ -32,6 +32,17 @@
   var revealables = [];
   var observer = null;
   var armed = false;
+  var lastScrollY = window.scrollY;
+  var scrollingUp = false;
+
+  // Direction of the latest scroll. Reading scrollY costs no layout work.
+  function trackDirection() {
+    var y = window.scrollY;
+    if (y !== lastScrollY) {
+      scrollingUp = y < lastScrollY;
+      lastScrollY = y;
+    }
+  }
 
   function setDelay(el, ms) {
     // CSSOM writes are allowed by our Content Security Policy (style="" attributes are not).
@@ -76,6 +87,16 @@
     return el.parentElement && el.parentElement.closest("[data-reveal-group]");
   }
 
+  // Move a hidden element to the side it will enter from, without animating that move,
+  // so its entrance starts from the right place.
+  function waitOn(el, from) {
+    if (el.getAttribute("data-from") === from) return;
+    el.classList.add("reveal-instant");
+    el.setAttribute("data-from", from);
+    void getComputedStyle(el).transform; // apply the new start position now...
+    el.classList.remove("reveal-instant"); // ...so the entrance transition starts from it
+  }
+
   function inPageOrder(a, b) {
     return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
   }
@@ -91,7 +112,12 @@
       var enter = entry.isIntersecting &&
         (entry.intersectionRatio >= ENTER_RATIO || entry.intersectionRect.height >= view * 0.25);
       if (enter) {
-        if (!el.classList.contains("is-revealed")) entering.push(el);
+        if (!el.classList.contains("is-revealed")) {
+          // Scrolling up, anything that appears is arriving from above. Decided here, at entry,
+          // because an element that was jumped over (End key, #anchor) never reported leaving.
+          waitOn(el, scrollingUp ? "above" : "below");
+          entering.push(el);
+        }
       } else if (!entry.isIntersecting) {
         var from = entry.boundingClientRect.bottom <= top ? "above" : "below";
         if (el.classList.contains("is-revealed") || el.getAttribute("data-from") !== from) hide(el, from);
@@ -281,7 +307,10 @@
 
     document.addEventListener("focusin", onFocusIn);
     window.addEventListener("hashchange", onHash);
-    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("scroll", function () {
+      trackDirection();
+      requestUpdate();
+    }, { passive: true });
     window.addEventListener("resize", requestUpdate, { passive: true });
     listen(reducedMotion, onMotionPreference);
     listen(wideScreen, refreshParallax);

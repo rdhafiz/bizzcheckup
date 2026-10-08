@@ -1182,16 +1182,6 @@ html.motion-ready :is([data-reveal=""], [data-reveal="rise"])[data-from="above"]
 html.motion-ready .hero-full [data-reveal] {
   transition-duration: 900ms;
 }
-/* Sideways entrances only on wide screens: an element pushed sideways still takes up
-   space, and on a phone that would make the page scroll horizontally. */
-@media (min-width: 768px) {
-  html.motion-ready [data-reveal="left"] {
-    transform: translate3d(-40px, 0, 0);
-  }
-  html.motion-ready [data-reveal="right"] {
-    transform: translate3d(40px, 0, 0);
-  }
-}
 html.motion-ready [data-reveal].is-revealed {
   opacity: 1;
   transform: none;
