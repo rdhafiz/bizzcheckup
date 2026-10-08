@@ -150,6 +150,13 @@ How the splitting stays safe:
 - **Only text is split.** Tags inside the heading stay as they are; the spaces between words
   stay real spaces, so the heading reads exactly the same to screen readers and search
   engines (a test in the browser compared the text before and after: identical).
+- **The hero badge** reveals word by word too (the pulse icon first), while its green pill
+  fades in gently, so it never shows as an empty capsule. Its text is wrapped in one `<span>`:
+  the badge is a flex box, and a flex box ignores spaces between its children.
+- **Parts kept whole are hidden without animating.** A `data-word` part already exists and is
+  visible when the script starts; switching it to the hidden start state with transitions on
+  made it fade *out* first (a flash of "healthy"). `splitWords()` applies that state with
+  transitions off.
 - **`data-word` keeps a part whole.** "healthy" (gradient text) and "More growth." would lose
   their colouring if split, so they move as one word. Screen-reader-only text isn't split.
 - **No script, reduced motion, or an old browser: nothing is split.** The heading is ordinary

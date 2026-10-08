@@ -11,6 +11,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   word rising and sharpening out of a blur; all other reveals sharpen from a soft blur too.
   Without JavaScript or with reduced motion, headings stay plain text.
   No blur on screens narrower than 768px (same reveal, without the blur).
+  The hero badge reveals word by word too, icon first.
 - **Smooth scrolling** for links within a page (section links, "Start a check-up",
   "Back to top", the report's jump bar), with a little room above the target. Instant for
   visitors who prefer reduced motion.
