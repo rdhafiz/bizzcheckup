@@ -77,8 +77,7 @@ def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
         {
             "title": f"{checks} checks, while you watch",
             "text": "Google PageSpeed measures your speed, a real browser opens your homepage, an "
-            "accessibility scan looks for barriers and we test what AI assistants can read, "
-            "live on screen.",
+            "accessibility scan finds barriers and we test what AI can read, live.",
             "facts": ["Google PageSpeed", "Real browser", "Accessibility scan", "AI readiness"],
             "icon": "chart",
             "art": "checks",
@@ -87,8 +86,7 @@ def how_it_works_steps(max_pages: int, checks: int) -> list[dict[str, object]]:
         {
             "title": "Get your Health Report",
             "text": "A Business Health Score from 0 to 100, your five vital signs and the top "
-            "risks to your business, each explained in plain language with its fix. On a "
-            "private page and as a PDF.",
+            "risks, each explained in plain language with its fix. As a web page and a PDF.",
             "facts": ["Score 0 to 100", "Top risks first", "PDF to share"],
             "icon": "file",
             "art": "report",

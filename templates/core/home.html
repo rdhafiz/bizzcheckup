@@ -200,10 +200,10 @@
                 <span><span class="sr-only">Step {{ forloop.counter }}: </span>{{ step.title }}</span>
               </h3>
               <p class="timeline__text">{{ step.text }}</p>
+              </div>
               <ul class="timeline__facts" aria-label="In short">
                 {% for fact in step.facts %}<li>{{ fact }}</li>{% endfor %}
               </ul>
-              </div>
             </div>
           </li>
         {% endfor %}
