@@ -7,6 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **`/robots.txt`** and **`/sitemap.xml`**: the sitemap lists the homepage and the legal
+  pages (with their "last updated" date); robots.txt points to it and keeps crawlers out
+  of the private reports (`/checkups/`), admin, health check and style guide.
 - **Site footer** on every page: brand and call to action, product links, legal links,
   contact details with profile icons, copyright, version and "Back to top".
 - **Legal pages**: Terms of service, Cookie policy, Acceptable use policy and Disclaimer,
