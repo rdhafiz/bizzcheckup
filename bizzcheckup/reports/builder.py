@@ -167,6 +167,11 @@ class ReportView:
 
     # --- device screenshots -------------------------------------------------------------
     @property
+    def has_preview_image(self) -> bool:
+        """The website's own preview image (og:image) was saved: the report's hero shows it."""
+        return "link_preview" in self.image_kinds
+
+    @property
     def has_tablet(self) -> bool:
         return "tablet" in self.image_kinds
 

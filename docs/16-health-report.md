@@ -6,17 +6,22 @@ A finished check-up is shown at its own address, `/checkups/<uuid>/`, as the
 
 ## Look: the homepage's theme
 
-The report opens with a **dark band** (`_hero.html`) in the homepage hero's style. Behind
-it is **the audited site itself**: a `<picture>` picks the screenshot taken at the
-visitor's screen size (the phone one under 768 px, the tablet one under 1024 px, the
-desktop one above; the PDF uses the desktop one). A missing size falls back to the next,
-and with no screenshot at all the homepage's photo is used. A `<picture>` rather than a
-CSS background, because each report's pictures differ and our Content Security Policy
-forbids inline styles. On top: a dark backdrop (with a gentle parallax), the green "Health
+The report opens with a **dark band** (`_hero.html`) in the homepage hero's style: a
+picture behind a dark backdrop (with the same slow parallax), the green "Health
 report" badge, the domain in the green gradient with its swoosh, the diagnosis and the
 actions, and a frosted panel with the score gauge and four counters (the homepage's
 glossy round icons, one colour each). The header sits on the photo, as on the homepage.
 In the PDF this band is the cover.
+
+**The picture is the website's own preview image** (`og:image`, or `twitter:image`):
+the one the engine downloaded and checked for the link preview check, served from our
+own site (`/checkups/<id>/images/link_preview/`), so the report never loads anything
+from the audited site. A website without a usable one gets a demo picture,
+`static/img/report-hero-demo.svg`: a browser window with a score ring, a phone and the
+heartbeat line, in the brand colours. It's an `<img>` rather than a CSS background,
+because the address changes per report and our Content Security Policy forbids inline
+styles. The backdrop is darker on the text side and lighter behind the score panel, and
+blurs the picture a little so its own text doesn't compete with ours.
 
 Below it, the dashboard sits on the paper background with the homepage's soft colour
 blobs. Every section opens like the homepage's: a dash eyebrow ("Diagnosis") and a big

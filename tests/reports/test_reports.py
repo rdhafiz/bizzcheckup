@@ -250,37 +250,29 @@ def test_report_shows_the_homepage_on_each_device(client: Client, db: None) -> N
     assert "Phone · 390 px wide" in html
 
 
-def test_hero_background_is_the_sites_screenshot_for_each_screen_size(
-    client: Client, db: None
-) -> None:
-    jpeg = ReportImage(content_type="image/jpeg", data=b"jpeg")
-    report = make_report().model_copy(update={"images": {"mobile": jpeg, "tablet": jpeg}})
-    checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
-    services.save_report(checkup, report)
-    services.mark_done(checkup)
-    html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
-    hero = html[html.index('class="report-hero"') : html.index('class="report-hero__inner')]
-    phone = reverse("checkups:image", args=[checkup.pk, "mobile"])
-    tablet = reverse("checkups:image", args=[checkup.pk, "tablet"])
-    assert f'<source media="(max-width: 767.98px)" srcset="{phone}">' in hero
-    assert f'<source media="(max-width: 1023.98px)" srcset="{tablet}">' in hero
-    assert f'src="{reverse("checkups:screenshot", args=[checkup.pk])}"' in hero  # desktop
-
-
-def test_hero_falls_back_to_the_photo_without_screenshots(client: Client, db: None) -> None:
-    checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
-    services.save_report(checkup, make_report().model_copy(update={"screenshot_jpeg": None}))
-    services.mark_done(checkup)
-    html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
-    assert "report-hero__photo--site" not in html
-    assert "<picture>" not in html
-
-
 def test_no_device_tabs_without_phone_and_tablet_pictures(
     client: Client, finished: Checkup
 ) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
     assert 'role="tablist"' not in html
+
+
+def test_hero_shows_the_sites_own_preview_image(client: Client, db: None) -> None:
+    report = make_report().model_copy(
+        update={"images": {"link_preview": ReportImage(content_type="image/png", data=b"png")}}
+    )
+    checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
+    services.save_report(checkup, report)
+    services.mark_done(checkup)
+    html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
+    hero = html[html.index('<section id="overview"') :]
+    assert f'src="{reverse("checkups:image", args=[checkup.pk, "link_preview"])}"' in hero[:1500]
+
+
+def test_hero_falls_back_to_the_demo_picture(client: Client, finished: Checkup) -> None:
+    html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
+    hero = html[html.index('<section id="overview"') :]
+    assert "img/report-hero-demo.svg" in hero[:1500]
 
 
 def test_report_contact_links_come_from_branding(client: Client, finished: Checkup) -> None:

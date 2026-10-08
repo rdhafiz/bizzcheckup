@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <!-- The report's opening band when the website has no preview image (og:image):
+       a website "under examination" in the brand colours. It sits behind a dark
+       backdrop, so it only needs to read as depth and texture, not detail. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b2a24"/>
+      <stop offset="0.55" stop-color="#0c1d22"/>
+      <stop offset="1" stop-color="#14122b"/>
+    </linearGradient>
+    <radialGradient id="glow-green" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#31ac64" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#31ac64" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-violet" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-amber" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f5a524" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#f5a524" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.6" fill="#7be0a4" fill-opacity="0.18"/>
+    </pattern>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b3136"/>
+      <stop offset="1" stop-color="#11211f"/>
+    </linearGradient>
+    <linearGradient id="pulse" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7be0a4" stop-opacity="0"/>
+      <stop offset="0.25" stop-color="#7be0a4"/>
+      <stop offset="0.75" stop-color="#31ac64"/>
+      <stop offset="1" stop-color="#31ac64" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect width="1600" height="900" fill="url(#dots)"/>
+  <circle cx="1220" cy="260" r="520" fill="url(#glow-green)"/>
+  <circle cx="230" cy="820" r="460" fill="url(#glow-violet)"/>
+  <circle cx="1500" cy="860" r="360" fill="url(#glow-amber)"/>
+
+  <!-- A website in a browser window, tilted slightly -->
+  <g transform="translate(860 150) rotate(-4)">
+    <rect width="620" height="430" rx="22" fill="url(#screen)" stroke="#2b4045" stroke-width="2"/>
+    <rect width="620" height="46" rx="22" fill="#203a3f"/>
+    <rect y="24" width="620" height="22" fill="#203a3f"/>
+    <circle cx="28" cy="23" r="7" fill="#f26b6b"/>
+    <circle cx="52" cy="23" r="7" fill="#f5a524"/>
+    <circle cx="76" cy="23" r="7" fill="#4ade80"/>
+    <rect x="110" y="13" width="300" height="20" rx="10" fill="#132124"/>
+    <!-- page content -->
+    <rect x="36" y="84" width="300" height="26" rx="8" fill="#e7efec" fill-opacity="0.75"/>
+    <rect x="36" y="124" width="250" height="14" rx="7" fill="#9fb1b0" fill-opacity="0.5"/>
+    <rect x="36" y="148" width="220" height="14" rx="7" fill="#9fb1b0" fill-opacity="0.5"/>
+    <rect x="36" y="186" width="130" height="38" rx="19" fill="#31ac64"/>
+    <rect x="36" y="262" width="168" height="130" rx="14" fill="#1f3a3a"/>
+    <rect x="222" y="262" width="168" height="130" rx="14" fill="#1f3a3a"/>
+    <rect x="408" y="262" width="176" height="130" rx="14" fill="#1f3a3a"/>
+    <!-- score ring -->
+    <circle cx="486" cy="150" r="66" fill="none" stroke="#2b4045" stroke-width="14"/>
+    <circle cx="486" cy="150" r="66" fill="none" stroke="#4ade80" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="340 415" transform="rotate(-90 486 150)"/>
+    <text x="486" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#e7efec">92</text>
+  </g>
+
+  <!-- A phone beside it -->
+  <g transform="translate(1390 360) rotate(6)">
+    <rect width="150" height="300" rx="26" fill="#0f1c1e" stroke="#2b4045" stroke-width="3"/>
+    <rect x="12" y="16" width="126" height="268" rx="16" fill="url(#screen)"/>
+    <rect x="28" y="44" width="94" height="14" rx="7" fill="#e7efec" fill-opacity="0.7"/>
+    <rect x="28" y="68" width="70" height="10" rx="5" fill="#9fb1b0" fill-opacity="0.5"/>
+    <rect x="28" y="96" width="60" height="22" rx="11" fill="#31ac64"/>
+    <rect x="28" y="140" width="94" height="58" rx="10" fill="#1f3a3a"/>
+    <rect x="28" y="208" width="94" height="58" rx="10" fill="#1f3a3a"/>
+  </g>
+
+  <!-- The heartbeat line running across, like the BizzCheckup logo -->
+  <path d="M0 640 H520 l40 -90 l60 180 l50 -130 l30 40 H1600" fill="none" stroke="url(#pulse)"
+        stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.8"/>
+
+  <!-- Little sparkle strokes, like the homepage's -->
+  <g fill="none" stroke-linecap="round" stroke-width="5">
+    <path d="M760 120 l-10 26 M790 132 l-20 18 M800 168 l-26 -4" stroke="#7be0a4" stroke-opacity="0.6"/>
+    <path d="M1520 140 l-14 30 M1500 196 l26 -12" stroke="#a78bfa" stroke-opacity="0.6"/>
+  </g>
+</svg>
