@@ -45,7 +45,7 @@
 
     <div class="report-hero__panel on-dark band-{{ report.health_score|band }}" data-reveal="scale">
       <p class="report-hero__label">Business Health Score</p>
-      <div class="mx-auto mt-3 w-full max-w-60">{% include "reports/_gauge.html" with score=report.health_score %}</div>
+      <div class="mx-auto mt-3 w-full max-w-60 xl:max-w-72">{% include "reports/_gauge.html" with score=report.health_score %}</div>
       <p class="mt-2 text-center"><span class="band-pill">{{ report.health_score|band_label }}</span></p>
       <ul class="report-hero__stats" aria-label="Summary of findings">
         <li class="perk-card tone-rose">
