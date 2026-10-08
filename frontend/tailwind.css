@@ -170,6 +170,15 @@
   a {
     @apply text-primary underline-offset-4 hover:underline;
   }
+  /* Tailwind v4 leaves buttons with the arrow cursor; everything clickable gets the hand. */
+  button:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [role="button"],
+  summary,
+  label[for],
+  input[type="checkbox"] {
+    cursor: pointer;
+  }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-primary;
   }
