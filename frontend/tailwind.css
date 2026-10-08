@@ -617,32 +617,39 @@
     @apply mt-1 ml-auto w-12;
   }
 
-  /* Benefits: text on a soft mint background on the left, the photo on the right. */
+  /* Benefits: one scene. The photo fills the right side and fades (a CSS mask) into the
+     soft mint background, and the text sits on the faded part. */
   .benefits {
-    @apply grid bg-card lg:grid-cols-2;
+    @apply relative isolate flex flex-col overflow-hidden;
+    background: linear-gradient(160deg, var(--card) 35%, color-mix(in srgb, var(--primary-soft) 70%, var(--card)));
   }
-  .benefits__text {
-    @apply relative isolate overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:py-24 lg:pr-12;
-    padding-left: max(1rem, calc((100vw - 72rem) / 2 + 1.5rem));
-    background: linear-gradient(160deg, var(--card) 40%, color-mix(in srgb, var(--primary-soft) 70%, var(--card)));
-  }
-  /* Soft shapes: a blob in the top-left corner, a wave along the bottom right. */
-  .benefits__text::before,
-  .benefits__text::after {
-    @apply pointer-events-none absolute -z-10 rounded-full;
+  .benefits::before {
+    @apply pointer-events-none absolute -top-24 -left-24 -z-10 size-80 rounded-full;
     content: "";
-  }
-  .benefits__text::before {
-    @apply -top-24 -left-24 size-72;
     background: color-mix(in srgb, var(--primary-soft) 60%, transparent);
   }
-  .benefits__text::after {
-    @apply -right-40 -bottom-56 h-96 w-[44rem] rotate-[-14deg];
-    background: color-mix(in srgb, var(--primary-soft) 80%, transparent);
+  .benefits__text {
+    @apply relative py-16 sm:py-20 lg:max-w-[40rem] lg:py-28;
   }
-  .benefits__dots { @apply bottom-8 left-6; }
-  .benefits__spark--title { @apply top-[22%] right-[12%]; color: var(--primary); }
-  .benefits__spark--cta { @apply -right-9 -bottom-9 size-8; color: var(--primary); }
+  .benefits__art {
+    @apply order-last aspect-[4/3] w-full;
+    /* Phones and tablets: the photo sits below the text and fades in at its top edge. */
+    mask-image: linear-gradient(to bottom, transparent, #000 25%);
+  }
+  .benefits__art img {
+    @apply size-full object-cover object-center;
+  }
+  @media (min-width: 64rem) {
+    .benefits__art {
+      @apply absolute inset-y-0 right-0 aspect-auto w-[62%];
+      /* Fully see-through behind the text, solid from the middle of the photo on. */
+      mask-image: linear-gradient(to right, transparent 0%, transparent 24%, #000 56%);
+    }
+    .benefits__art img {
+      @apply object-[70%_center];
+    }
+  }
+  .benefits__spark--title { @apply top-[24%] right-[6%]; color: var(--primary); }
 
   .benefits__title {
     @apply mt-5 text-5xl leading-[1.02] font-extrabold tracking-tight sm:text-6xl;
@@ -685,9 +692,10 @@
     box-shadow: 0 18px 36px -14px color-mix(in srgb, var(--primary) 75%, transparent);
   }
   .btn-pill__arrow {
-    @apply ml-3 inline-flex size-10 items-center justify-center rounded-full transition-transform
-      duration-200;
-    background: rgb(255 255 255 / 0.16);
+    @apply ml-3 inline-flex size-10 items-center justify-center rounded-full text-white
+      transition-transform duration-200;
+    background: color-mix(in srgb, var(--mint) 75%, var(--primary));
+    box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.3);
   }
   .btn-pill--glow:hover .btn-pill__arrow {
     @apply translate-x-1;
