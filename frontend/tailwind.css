@@ -627,6 +627,15 @@
     @apply relative isolate flex flex-col overflow-hidden;
     background: linear-gradient(160deg, var(--card) 35%, color-mix(in srgb, var(--primary-soft) 70%, var(--card)));
   }
+  /* Wide screens: one full screen tall, text centred. The photo then crosses the screen
+     over exactly two screen heights of scrolling, which shows the parallax best. (On
+     phones the photo sits below the text, so a full-height section wouldn't help.) */
+  @media (min-width: 64rem) {
+    .benefits {
+      @apply min-h-screen justify-center;
+      min-height: 100dvh;
+    }
+  }
   .benefits::before {
     @apply pointer-events-none absolute -top-24 -left-24 -z-10 size-80 rounded-full;
     content: "";
