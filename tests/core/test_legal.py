@@ -1,4 +1,4 @@
-"""The legal pages and the site footer."""
+"""Legal pages, the site footer, and the files for crawlers (robots, sitemap, llms.txt)."""
 
 from datetime import date
 
@@ -7,7 +7,12 @@ from django.test import Client
 from django.urls import reverse
 
 from bizzcheckup.core.views import LEGAL_PAGES
+from bizzcheckup.engine.checks import agentic
+from bizzcheckup.engine.context import PROBES
+from bizzcheckup.engine.types import RobotsInfo, Severity
 from bizzcheckup.reports.branding import load_branding
+
+from ..engine.factories import fixture_html, make_context, make_page
 
 pytestmark = pytest.mark.django_db
 
@@ -93,3 +98,36 @@ def test_sitemap_lists_the_home_and_legal_pages(client: Client) -> None:
     updated = load_branding().legal.updated.isoformat()
     assert xml.count(f"<lastmod>{updated}</lastmod>") == len(LEGAL_PAGES)
     assert "/checkups/" not in xml  # reports are private, never listed
+
+
+# --- llms.txt ------------------------------------------------------------------------------
+
+
+def test_llms_txt_is_a_markdown_guide_for_ai_assistants(client: Client) -> None:
+    response = client.get("/llms.txt")
+    text = response.content.decode()
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "text/plain; charset=utf-8"
+    lines = text.splitlines()
+    assert lines[0] == "# BizzCheckup"  # llmstxt.org: the name as the first heading...
+    assert lines[2].startswith("> BizzCheckup is a free website health check-up")  # ...a summary
+    for name, _ in LEGAL_PAGES:  # ...and absolute links to the key pages
+        assert f"(http://testserver{reverse(f'core:{name}')})" in text
+    assert "(http://testserver/sitemap.xml)" in text
+    assert "Google's own speed test" in text  # plain text, not HTML-escaped
+    assert "&#x27;" not in text
+    assert "please don't index" in text  # reports are private
+
+
+def test_our_own_ai_checks_pass_on_our_site(client: Client) -> None:
+    """BizzCheckup should pass the AI-readiness checks it gives other websites."""
+    robots = RobotsInfo(
+        url="https://shop.test/robots.txt",
+        exists=True,
+        text=client.get("/robots.txt").content.decode(),
+    )
+    ctx = make_context(make_page(fixture_html("healthy")), robots=robots, capabilities={PROBES})
+    ctx.probes.llms_txt_text = client.get("/llms.txt").content.decode()
+    for check in (agentic.LlmsTxt, agentic.AiCrawlers):
+        assert {f.severity for f in check().run(ctx)} == {Severity.PASS}, check.id

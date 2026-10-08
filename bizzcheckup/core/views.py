@@ -91,6 +91,22 @@ def robots_txt(request: HttpRequest) -> HttpResponse:
     return HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")
 
 
+def llms_txt(request: HttpRequest) -> HttpResponse:
+    """/llms.txt: a short Markdown guide to the site for AI assistants (https://llmstxt.org)."""
+    return render(
+        request,
+        "core/llms.txt",
+        {
+            # Links must be absolute; built from the request, like robots.txt.
+            "base_url": request.build_absolute_uri("/").rstrip("/"),
+            "vital_signs": VITAL_SIGNS,
+            "max_pages": settings.CHECKUP_MAX_PAGES,
+            "rate_limit": settings.CHECKUP_RATE_LIMIT_PER_HOUR,
+        },
+        content_type="text/plain; charset=utf-8",
+    )
+
+
 def healthz(request: HttpRequest) -> JsonResponse:
     """Tiny endpoint Docker uses to know the web server is alive."""
     return JsonResponse({"status": "ok"})

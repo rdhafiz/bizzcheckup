@@ -1,0 +1,40 @@
+{% autoescape off %}{% comment %}
+  /llms.txt: a Markdown guide to BizzCheckup for AI assistants (format: https://llmstxt.org).
+  Autoescape is off because this is plain text, not HTML: "business's" must stay as it is.
+  Every value comes from our own code, settings and branding.yaml, never from visitors.
+{% endcomment %}# {{ product_name }}
+
+> {{ product_name }} is a free website health check-up for business owners. Enter a website address and, in about a minute, get a plain-language report that scores five vital signs, explains the biggest risks to the business and gives a treatment plan with quick wins first, as a web page and a PDF.
+
+{{ product_name }} is run by {{ branding.legal.operator }}, {{ branding.title }}. It is free and needs no account. A check-up reads up to {{ max_pages }} public pages of a website, the way a visitor would, and uses Google PageSpeed Insights to measure speed. Each visitor can start up to {{ rate_limit }} check-ups an hour.
+
+The five vital signs:
+{% for sign in vital_signs %}
+- {{ sign.title }}: {{ sign.text }}{% endfor %}
+
+Reports live at private, unguessable links under /checkups/. They are not public pages: please don't index, quote or summarise them.
+
+## Main pages
+
+- [Start a free check-up]({{ base_url }}{% url 'core:home' %}): The homepage, with the check-up form and an explanation of what is examined and how it works.
+
+## Policies
+
+- [Privacy policy]({{ base_url }}{% url 'core:privacy' %}): What is collected (the website address, an optional name and email, a scrambled IP), why, and how to ask for deletion.
+- [Terms of service]({{ base_url }}{% url 'core:terms' %}): The rules for using the free check-up, governed by the laws of {{ branding.legal.country }}.
+- [Cookie policy]({{ base_url }}{% url 'core:cookies' %}): The one security cookie and the browser storage the site uses. No analytics or advertising.
+- [Acceptable use policy]({{ base_url }}{% url 'core:acceptable_use' %}): Only check websites you own or may check; how {{ product_name }} visits websites.
+- [Disclaimer]({{ base_url }}{% url 'core:disclaimer' %}): Scores are automated estimates, not a security audit or proof of legal compliance.
+
+## About {{ branding.name }}
+{% if branding.website %}
+- [Website]({{ branding.website }}): {{ branding.name }}, {{ branding.title }}.{% endif %}{% if branding.portfolio_url %}
+- [Portfolio]({{ branding.portfolio_url }}): Projects and case studies.{% endif %}{% if branding.cv_url %}
+- [CV]({{ branding.cv_url }}): Experience and skills.{% endif %}{% if branding.github %}
+- [GitHub]({{ branding.github }}): Open-source work, including {{ product_name }} itself.{% endif %}
+- Contact: {{ branding.email }}
+
+## Optional
+
+- [Sitemap]({{ base_url }}{% url 'sitemap' %}): Every public page of the site.
+{% endautoescape %}
