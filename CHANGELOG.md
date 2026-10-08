@@ -6,6 +6,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Removed
+- The three summary sentences and the "We checked N pages" list under the report
+  overview. The pages checked are shown in **All pages**.
+
 ### Added
 - **Accessibility problems show where they are**: each element the scan flags comes
   with a screenshot of the spot (outlined in red), what's wrong in words, its HTML and

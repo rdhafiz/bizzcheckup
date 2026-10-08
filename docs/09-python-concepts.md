@@ -749,16 +749,24 @@ class ReportView:
 ```
 
 A view model is a small object holding exactly what a page displays. Templates read
-`view.summary` and `view.vital_signs`, and all the deciding happens in Python.
+`view.verdict` and `view.vital_signs`, and all the deciding happens in Python.
 
-## `max()` / `min()` with `key=`
+## Sorting with `key=` (`sort()`, `max()`, `min()`)
 
 ```python
-best = max(scored, key=lambda s: (s.score.score or 0, CATEGORY_WEIGHTS[s.category]))
+problems.sort(
+    key=lambda f: (
+        IMPACT_ORDER[f.impact.value],
+        SEVERITY_ORDER[f.severity],
+        -CATEGORY_WEIGHTS[f.category],
+    )
+)
 ```
 
-`key` says *what to compare*. A tuple compares item by item, so equal scores are decided
-by the category weight.
+`key` says *what to compare* (from `builder.top_risks()`). A tuple compares item by
+item: impact first, then severity, and only when both are equal the category weight
+(negated, so the heaviest category comes first). `max()` and `min()` take the same
+`key=` argument.
 
 ## Django system checks (`reports/apps.py`)
 

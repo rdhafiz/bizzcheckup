@@ -69,16 +69,9 @@
     </div>
   </div>
 
-  <div class="mt-6 space-y-2 text-muted">
-    {% for sentence in view.summary %}<p>{{ sentence }}</p>{% endfor %}
-  </div>
   {% if report.notes %}
-    <ul class="mt-4 space-y-1 text-sm text-muted">{% for note in report.notes %}<li>{{ note }}</li>{% endfor %}</ul>
+    <ul class="mt-6 space-y-1 text-sm text-muted">{% for note in report.notes %}<li>{{ note }}</li>{% endfor %}</ul>
   {% endif %}
-  <p class="mt-4 text-sm text-muted">
-    We checked {{ report.pages|length }} page{{ report.pages|length|pluralize }}:
-    {% for page in report.pages %}<span class="font-mono break-all">{{ page }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}.
-  </p>
 </section>
 
 {# 2. The biggest problems, each with its solution --------------------------------- #}

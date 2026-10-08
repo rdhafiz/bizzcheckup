@@ -88,7 +88,6 @@ class ReportView:
     report: AuditReport
     branding: Branding
     vital_signs: list[VitalSign]
-    summary: list[str]  # the three diagnosis sentences
     top_risks: list[Finding]
     plan: TreatmentPlan
     recommendations: list[Recommendation]
@@ -168,7 +167,6 @@ def build_report(checkup: Checkup) -> ReportView:
         report=report,
         branding=branding,
         vital_signs=vital_signs,
-        summary=diagnosis_summary(checkup.domain, report, vital_signs, plan),
         top_risks=top_risks(report.findings),
         plan=plan,
         recommendations=recommendations,
@@ -192,41 +190,6 @@ def vital_sign(report: AuditReport, category: Category) -> VitalSign:
         notes=[f for f in findings if f.severity is Severity.INFO],
         healthy=[f for f in findings if f.severity is Severity.PASS],
     )
-
-
-def diagnosis_summary(
-    domain: str, report: AuditReport, signs: list[VitalSign], plan: TreatmentPlan
-) -> list[str]:
-    """Three plain-English sentences about the overall result."""
-    sentences = []
-    if report.health_score is not None and report.health_band is not None:
-        sentences.append(
-            f"{domain} has a Business Health Score of {report.health_score} out of 100: "
-            f"{report.health_band.label.lower()}."
-        )
-    scored = [s for s in signs if s.score.score is not None]
-    if scored:
-        best = max(scored, key=lambda s: (s.score.score or 0, CATEGORY_WEIGHTS[s.category]))
-        worst = min(scored, key=lambda s: (s.score.score or 0, -CATEGORY_WEIGHTS[s.category]))
-        if best is worst:
-            sentences.append(f"Its {best.label.lower()} scored {best.score.score}.")
-        else:
-            sentences.append(
-                f"Its strongest vital sign is {best.label.lower()} ({best.score.score}); the "
-                f"one needing the most care is {worst.label.lower()} ({worst.score.score})."
-            )
-    serious = sum(1 for f in plan.all if f.severity is Severity.FAIL)
-    smaller = len(plan.all) - serious
-    pages = len(report.pages)
-    page_word = "page" if pages == 1 else "pages"
-    if plan.all:
-        sentences.append(
-            f"We found {serious} serious and {smaller} smaller issues across {pages} {page_word}, "
-            f"and {len(plan.quick_wins)} of them are quick wins you can fix soon."
-        )
-    else:
-        sentences.append(f"We found no problems across the {pages} {page_word} we checked.")
-    return sentences
 
 
 def top_risks(findings: list[Finding], count: int = 3) -> list[Finding]:

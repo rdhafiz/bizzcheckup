@@ -86,13 +86,6 @@ def test_build_report(finished: Checkup) -> None:
     seo = view.vital_signs[3]
     assert [f.check_id for f in seo.problems] == ["seo.title"]
     assert [f.check_id for f in seo.healthy] == ["seo.sitemap"]
-    assert view.summary == [
-        "shop.test has a Business Health Score of 66 out of 100: needs attention.",
-        "Its strongest vital sign is best practices (95); the one needing the most care is "
-        "seo (48).",
-        "We found 1 serious and 0 smaller issues across 1 page, and 1 of them are quick wins "
-        "you can fix soon.",
-    ]
     assert "<svg" in view.qr_svg
 
 
