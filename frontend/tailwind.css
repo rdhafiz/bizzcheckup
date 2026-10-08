@@ -1404,8 +1404,12 @@ html.motion-ready [data-reveal="words"] {
 html.motion-ready [data-reveal="words"]:not(.words-ready) {
   opacity: 0;
 }
-html.motion-ready [data-reveal="words"] .word {
+/* Split words need inline-block to move; parts kept whole (data-word) keep their own display
+   (the badge icon is a centred flex circle). */
+html.motion-ready [data-reveal="words"] .word:not([data-word]) {
   display: inline-block;
+}
+html.motion-ready [data-reveal="words"] .word {
   opacity: 0;
   transform: translate3d(0, 0.5em, 0);
   filter: blur(9px);
@@ -1417,6 +1421,14 @@ html.motion-ready [data-reveal="words"] .word {
 }
 html.motion-ready [data-reveal="words"][data-from="above"] .word {
   transform: translate3d(0, -0.5em, 0);
+}
+/* The hero badge: its green pill fades in gently while its words (icon first) cascade in,
+   so it never shows as an empty capsule. */
+html.motion-ready .hero-pill[data-reveal="words"] {
+  transition: opacity 600ms cubic-bezier(0.33, 1, 0.68, 1) var(--reveal-delay, 0ms);
+}
+html.motion-ready .hero-pill[data-reveal="words"]:not(.is-revealed) {
+  opacity: 0;
 }
 html.motion-ready [data-reveal="words"].is-revealed .word {
   opacity: 1;

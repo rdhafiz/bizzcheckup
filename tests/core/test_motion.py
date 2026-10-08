@@ -66,6 +66,7 @@ def test_homepage_marks_every_section(client: Client) -> None:
     hero = html[html.index('class="hero-full"') : html.index('class="signs"')]
     # Reveal on the hero's children, parallax on the wrapper: never both on one element.
     assert '<div class="hero__text on-dark" data-parallax="-0.1" data-reveal-group>' in hero
+    assert '<p class="hero-pill" data-reveal="words">' in hero  # the badge, word by word
     assert 'data-parallax="0.22" data-parallax-fill' in hero
 
 

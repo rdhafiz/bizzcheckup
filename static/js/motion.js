@@ -131,7 +131,16 @@
       });
       node.parentNode.replaceChild(pieces, node);
     });
-    heading.querySelectorAll("[data-word]").forEach(function (unit) { unit.classList.add("word"); });
+    // Parts kept whole already exist and are visible: switching them to the hidden start
+    // state must not animate (it would fade them OUT first, a visible flash). Transitions
+    // off, apply, make the browser take it on board now, transitions back on.
+    var units = heading.querySelectorAll("[data-word]");
+    if (units.length) {
+      heading.classList.add("reveal-instant");
+      units.forEach(function (unit) { unit.classList.add("word"); });
+      void getComputedStyle(units[0]).opacity;
+      heading.classList.remove("reveal-instant");
+    }
     heading.querySelectorAll(".word").forEach(function (word, i) {
       word.style.setProperty("--word-delay", Math.min(i * WORD_MS, WORD_CAP_MS) + "ms");
     });

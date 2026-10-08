@@ -22,9 +22,9 @@
         wrapper: one element can't do both, they would fight over `transform`.
       {% endcomment %}
       <div class="hero__text on-dark" data-parallax="-0.1" data-reveal-group>
-        <p class="hero-pill" data-reveal>
-          <span class="hero-pill__icon" aria-hidden="true"><svg class="size-5" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          Free website check-up
+        <p class="hero-pill" data-reveal="words">
+          <span class="hero-pill__icon" aria-hidden="true" data-word><svg class="size-5" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span>Free website check-up</span>{# one flex item, so the words keep normal spaces #}
         </p>
         <h1 id="hero-title" class="hero__title" data-reveal="words">
           <svg data-parallax="-0.15" class="deco-spark hero__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 8 18M30 8 20 20M34 24l-12-1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
