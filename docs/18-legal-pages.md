@@ -65,7 +65,7 @@ printing and in the PDF.
 | Product | Links to the homepage sections (`/#start`, `/#signs-title`, ...) |
 | Legal | The five legal pages |
 | Get in touch | Email, WhatsApp, website, and round icon links to GitHub, portfolio, CV and website |
-| Bottom bar | © year and operator, app version, "Back to top" |
+| Bottom bar | © year and operator, a link to `llms.txt` (the guide for AI assistants), app version, "Back to top" |
 
 The footer needs `branding` on *every* page, not only on pages whose view passes it. So
 `bizzcheckup/core/context_processors.py` adds it to every template automatically.
