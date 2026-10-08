@@ -42,7 +42,8 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 | `collectors/probes.py` | Extra requests: internal link statuses, http→https redirect |
 | `checks/base.py` | The `Check` base class |
 | `schema.py` | Page schema rules: what kind of page it is, which schema it should have, and the full suggested JSON-LD (used by `seo.page_schema`) |
-| `checks/seo.py`, `checks/best_practices.py` | The checks: see [Checks reference](15-checks-reference.md) |
+| `checks/seo.py`, `checks/technical_seo.py`, `checks/best_practices.py`, `checks/mobile.py`, … | The checks: see [Checks reference](15-checks-reference.md) |
+| `preview.py` | Link previews: reads the Open Graph tags, sums up what a platform would show, and writes the complete set of tags a page should have |
 | `registry.py` | The list of all checks |
 | `scoring.py` | The scoring formula |
 | `treatment.py` | Treatment-plan ordering and quick wins |
@@ -77,6 +78,8 @@ switched them on, and BizzCheckup stays an identifiable visitor.
 | `max_redirects` | 5 | Stop redirect loops |
 | `max_page_bytes` | 5 MB | Huge pages are cut off (`truncated=True`) so they can't exhaust memory |
 | `total_timeout` | 180 s | The whole check-up is cancelled after 3 minutes |
+| `max_link_checks` / `max_external_checks` / `max_image_checks` | 50 / 30 / 40 | How many internal links, links to other sites and images get their status checked |
+| `external_timeout` / `outside_budget` | 8 s / 30 s | Per request to another site, and for all status checks together, so slow sites can't hold up the check-up |
 
 ## SSRF protection (`netguard.py`)
 
@@ -107,7 +110,7 @@ need. When it succeeds, it adds its **capability** name. Checks that list that n
 
 | Collector | Capability | Adds | Used by |
 |-----------|------------|------|---------|
-| `collect_probes` (`collectors/probes.py`) | `PROBES` | `ctx.probes.http_final_url` (where `http://` ends up); `link_status` (internal link to HTTP status, 0 = unreachable); `link_sources` (which pages contain each link); `llms_txt_text`; `as_ai_agent` / `as_browser` (the homepage fetched with a GPTBot and a Chrome User-Agent: status, length, challenge page?) | `seo.broken_links`, `best_practices.http_redirect`, `agentic.llms_txt`, `agentic.bot_blocking` |
+| `collect_probes` (`collectors/probes.py`) | `PROBES` | `ctx.probes.http_final_url` (where `http://` ends up); `link_status` (internal link to HTTP status, 0 = unreachable); `link_sources` (which pages contain each link); `external_status` / `external_sources` (the same for links to other websites); `image_status` / `image_sources` (every image, on any site); `og_image_*` (the homepage's preview picture: status, real type from its first bytes, size, and the bytes themselves when it's a JPG/PNG/GIF/WebP under 5 MB); `llms_txt_text`; `as_ai_agent` / `as_browser` (the homepage fetched with a GPTBot and a Chrome User-Agent: status, length, challenge page?) | `seo.broken_links`, `seo.broken_external_links`, `seo.broken_images`, `seo.social_tags`, `best_practices.http_redirect`, `agentic.llms_txt`, `agentic.bot_blocking` |
 | `collect_render` (`collectors/render.py`) | `RENDER` | `ctx.render`: rendered HTML, visible text length, JPEG screenshot, console errors, cookies (first- or third-party), library versions, axe-core violations and passes, blocked requests | `accessibility.axe_scan`, `best_practices.console_errors`, `best_practices.third_party_cookies`, `best_practices.outdated_libraries`, and all accessibility checks (through `ctx.dom()`) |
 | `collect_pagespeed` (`collectors/pagespeed.py`) | `PAGESPEED` | `ctx.pagespeed.mobile` / `.desktop`: Lighthouse score, LCP, CLS, TBT, FCP, speed index, page weight, render-blocking files, off-screen and unsized images, plus real-visitor field data | All performance checks |
 
@@ -145,6 +148,7 @@ to 5 seconds for late scripts), then collects the data below. A typical site tak
 | Cookies | `context.cookies()`. Third-party means a different *site* (`urls.site_domain()`: `www.shop.co.uk` and `shop.co.uk` count as the same site) |
 | Library versions | Reads `jQuery.fn.jquery`, Bootstrap's `VERSION`, `angular.version` and lodash `_.VERSION` from the running page |
 | Accessibility | Runs axe-core with the WCAG 2.0/2.1/2.2 A and AA rules plus best practices |
+| Phone and tablet views | Opens the homepage again, at the same time, as a 390×844 phone and an 820×1180 tablet (touch, mobile browser identity, `config.DEVICES`). In each one `MEASURE_JS` records the layout width (980 means "no mobile layout, desktop page shrunk"), the page width (wider means sideways scrolling) and what sticks out, links and buttons smaller than 24×24 px, and how much text is under 12 px, plus a first-screen screenshot. Saved as `ctx.render.devices` (`DeviceView`). If a device fails to load, it's simply left out. |
 
 **`ctx.dom(page)`**: accessibility checks read the *rendered* homepage when the
 browser ran, and the raw HTML otherwise. A site built with JavaScript (React, Vue…)
@@ -199,6 +203,9 @@ uses the same browser. The Docker image sets its own path (`/ms-playwright`).
    allowed by robots.txt for `BizzCheckup`.
 5. Fetch the chosen pages two at a time. A page that fails, or answers with HTTP 400
    or higher, is noted in `errors` instead of being analysed. It doesn't stop the crawl.
+6. Record **every** page address we came across (`CrawlResult.discovered`, at most
+   1000): the homepage, the sitemap, homepage links and links on the crawled pages.
+   The report lists them under "We found N pages", checked or not.
 
 The homepage is fetched even if robots.txt disallows it, because the owner asked for
 it. Discovering extra pages always respects robots.txt.

@@ -85,6 +85,21 @@ them ("every site failing `seo.title`").
 | `affected_urls` | JSON list of URLs |
 | `snippets` | JSON list of suggested fixes, each `{"title", "code", "language"}` (e.g. a page's JSON-LD). Added in migration `0003_finding_snippets` |
 
+### `CheckupImage`: the report's other pictures
+
+The homepage screenshot has its own column (`Checkup.screenshot`); every other picture
+gets a row here instead of a new column each time.
+
+| Field | Meaning |
+|-------|---------|
+| `checkup` | Which check-up it belongs to (deleted with it) |
+| `kind` | `link_preview` (the og:image), `mobile` or `tablet` (screenshots). One of each per check-up. |
+| `content_type` | `image/jpeg`, `image/png`, `image/gif` or `image/webp` only, decided from the file's first bytes. SVG is never stored: it can contain scripts. |
+| `data` | The picture itself |
+
+Served by `/checkups/<id>/images/<kind>/` (`views.image`). Added in migration
+`0004_checkupimage`.
+
 ### `Lead`: a visitor who left their details
 
 `name` (optional), `email`, `consent` (did they agree to be contacted), `created_at`.

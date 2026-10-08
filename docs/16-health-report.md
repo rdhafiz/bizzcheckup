@@ -14,6 +14,7 @@ The order follows the questions a business owner asks, one at a time:
 | 2 | **Top risks** (`#top-issues`) | *What are the biggest problems?* | Up to 3 cards: the problem, **what it costs you**, and **the solution** side by side | `builder.top_risks()` |
 | 3 | **Treatment plan** (`#plan`) | *What do I do, and in what order?* | A **checklist**: quick wins first, then next steps; each step links to its details | `engine.treatment.build_treatment_plan()` |
 | 4 | **Vital signs** ×5 (`#sign-<category>`) | *Tell me more.* | Icon, score ring, a one-line **headline** ("5 issues worth fixing."), then each issue as a row that opens to show *why it matters*, *how to fix it* and *where*; "Good to know" notes; passed checks folded | `builder.vital_sign()`, `VitalSign.headline` |
+| 4b | **All pages** (`#pages`) | *Which pages were checked?* | Every page address found (sitemap and links): checked ones first with a "Checked" badge, the first 30 shown and the rest behind "Show all" ("and N more" in the PDF). When some weren't checked, the **full check-up proposal** sits beside the list | `ReportView.all_pages`, `.unchecked_count`, `branding.full_audit` |
 | 5 | **How {first name} can help** (`#help`) | *Who can fix this?* | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, plus the broad "rebuild" service when 3+ areas need care, and the call to action | `builder.recommend_services()` |
 | 6 | **Contact** (`#contact`) | *How do I reach them?* | Photo, name, title, intro, highlights, email, WhatsApp, website, GitHub, CV, portfolio, QR code, footer note | `branding.yaml`, `builder.qr_code_svg()` |
 
@@ -22,11 +23,31 @@ Every finding shows its severity ("Needs treatment", "Worth fixing", "Good to kn
 **why it matters for your business**, **how to fix it**, and the affected URLs (the first
 5, then "and N more").
 
-When a check can write the fix itself (today: **Page schema**), the issue also shows
-**"Ready to use"** code blocks, one per page, each folded under its page and what's
+When a check can write the fix itself (**Page schema**, **Essential meta tags**, **Link
+previews**), the issue also shows **"Ready to use"** code blocks, one per page, each folded under its page and what's
 missing. A **Copy** button copies the code (`static/js/report.js`, `setUpCopyCode()`).
 If the browser blocks the clipboard, the code is selected instead and the button says
 "press Ctrl+C". In the PDF the blocks are open, the button is hidden and long lines wrap.
+Checks that explain rather than fix (heading outlines, image lists, URL suggestions,
+broken links with the pages they're on) use the same blocks under **"Page by page"**
+(`Snippet.language == "text"`).
+
+### Device screenshots (`templates/reports/_devices.html`)
+
+The overview shows the homepage on a **computer, a tablet and a phone** as tabs
+(`setUpDeviceTabs()` in `report.js`, the standard ARIA tabs pattern: arrow keys, Home
+and End). Without JavaScript all three are shown one under the other, and the PDF
+shows the computer view with the tablet and phone side by side underneath. The tablet
+and phone pictures sit in a box the same shape as the desktop one, so switching tabs
+doesn't move the page. The tabs only appear when those pictures exist.
+
+### Link preview card (`templates/reports/_link_preview.html`)
+
+At the top of the SEO section: how the homepage looks when shared (picture, domain,
+title, description), from `AuditReport.link_preview`. The picture is the one the
+engine downloaded and checked, served from **our** site (`/checkups/<id>/images/link_preview/`),
+so the report never loads anything from the audited site (the CSP forbids it, and it
+would tell that site who is reading the report).
 
 ## The report's design, and why
 
@@ -75,6 +96,8 @@ Pydantic model:
 - `related_categories` must be real category ids, so a typo like `speed` is an error.
 - URLs must be valid URLs.
 - `call_to_action` must have a heading, text, button label and URL.
+- `full_audit` (optional) is the "check every page" proposal: heading, text, the list of
+  what's included, and a button. Without `button_url` it uses the call to action's.
 
 `load_branding()` caches the result and **re-reads the file automatically when it
 changes**. The cache key includes the file's modified time.

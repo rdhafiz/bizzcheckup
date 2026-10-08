@@ -7,6 +7,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **Technical SEO checks**, page by page: heading outline review, image alt text and
+  file names, clean URLs (with a suggested clean address for each), and essential meta
+  tags (with a complete `<head>` block per page).
+- **Link previews on every page** (was the homepage only): a ready-made block of
+  Open Graph tags per page, the preview picture downloaded and checked, and a share
+  card in the report showing how the homepage looks on Facebook, WhatsApp or LinkedIn.
+- **Broken links to other websites and broken images**, each listed with the pages
+  they're on. Sites that refuse robots (LinkedIn's 999, 403, 429) aren't counted as broken.
+- **Phone and tablet checks**: the homepage is opened as a 390 px phone and an 820 px
+  tablet to check for a shrunken desktop page, sideways scrolling, links too small to
+  tap and tiny text. The report shows Desktop / Tablet / Phone screenshots as tabs.
+- **"We found N pages"**: every page address found (sitemap and links), which ones were
+  checked, and a proposal to check the whole website (`full_audit` in `branding.yaml`).
+- New `CheckupImage` table for the report's extra pictures (migration `0004`).
 - **Page schema check** (`seo.page_schema`, replaces `seo.structured_data`): works out
   what kind each page is (homepage, about, contact, article, product, service, FAQ,
   listing, other), checks its JSON-LD has the types and properties that kind needs, and

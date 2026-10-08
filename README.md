@@ -25,15 +25,15 @@ quick wins first, and a closing page where the consultant offers to help.
 
 ## What it checks
 
-45 checks in five vital signs. Every finding explains **why it matters for the business**
+54 checks in five vital signs. Every finding explains **why it matters for the business**
 first, then **how to fix it**, with severity, effort, impact and the affected URLs.
 
 | Vital sign | Examples |
 |------------|----------|
 | **Performance** | Google PageSpeed mobile and desktop scores, Core Web Vitals (LCP, CLS, INP/TBT, FCP; real-visitor data when available), page weight, unsized images, lazy loading, render-blocking files |
 | **Accessibility** | axe-core scan by impact, image alt text, page language, heading order, form labels, link and button names |
-| **Best practices** | HTTPS and the http→https redirect, mixed content, HSTS, CSP, nosniff, frame protection, Referrer-Policy, JavaScript errors, third-party cookies, outdated jQuery/Bootstrap/AngularJS/Lodash, doctype, charset, viewport |
-| **SEO** | Titles, descriptions, one H1, canonical, robots.txt, sitemap, noindex, Open Graph/Twitter tags, valid JSON-LD, broken internal links, duplicate titles |
+| **Best practices** | HTTPS and the http→https redirect, mixed content, HSTS, CSP, nosniff, frame protection, Referrer-Policy, JavaScript errors, third-party cookies, outdated jQuery/Bootstrap/AngularJS/Lodash, doctype, charset, viewport, phone and tablet layout, tap targets, text size |
+| **SEO** | Titles, descriptions, meta tags, heading outline, image alt text and file names, clean URLs, canonical, robots.txt, sitemap, noindex, link previews on every page, page schema (JSON-LD), broken links, images and outside links, duplicate titles |
 | **Agentic browsing** | llms.txt, AI crawlers in robots.txt (search vs training bots), firewalls/CDNs blocking AI agents, JSON-LD, page landmarks, named controls, content readable without JavaScript |
 
 Full list with every pass/warn/fail rule: [docs/15-checks-reference.md](docs/15-checks-reference.md).
@@ -63,7 +63,7 @@ flowchart LR
     subgraph E [Audit engine - pure Python, no Django]
       direction TB
       C[Crawler<br/>robots, sitemap, 10 pages] --> X
-      X[Collectors in parallel<br/>probes, Chromium + axe, PageSpeed] --> CH[45 checks]
+      X[Collectors in parallel<br/>probes, Chromium + axe, PageSpeed] --> CH[54 checks]
       CH --> S[Scoring + treatment plan]
     end
 

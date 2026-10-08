@@ -29,10 +29,30 @@ Severity meanings:
 | `seo.robots_txt` | robots.txt | 5 | `/robots.txt` | Exists, Googlebot allowed | Missing | Blocks Googlebot from the homepage (high impact) |
 | `seo.sitemap` | Sitemap | 4 | Sitemaps from robots.txt or `/sitemap.xml` | Found with pages (plus info if robots.txt doesn't mention it) | Missing or empty | — |
 | `seo.indexable` | Visible to Google | 9 | `noindex` in meta robots, meta googlebot or the `X-Robots-Tag` header | No noindex | — (other pages with noindex give **info**) | Homepage is noindex (high impact) |
-| `seo.social_tags` | Social media previews | 3 | `og:title`, `og:description`, `og:image`, `twitter:card` on the homepage | All four | Some or all missing | — |
+| `seo.social_tags` | Link previews | 4 | `og:title`, `og:description`, `og:image`, `twitter:card` on **every page** (partial); the homepage's `og:image` is downloaded to check it (needs PROBES for that part) | All four on every page, and the picture loads | Tags missing, `og:image` not a full address, or the picture is missing, not an image or over 5 MB. Each page gets a ready-made block of tags. | — |
 | `seo.page_schema` | Page schema | 4 | JSON-LD on every page, compared with what that **kind** of page should have (see below) | Every page has its expected types with their required properties (only optional extras missing gives **info**) | A type is missing, or a required property is missing (medium impact on the homepage, low elsewhere) | Invalid JSON (search engines ignore the whole block) |
-| `seo.broken_links` | Broken links | 6 | Status of internal links (needs PROBES) (partial) | All work | — | Any status ≥ 400 or unreachable |
+| `seo.broken_links` | Broken links | 6 | Status of internal links (needs PROBES) (partial) | All work | — | Any status ≥ 400 or unreachable, with a list of the pages each one is on |
 | `seo.duplicate_titles` | Unique page titles | 4 | Same title on several pages | All unique | Duplicates found | — |
+
+### Technical SEO (`bizzcheckup/engine/checks/technical_seo.py`)
+
+These go deeper than the basic checks above: each one reviews every page and adds a
+**page-by-page breakdown** (a `Snippet`) to the report, so the owner sees exactly what
+to change where.
+
+| Id | Title | Weight | Looks at | Pass | Info | Warn | Fail |
+|----|-------|--------|----------|------|------|------|------|
+| `seo.heading_structure` | Heading structure | 4 | Every heading (H1–H6) per page, as an outline (partial) | Clear outline | Only notes: no H1, several H1s, skipped levels, an H1 over 70 characters, a 300+ word page without H2s | Empty headings, the same H1 on several pages, or the H1 not the first heading | — |
+| `seo.image_seo` | Image descriptions and file names | 4 | Every `<img>` (partial) | All described | Only camera-style file names (`IMG_4821.jpg`) or alt text over 125 characters | Missing alt, alt that is a file name, or a word like "image" | — |
+| `seo.url_structure` | Clean page addresses (URLs) | 3 | Crawled pages and internal links (partial) | All clean | Over 115 characters, more than 4 folders deep, many `?` parameters, technical endings (`.php`) | Capital letters, underscores, spaces, double slashes, session ids, or links to the `http://` version. Each comes with a suggested clean address. | — |
+| `seo.meta_tags` | Essential meta tags | 4 | `title`, `description`, `viewport`, `charset`, `canonical` and `<html lang>` on every page, plus meta refresh (partial) | All present | Only the language missing | Any of the five core tags missing (with a complete `<head>` block per page), or a meta refresh | — |
+| `seo.broken_external_links` | Links to other websites | 3 | Up to 30 links to other sites (needs PROBES) (partial) | All work | — | Any 404/410/5xx or unreachable. 401, 403, 429 and 999 (LinkedIn) mean "robots not allowed", so they don't count. | — |
+| `seo.broken_images` | Broken images | 4 | Up to 40 images on any site (needs PROBES) (partial) | All load | — | — | Any that don't load |
+
+Not applicable: `heading_structure` without headings, `image_seo` without images, and
+the two probe checks when nothing was probed. Requests to other websites have a short
+timeout (`external_timeout`, 8 s), run 4 at a time, and share a 30-second budget
+(`outside_budget`): whatever hasn't answered by then is left out, never counted as broken.
 
 Not applicable (left out of the score): `seo.broken_links` when there are no internal
 links, and `seo.duplicate_titles` when only one page was crawled.
@@ -86,6 +106,9 @@ The suggestions travel on the finding as `snippets` (a `Snippet` has a `title` a
 | `best_practices.viewport` | Mobile-friendly setup | 7 | `<meta name="viewport">` | Has `width=device-width` | Present but fixed width | Missing (high impact) |
 | `best_practices.console_errors` | JavaScript errors | 4 | Errors in the browser console (needs RENDER) | None | Any (duplicates counted once; up to 3 shown) | — |
 | `best_practices.third_party_cookies` | Third-party cookies | 3 | Cookies from other sites when the homepage loads (needs RENDER) | None | Any, with the company domains listed | — |
+| `best_practices.mobile_layout` | Fits phone and tablet screens | 7 | The homepage opened as a 390 px phone and an 820 px tablet (needs RENDER) | No shrinking, no sideways scrolling | The same problems on the tablet | On the phone: the desktop page shown shrunk (no mobile layout), or wider than the screen, with the elements sticking out listed (high impact) |
+| `best_practices.tap_targets` | Easy to tap on phones | 4 | Links and buttons on the phone view smaller than 24 × 24 px (WCAG 2.5.8); links inside a sentence are exempt (partial) | None too small | 1–2 too small (**info**), with examples | 3 or more, or 10%+ | — |
+| `best_practices.mobile_text_size` | Readable text on phones | 4 | Share of visible text smaller than 12 px on the phone view | Under 5% | 5–25% (**info**) | 25% or more, or the page is shown shrunk | — |
 
 The HTTPS-only checks (`http_redirect`, `mixed_content`, `hsts`) don't apply to a
 site that is plain `http://`. The `https` check already reports that problem.
