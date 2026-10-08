@@ -200,37 +200,76 @@
   </div>
 </section>
 
-{# 6. Contact -------------------------------------------------------------------------- #}
+{# 6. Contact: a dark card in the opening band's style -------------------------------- #}
 <section id="contact" class="report-section" aria-labelledby="contact-title">
-  <p class="eyebrow-dash" data-reveal>Contact</p>
-  <div class="card mt-4" data-reveal>
-    <div class="grid gap-8 md:grid-cols-[auto_1fr]">
-      {% if brand.photo_url %}
-        <img class="size-36 rounded-2xl border border-line bg-primary-soft object-cover" src="{{ brand.photo_url }}" alt="Photo of {{ brand.name }}" width="144" height="144">
-      {% endif %}
-      <div>
-        <h2 id="contact-title" class="text-3xl font-bold">{{ brand.name }}</h2>
-        <p class="mt-1 font-semibold text-primary">{{ brand.title }}</p>
-        {% if brand.intro %}<p class="mt-4 max-w-2xl">{{ brand.intro }}</p>{% endif %}
-        {% if brand.highlights %}
-          <ul class="mt-4 flex flex-wrap gap-2">{% for item in brand.highlights %}<li class="chip">{{ item }}</li>{% endfor %}</ul>
+  <div class="section-head" data-reveal-group>
+    <p class="eyebrow-dash" data-reveal>Contact</p>
+    <h2 id="contact-title" class="section-title" data-reveal="words">Talk to <span class="text-highlight" data-word>{{ brand.first_name }}</span> about your report</h2>
+  </div>
+
+  <div class="contact-card on-dark mt-8" data-reveal>
+    <div class="contact-card__profile">
+      <div class="flex flex-wrap items-center gap-5">
+        {% if brand.photo_url %}
+          <span class="contact-photo">
+            <img src="{{ brand.photo_url }}" alt="Photo of {{ brand.name }}" width="112" height="112" loading="lazy">
+          </span>
         {% endif %}
+        <div class="min-w-0">
+          <h3 class="text-2xl font-bold sm:text-3xl">{{ brand.name }}</h3>
+          <p class="mt-1 font-semibold text-[var(--mint)]">{{ brand.title }}</p>
+        </div>
       </div>
+      {% if brand.intro %}<p class="mt-6 max-w-2xl text-muted">{{ brand.intro }}</p>{% endif %}
+      {% if brand.highlights %}
+        <ul class="contact-badges" aria-label="Experience">
+          {% for item in brand.highlights %}
+            <li class="contact-badge">{% include "partials/icon.html" with name="pass" css="size-4" %}{{ item }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
-    <div class="mt-8 grid gap-8 border-t border-line pt-6 md:grid-cols-[1fr_auto]">
-      <dl class="grid gap-4 sm:grid-cols-2">
-        <div><dt class="text-sm text-muted">Email</dt><dd><a href="mailto:{{ brand.email }}">{{ brand.email }}</a></dd></div>
-        {% if brand.whatsapp_url %}<div><dt class="text-sm text-muted">WhatsApp</dt><dd><a href="{{ brand.whatsapp_url }}" rel="noopener" target="_blank">Message on WhatsApp</a></dd></div>{% endif %}
-        {% if brand.website %}<div><dt class="text-sm text-muted">Website</dt><dd><a class="break-all" href="{{ brand.website }}" rel="noopener" target="_blank">{{ brand.website }}</a></dd></div>{% endif %}
-        {% if brand.github %}<div><dt class="text-sm text-muted">GitHub</dt><dd><a class="break-all" href="{{ brand.github }}" rel="noopener" target="_blank">{{ brand.github }}</a></dd></div>{% endif %}
-        {% if brand.cv_url %}<div><dt class="text-sm text-muted">CV</dt><dd><a href="{{ brand.cv_url }}" rel="noopener" target="_blank">View my CV</a></dd></div>{% endif %}
-        {% if brand.portfolio_url %}<div><dt class="text-sm text-muted">Portfolio</dt><dd><a href="{{ brand.portfolio_url }}" rel="noopener" target="_blank">See my work</a></dd></div>{% endif %}
-      </dl>
+    <div class="contact-card__reach">
+    <ul class="contact-links" aria-label="Ways to reach {{ brand.first_name }}">
+      <li><a class="contact-link tone-green" href="mailto:{{ brand.email }}">
+        <span class="perk-card__icon">{% include "partials/icon.html" with name="mail" css="size-5" %}</span>
+        <span class="min-w-0"><span class="contact-link__label">Email</span><span class="contact-link__value">{{ brand.email }}</span></span>
+        {% include "partials/icon.html" with name="arrow" css="size-4 contact-link__go" %}
+      </a></li>
+      {% if brand.whatsapp_url %}<li><a class="contact-link tone-teal" href="{{ brand.whatsapp_url }}" rel="noopener" target="_blank">
+        <span class="perk-card__icon">{% include "partials/icon.html" with name="chat" css="size-5" %}</span>
+        <span class="min-w-0"><span class="contact-link__label">WhatsApp</span><span class="contact-link__value">Message on WhatsApp</span></span>
+        {% include "partials/icon.html" with name="arrow" css="size-4 contact-link__go" %}
+      </a></li>{% endif %}
+      {% if brand.website %}<li><a class="contact-link tone-blue" href="{{ brand.website }}" rel="noopener" target="_blank">
+        <span class="perk-card__icon">{% include "partials/icon.html" with name="globe" css="size-5" %}</span>
+        <span class="min-w-0"><span class="contact-link__label">Website</span><span class="contact-link__value">{{ brand.website|url_host }}</span></span>
+        {% include "partials/icon.html" with name="arrow" css="size-4 contact-link__go" %}
+      </a></li>{% endif %}
+      {% if brand.github %}<li><a class="contact-link tone-violet" href="{{ brand.github }}" rel="noopener" target="_blank">
+        <span class="perk-card__icon">{% include "partials/icon.html" with name="github" css="size-5" %}</span>
+        <span class="min-w-0"><span class="contact-link__label">GitHub</span><span class="contact-link__value">{{ brand.github|url_host }}{{ brand.github|url_path }}</span></span>
+        {% include "partials/icon.html" with name="arrow" css="size-4 contact-link__go" %}
+      </a></li>{% endif %}
+      {% if brand.cv_url %}<li><a class="contact-link tone-amber" href="{{ brand.cv_url }}" rel="noopener" target="_blank">
+        <span class="perk-card__icon">{% include "partials/icon.html" with name="file" css="size-5" %}</span>
+        <span class="min-w-0"><span class="contact-link__label">CV</span><span class="contact-link__value">View my CV</span></span>
+        {% include "partials/icon.html" with name="arrow" css="size-4 contact-link__go" %}
+      </a></li>{% endif %}
+      {% if brand.portfolio_url %}<li><a class="contact-link tone-rose" href="{{ brand.portfolio_url }}" rel="noopener" target="_blank">
+        <span class="perk-card__icon">{% include "partials/icon.html" with name="sparkles" css="size-5" %}</span>
+        <span class="min-w-0"><span class="contact-link__label">Portfolio</span><span class="contact-link__value">See my work</span></span>
+        {% include "partials/icon.html" with name="arrow" css="size-4 contact-link__go" %}
+      </a></li>{% endif %}
+    </ul>
       {% if view.qr_svg %}
-        <figure class="text-center">
-          <div class="qr inline-block rounded-xl border border-line bg-white p-2">{{ view.qr_svg|safe }}</div>
-          <figcaption class="mt-2 text-xs text-muted">Scan to visit {{ brand.qr_target }}</figcaption>
+        <figure class="contact-qr">
+          <div class="contact-qr__code">{{ view.qr_svg|safe }}</div>
+          <figcaption class="min-w-0">
+            <span class="block font-semibold">Scan to visit</span>
+            <span class="mt-0.5 block text-sm break-all text-muted">{{ brand.qr_target }}</span>
+          </figcaption>
         </figure>
       {% endif %}
     </div>

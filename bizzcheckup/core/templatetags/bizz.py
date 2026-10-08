@@ -73,9 +73,15 @@ def contrast(note: str) -> dict[str, str] | None:
 
 
 @register.filter
-def url_path(url: str) -> str:
+def url_host(url: object) -> str:
+    """The domain only, without "www.": https://www.shop.com/about -> shop.com"""
+    return (urlsplit(str(url)).hostname or "").removeprefix("www.")
+
+
+@register.filter
+def url_path(url: object) -> str:
     """The part after the domain: https://shop.com/about?x=1 -> /about?x=1"""
-    parts = urlsplit(url)
+    parts = urlsplit(str(url))
     return parts.path + (f"?{parts.query}" if parts.query else "") or "/"
 
 

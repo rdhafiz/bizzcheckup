@@ -7,6 +7,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Changed
+- **The report's contact section is redesigned** in the homepage's theme: a dark card with
+  the photo in a green ring, credential badges, a large tile with a coloured icon for
+  each way to get in touch, and a "Scan to visit" QR card. The QR code now fills its box
+  instead of leaving an empty strip.
 - **The report's opening band shows the website's own preview image** (its `og:image`)
   behind the dark backdrop, or a demo picture in the brand colours when it has none.
 - **The report wears the homepage's theme**: a dark opening band with the hero photo,

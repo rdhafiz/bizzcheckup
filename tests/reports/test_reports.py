@@ -142,6 +142,12 @@ def test_top_risks_order() -> None:
     assert [r.message for r in risks] == [base.message, "warn", "low"]
 
 
+def test_qr_code_scales_to_its_box() -> None:
+    svg = qr_code_svg("https://example.com")
+    assert 'viewBox="' in svg  # CSS sizes it; no fixed width/height that would crop it
+    assert "width=" not in svg.split(">", 1)[0]
+
+
 def test_qr_code_is_inline_svg() -> None:
     svg = qr_code_svg("https://ridwanulhafiz.me")
     assert svg.startswith("<svg")

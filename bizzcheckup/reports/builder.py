@@ -290,5 +290,6 @@ def recommend_services(
 def qr_code_svg(target: str) -> str:
     """An inline <svg> QR code that scans to `target` (no external image needed)."""
     qr = segno.make(target, error="m")
-    svg: str = qr.svg_inline(scale=4, dark="#0e1b1e", light="#ffffff", border=2)
+    # omitsize: a viewBox instead of a fixed width/height, so CSS can scale it to fit its box
+    svg: str = qr.svg_inline(scale=4, dark="#0e1b1e", light="#ffffff", border=2, omitsize=True)
     return svg
