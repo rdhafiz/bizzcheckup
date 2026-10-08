@@ -158,43 +158,71 @@
 {# 4. Every page we found, and the offer to check them all ------------------------- #}
 {% include "reports/_pages.html" %}
 
-{# 5. How the consultant can help ------------------------------------------------- #}
+{# 5. How the consultant can help: the homepage's vital-sign cards, one per area ------- #}
 <section id="help" class="report-section" aria-labelledby="help-title">
   <div class="section-head" data-reveal-group>
     <svg class="deco-spark section-spark section-spark--violet" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 13 22M16 34l18-9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
     <p class="eyebrow-dash" data-reveal>Your next step</p>
     <h2 id="help-title" class="section-title" data-reveal="words">How {{ brand.first_name }} can <span class="text-highlight" data-word>help</span></h2>
+    <p class="section-intro" data-reveal>{% if view.recommendations %}One service for each vital sign that needs care, matched to what this report found.{% else %}Your website is healthy. If you're planning something new, a web app, a redesign or a new business system, {{ brand.first_name }} is happy to help.{% endif %}</p>
   </div>
-  {% if view.recommendations %}
-    <div class="mt-8 grid gap-4 md:grid-cols-2" data-reveal-group>
+
+  {% if view.recommendations or view.extra_services %}
+    <div class="help-grid mt-8" data-reveal-group>
       {% for rec in view.recommendations %}
-        <article class="card help-card band-{{ rec.score|band }}" data-reveal>
-          <p class="flex items-center gap-2 text-sm font-semibold">
-            {% include "partials/icon.html" with name=rec.category.value css="size-5 text-primary" %}
-            <span class="band-pill text-xs">{{ rec.category.label }} · {{ rec.score }}</span>
-          </p>
-          <h3 class="mt-3 text-lg font-bold">{{ rec.service.name }}</h3>
-          <p class="mt-2 text-sm text-muted">{{ rec.service.description }}</p>
-        </article>
+        {# A lone last card (odd count) spans both columns: no empty cell beside it. #}
+        <div {% if forloop.last and forloop.counter|divisibleby:2 is False %}class="help-grid__wide"{% endif %} data-reveal>
+          <article class="sign-card help-card tone-{{ rec.tone }}">
+            <svg class="sign-card__wave" viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true"><path d="M30 0c18 28 46 34 74 30 26-4 40 10 56 34V0z"/></svg>
+            <div class="flex items-start justify-between gap-4">
+              <span class="sign-badge" aria-hidden="true">{% include "partials/icon.html" with name=rec.icon css="size-8" %}</span>
+              <p class="help-card__score band-{{ rec.score|band }}">
+                <span class="font-mono text-2xl font-bold">{{ rec.score|default:"–" }}</span><span class="text-xs text-muted">/100</span>
+                <span class="band-pill mt-1 text-xs">{{ rec.score|band_label }}</span>
+              </p>
+            </div>
+            <p class="help-card__area">{{ rec.category.label }}</p>
+            <h3 class="mt-1 text-xl leading-snug font-bold">{{ rec.service.name }}</h3>
+            <p class="mt-2 text-sm text-muted">{{ rec.service.description }}</p>
+            {% if rec.issues %}
+              {% if pdf %}
+                <p class="help-card__link">Treats the {{ rec.issues }} {{ rec.category.label|lower }} issue{{ rec.issues|pluralize }} in this report</p>
+              {% else %}
+                <a class="help-card__link" href="#issues" data-filter-category="{{ rec.category.value }}">
+                  Treats the {{ rec.issues }} {{ rec.category.label|lower }} issue{{ rec.issues|pluralize }} in this report
+                  <span class="sign-card__go" aria-hidden="true">{% include "partials/icon.html" with name="arrow" css="size-4" %}</span>
+                </a>
+              {% endif %}
+            {% endif %}
+          </article>
+        </div>
       {% endfor %}
       {% for service in view.extra_services %}
-        <article class="card help-card" data-reveal>
-          <p class="eyebrow-dash">When patching isn't enough</p>
-          <h3 class="mt-3 text-lg font-bold">{{ service.name }}</h3>
-          <p class="mt-2 text-sm text-muted">{{ service.description }}</p>
-        </article>
+        <div class="help-grid__wide" data-reveal>
+          <article class="help-rebuild on-dark">
+            <svg class="deco-spark help-rebuild__spark" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 8 18M30 8 20 20M34 24l-12-1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+            <span class="perk-card__icon tone-green">{% include "partials/icon.html" with name="sparkles-solid" css="size-6" %}</span>
+            <div class="min-w-0">
+              <p class="eyebrow-dash">When patching isn't enough</p>
+              <h3 class="mt-2 text-2xl font-bold">{{ service.name }}</h3>
+              <p class="mt-2 max-w-2xl text-muted">{{ service.description }}</p>
+              <p class="mt-4 flex flex-wrap gap-2">
+                {% for category in service.related_categories %}<span class="contact-badge text-xs">{{ category.label }}</span>{% endfor %}
+              </p>
+            </div>
+          </article>
+        </div>
       {% endfor %}
     </div>
-  {% else %}
-    <p class="mt-4 max-w-2xl text-muted">Your website is healthy. If you're planning something new, a web app, a redesign or a new business system, {{ brand.first_name }} is happy to help.</p>
   {% endif %}
 
-  <div class="cta mt-8" data-reveal="scale">
-    <div>
-      <h3 class="text-2xl font-bold">{{ brand.call_to_action.heading }}</h3>
+  <div class="help-cta mt-8" data-reveal="scale">
+    <svg class="help-cta__pulse" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 70h220l26-44 40 88 32-64 18 20h264" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="relative">
+      <h3 class="text-2xl font-bold sm:text-3xl">{{ brand.call_to_action.heading }}</h3>
       <p class="mt-2 max-w-2xl">{{ brand.call_to_action.text }}</p>
     </div>
-    <a class="btn-primary shrink-0" href="{{ brand.call_to_action.button_url }}" rel="noopener" target="_blank">
+    <a class="help-cta__button" href="{{ brand.call_to_action.button_url }}" rel="noopener" target="_blank">
       {{ brand.call_to_action.button_label }} {% include "partials/icon.html" with name="arrow" css="size-4" %}
     </a>
   </div>

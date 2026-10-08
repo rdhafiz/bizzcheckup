@@ -281,6 +281,14 @@ def test_hero_falls_back_to_the_demo_picture(client: Client, finished: Checkup) 
     assert "img/report-hero-demo.svg" in hero[:1500]
 
 
+def test_help_cards_link_to_the_issues_they_treat(client: Client, finished: Checkup) -> None:
+    html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
+    # seo scores 48 with 1 issue: its service card wears the homepage's SEO colour and icon
+    assert '<article class="sign-card help-card tone-violet">' in html
+    assert 'class="help-card__link" href="#issues" data-filter-category="seo"' in html
+    assert "Treats the 1 seo issue in this report" in visible_text(html)
+
+
 def test_report_contact_links_come_from_branding(client: Client, finished: Checkup) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
     branding = load_branding()

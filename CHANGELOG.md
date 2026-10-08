@@ -7,6 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Changed
+- **"How … can help" is redesigned** with the homepage's vital-sign cards: each service in
+  its vital sign's colour and icon, with the score and a link to the issues it treats; the
+  rebuild service as a dark wide card; the call to action as a green banner.
 - **The report's contact section is redesigned** in the homepage's theme: a dark card with
   the photo in a green ring, credential badges, a large tile with a coloured icon for
   each way to get in touch, and a "Scan to visit" QR card. The QR code now fills its box

@@ -32,6 +32,17 @@ CATEGORY_INTROS = {
 }
 
 
+# Each vital sign's colour and icon, the same as on the homepage (core/views.py):
+# tone-<name> in frontend/tailwind.css, and an icon from partials/icon.html.
+CATEGORY_LOOK = {
+    Category.PERFORMANCE: ("green", "chart-solid"),
+    Category.ACCESSIBILITY: ("blue", "accessibility"),
+    Category.BEST_PRACTICES: ("rose", "shield-solid"),
+    Category.SEO: ("violet", "seo"),
+    Category.AGENTIC: ("amber", "sparkles-solid"),
+}
+
+
 @dataclass
 class VitalSign:
     category: Category
@@ -80,6 +91,15 @@ class Recommendation:
     category: Category
     score: int | None
     service: Service
+    issues: int = 0  # how many of the report's issues this service treats
+
+    @property
+    def tone(self) -> str:
+        return CATEGORY_LOOK[self.category][0]
+
+    @property
+    def icon(self) -> str:
+        return CATEGORY_LOOK[self.category][1]
 
 
 @dataclass
@@ -277,7 +297,9 @@ def recommend_services(
             continue
         services = branding.services_for(sign.category)
         if services:
-            recommendations.append(Recommendation(sign.category, sign.score.score, services[0]))
+            recommendations.append(
+                Recommendation(sign.category, sign.score.score, services[0], len(sign.problems))
+            )
 
     extra: list[Service] = []
     if len(recommendations) >= 3 and branding.services:

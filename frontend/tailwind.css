@@ -1475,12 +1475,8 @@
   }
 
   /* Cards with the homepage's tinted glow. */
-  .risk,
-  .help-card {
+  .risk {
     box-shadow: 0 26px 40px -30px color-mix(in srgb, var(--band, var(--primary)) 55%, transparent);
-  }
-  .help-card {
-    background: linear-gradient(165deg, var(--card) 45%, var(--band-soft, var(--primary-soft)));
   }
 
   /* --- The report as a dashboard: sidebar + main column ----------------------------- */
@@ -1621,9 +1617,76 @@
     @apply mt-4 grid gap-6 sm:grid-cols-2 xl:grid-cols-3;
   }
 
-  .cta {
-    @apply flex flex-col gap-5 rounded-2xl bg-primary-soft p-6 sm:flex-row sm:items-center
-      sm:justify-between sm:p-8;
+  /* "How ... can help": the homepage's vital-sign cards, one per area that needs care. */
+  .help-grid {
+    @apply grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-2;
+  }
+  .help-grid__wide {
+    @apply md:col-span-2;
+  }
+  .help-card {
+    @apply hover:translate-y-0; /* not a link as a whole: no lift */
+  }
+  .help-card__score {
+    @apply flex flex-col items-end text-right leading-none;
+  }
+  .help-card__score > span:first-child {
+    color: var(--band);
+  }
+  .help-card__area {
+    @apply mt-6 text-xs font-bold tracking-[0.14em] uppercase;
+    color: var(--tone);
+  }
+  .help-card__link {
+    @apply mt-auto flex items-center justify-between gap-3 border-t pt-4 text-sm font-semibold
+      text-ink no-underline hover:no-underline;
+    margin-top: 1.5rem;
+    border-color: color-mix(in srgb, var(--tone) 20%, transparent);
+  }
+  .help-card__link .sign-card__go {
+    @apply mt-0 shrink-0;
+    margin-top: 0;
+  }
+  a.help-card__link:hover .sign-card__go {
+    @apply translate-x-1;
+  }
+
+  /* The broad service (e.g. a rebuild): a dark wide card, like the contact card. */
+  .help-rebuild {
+    @apply relative isolate flex flex-col gap-5 rounded-3xl p-6 sm:flex-row sm:items-start sm:p-8;
+    overflow: clip;
+    background:
+      radial-gradient(30rem 16rem at 100% 0%, color-mix(in srgb, var(--brand) 24%, transparent), transparent 70%),
+      #0c1517;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    --muted: #c9d6d4;
+  }
+  .help-rebuild__spark {
+    @apply top-6 right-8;
+    color: var(--mint);
+  }
+
+  /* The call to action: a green brand banner with the heartbeat line. */
+  .help-cta {
+    @apply relative isolate flex flex-col gap-6 overflow-hidden rounded-3xl p-6 text-white sm:flex-row
+      sm:items-center sm:justify-between sm:p-10;
+    overflow: clip;
+    background:
+      radial-gradient(24rem 14rem at 90% 0%, rgb(255 255 255 / 0.18), transparent 70%),
+      linear-gradient(120deg, #166a3b, #1d8047 45%, #23955a);
+    box-shadow: 0 30px 60px -30px rgb(29 128 71 / 0.8);
+  }
+  .help-cta__pulse {
+    @apply pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-24 w-full;
+    color: rgb(255 255 255 / 0.14);
+  }
+  .help-cta__button {
+    @apply btn shrink-0 bg-white font-bold text-[#166a3b] no-underline shadow-lg
+      transition-transform duration-200 hover:-translate-y-0.5 hover:no-underline;
+  }
+  .help-cta__button:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
   }
   /* Contact: a dark card like the report's opening band, with a green glow and dots. */
   .contact-card {
