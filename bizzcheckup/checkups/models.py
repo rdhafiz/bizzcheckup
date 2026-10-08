@@ -107,6 +107,8 @@ class Finding(models.Model):
     effort = models.CharField(max_length=10, choices=choices(Level))
     impact = models.CharField(max_length=10, choices=choices(Level))
     affected_urls = models.JSONField(default=list, blank=True)
+    # Ready-made fixes, e.g. the JSON-LD a page should have: [{"title", "code", "language"}].
+    snippets = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ["checkup", "category", "check_id"]

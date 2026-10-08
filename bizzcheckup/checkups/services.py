@@ -149,6 +149,7 @@ def save_report(checkup: Checkup, report: AuditReport) -> None:
                 effort=f.effort.value,
                 impact=f.impact.value,
                 affected_urls=f.affected_urls,
+                snippets=[s.model_dump() for s in f.snippets],
             )
             for f in report.findings
         )

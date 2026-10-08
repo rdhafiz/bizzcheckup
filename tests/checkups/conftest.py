@@ -14,6 +14,7 @@ from bizzcheckup.engine.types import (
     Finding,
     Level,
     Severity,
+    Snippet,
 )
 
 SCORES = {
@@ -36,6 +37,7 @@ def make_report(url: str = "https://shop.test/") -> AuditReport:
         effort=Level.LOW,
         impact=Level.HIGH,
         affected_urls=[url],
+        snippets=[Snippet(title="Homepage: a title", code="<title>Shop | Fresh cakes</title>")],
     )
     passed = finding.model_copy(update={"check_id": "seo.sitemap", "severity": Severity.PASS})
     now = datetime.now(UTC)

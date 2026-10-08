@@ -91,6 +91,19 @@ def test_finished_checkup_shows_the_report_at_the_same_url(
     assert "Needs attention" in html  # health score 66
 
 
+def test_saved_findings_keep_their_suggested_fixes(report: AuditReport) -> None:
+    checkup = make_checkup()
+    services.save_report(checkup, report)
+    saved = checkup.findings.get(check_id="seo.title")
+    assert saved.snippets == [
+        {
+            "title": "Homepage: a title",
+            "code": "<title>Shop | Fresh cakes</title>",
+            "language": "html",
+        }
+    ]
+
+
 def test_failed_checkup_shows_friendly_error(client: Client) -> None:
     checkup = make_checkup(status=Checkup.Status.FAILED, error_message="The site did not answer.")
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
