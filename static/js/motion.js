@@ -111,6 +111,7 @@
       // when fully gone. In between nothing changes, so nothing flickers at the edge.
       var enter = entry.isIntersecting &&
         (entry.intersectionRatio >= ENTER_RATIO || entry.intersectionRect.height >= view * 0.25);
+      if (entry.isIntersecting) pinned.delete(el); // arrived
       if (enter) {
         if (!el.classList.contains("is-revealed")) {
           // Scrolling up, anything that appears is arriving from above. Decided here, at entry,
@@ -119,6 +120,7 @@
           entering.push(el);
         }
       } else if (!entry.isIntersecting) {
+        if (pinned.has(el)) return; // a #link target on its way into view: keep it shown
         var from = entry.boundingClientRect.bottom <= top ? "above" : "below";
         if (el.classList.contains("is-revealed") || el.getAttribute("data-from") !== from) hide(el, from);
       }
@@ -138,11 +140,31 @@
     });
   }
 
+  // A #link target is shown at once and "pinned" while the page glides to it, so it isn't
+  // reset to hidden while it is still off screen. The pin comes off once it is in view.
+  var pinned = new Set();
+
+  function pin(el) {
+    showNow(el);
+    pinned.add(el);
+    setTimeout(function () { pinned.delete(el); }, 3000); // in case it never arrives
+  }
+
   function revealTarget(target) {
     if (!target || !armed) return;
     var holder = target.closest("[data-reveal]");
-    if (holder) showNow(holder);
-    target.querySelectorAll("[data-reveal]").forEach(showNow);
+    if (holder) pin(holder);
+    target.querySelectorAll("[data-reveal]").forEach(pin);
+  }
+
+  // Clicks on links to this page: reveal the target BEFORE the browser works out where to
+  // scroll. While hidden it is shifted (or zoomed out), and the smooth scroll would aim at
+  // that shifted spot and land a little off once it settles.
+  function onLinkClick(event) {
+    var link = event.target.closest && event.target.closest("a[href*='#']");
+    if (!link || link.host !== location.host || link.pathname !== location.pathname) return;
+    var id = decodeURIComponent(link.hash.slice(1));
+    if (id) revealTarget(document.getElementById(id));
   }
 
   function onFocusIn(event) {
@@ -306,6 +328,7 @@
     refreshParallax();
 
     document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("click", onLinkClick, true); // capture: before the scroll
     window.addEventListener("hashchange", onHash);
     window.addEventListener("scroll", function () {
       trackDirection();

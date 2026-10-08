@@ -194,6 +194,19 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-primary;
   }
+  /* #links glide to their target instead of jumping. Native browser smooth scrolling: no
+     script takes over the scrolling, and the wheel, keys and touch work as usual. Visitors
+     who asked for reduced motion keep the instant jump. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  /* A little room above a link target, so a heading doesn't land against the top edge.
+     (Report sections use a bigger offset for their sticky bar.) */
+  [id] {
+    scroll-margin-top: 2rem;
+  }
 }
 
 /* --- Components --------------------------------------------------------------- */
