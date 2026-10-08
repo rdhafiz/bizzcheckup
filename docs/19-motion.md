@@ -21,8 +21,6 @@ for the parallax maths. A library would add 30–70 KB for things we don't use.
 ```html
 <div data-reveal>...</div>                 fade in and rise 32px (the default)
 <div data-reveal="scale">...</div>         fade in and grow from 94%
-<div data-reveal="left">...</div>          come in from the left (wide screens; phones rise)
-<div data-reveal="right">...</div>         come in from the right (wide screens; phones rise)
 <div data-reveal data-reveal-once>         animate once, then stay put for good
 
 <div data-reveal-group>                    children that enter together are staggered:
@@ -37,6 +35,11 @@ for the parallax maths. A library would add 30–70 KB for things we don't use.
 ```
 
 Rules of thumb:
+
+- **Up, down or zoom only.** There are no sideways entrances, by design: content comes up
+  from below, down from above (when scrolling back up) or zooms in. A sideways entrance also
+  pushes the element outside the page edge while it waits, which can make phones scroll
+  horizontally.
 
 - **Put `data-reveal` on a wrapper, not on a button or card.** The reveal sets its own
   `transition`, which would replace the element's hover transition.
@@ -77,10 +80,13 @@ entrance: a slow start looks like lag. To make everything faster or slower, chan
 3. When it has **completely** left the screen, `is-revealed` is removed (instantly, since
    nobody can see it), so it animates again next time. In between 0% and 15% nothing changes:
    this gap (*hysteresis*) stops an element parked at the edge from flickering.
-4. **Direction.** When it leaves, the script notes *which edge* it left by, in
-   `data-from="above"` or `data-from="below"`. It will come back from that side, so it waits
-   there: an element you scrolled past waits 32 px *above* its place and comes down when you
-   scroll back up.
+4. **Direction.** Elements wait on the side they will come from, noted in `data-from`:
+   - when one leaves, the script records the edge it left by (`above` if you scrolled past it);
+   - when one enters, the **scroll direction** decides: scrolling up, it comes *down* from
+     32 px above its place; scrolling down, it rises from 32 px below. Deciding at entry
+     matters for big jumps (the End key, a `#link`): an element that was jumped over never
+     reported leaving, so its recorded side could be wrong. The scroll direction comes from
+     comparing `scrollY` in the passive scroll listener, which costs no layout work.
 5. **Stagger:** the elements that enter together in the same group get delays of 0, 110, 220 ms...
    worked out at that moment (never stored), capped at 550 ms. Scrolling down they go in page
    order; scrolling up the order is reversed, so the one nearest the edge you're scrolling
