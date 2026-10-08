@@ -5,7 +5,7 @@ Two small motion systems make the homepage feel alive without getting in the way
 | System | What you see | Where |
 |--------|--------------|-------|
 | **Scroll reveal** | Content fades in as it scrolls into view, every time: rising from below when you scroll down, coming down from above when you scroll back up | Every homepage section (the hero included) and the footer columns |
-| **Parallax** | Background photos drift slower than the page; the hero text and small sparkles move against them, which reads as depth | Hero photo and text, the "healthier website" photo, the sparkle accents |
+| **Parallax** | Background photos drift slower than the page; the hero text and small sparkles move against them, which reads as depth | Hero photo and text, the "healthier website" photo, the sparkle accents. The hero and the "healthier website" section are each one screen tall on wide screens, so each photo crosses the screen over exactly two screen heights of scrolling |
 
 The work is done by `static/js/motion.js` (about 7 KB, no library), helped by a tiny
 `static/js/motion-boot.js` in `<head>`, plus a CSS block marked `Motion` in
@@ -27,8 +27,8 @@ for the parallax maths. A library would add 30–70 KB for things we don't use.
 
 <div data-reveal-group>                    children that enter together are staggered:
   <div data-reveal>...</div>               0 ms
-  <div data-reveal>...</div>               80 ms
-  <div data-reveal>...</div>               160 ms ... never more than 400 ms
+  <div data-reveal>...</div>               110 ms
+  <div data-reveal>...</div>               220 ms ... never more than 550 ms
 </div>
 
 <div data-parallax="0.12" data-parallax-fill>   a background layer: drifts at 12% of the
@@ -40,8 +40,8 @@ Rules of thumb:
 
 - **Put `data-reveal` on a wrapper, not on a button or card.** The reveal sets its own
   `transition`, which would replace the element's hover transition.
-- **Keep the first screen quick.** The hero has a shorter entrance (550 ms, fully visible
-  by about 0.75 s). Fading in the first screen delays the moment the page *looks* loaded,
+- **Keep the first screen quick.** The hero has a slightly shorter entrance (900 ms instead
+  of 1.1 s; the headline is fully visible after about 1.1 s). Fading in the first screen delays the moment the page *looks* loaded,
   which Google measures as "Largest Contentful Paint", so it's a trade-off we chose for the
   effect; keep it short.
 - **Never put `data-reveal` and `data-parallax` on the same element**: both use `transform`
@@ -53,6 +53,13 @@ Rules of thumb:
   outside its box.
 
 ## How the reveal works
+
+**Timing.** Each entrance takes **1.1 s** with a gentle ease-out (`cubic-bezier(0.33, 1, 0.68, 1)`,
+"easeOutCubic"): it starts moving straight away but glides evenly into place. Steeper curves do
+most of the movement in the first few frames, which feels abrupt. Never use ease-*in* for an
+entrance: a slow start looks like lag. To make everything faster or slower, change
+`transition-duration` in the Motion block of `frontend/tailwind.css` and `STAGGER_MS` in
+`motion.js`.
 
 1. When the script starts it adds the class `motion-ready` to `<html>`. **Only then** does the
    CSS hide anything:
@@ -74,8 +81,8 @@ Rules of thumb:
    `data-from="above"` or `data-from="below"`. It will come back from that side, so it waits
    there: an element you scrolled past waits 32 px *above* its place and comes down when you
    scroll back up.
-5. **Stagger:** the elements that enter together in the same group get delays of 0, 80, 160 ms...
-   worked out at that moment (never stored), capped at 400 ms. Scrolling down they go in page
+5. **Stagger:** the elements that enter together in the same group get delays of 0, 110, 220 ms...
+   worked out at that moment (never stored), capped at 550 ms. Scrolling down they go in page
    order; scrolling up the order is reversed, so the one nearest the edge you're scrolling
    towards comes first. The delay is a CSS variable, `--reveal-delay`, read by `transition-delay`.
 

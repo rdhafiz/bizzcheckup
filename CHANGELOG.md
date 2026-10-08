@@ -11,7 +11,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   every section (the hero included) and the footer columns fade in as they scroll into view,
   every time, in both directions: rising when scrolling down, coming down from above when
   scrolling back up (staggered, nearest first). The hero and benefits photos drift slower
-  than the page while the hero text moves against them. Fails open (nothing hidden without the script),
+  than the page while the hero text moves against them. Entrances are slow and smooth
+  (1.1 s, gentle ease-out, 110 ms stagger); the "healthier website" section is one screen tall. Fails open (nothing hidden without the script),
   off with reduced motion, parallax off below 768px, keyboard focus and #anchors show hidden
   content at once, and a watchdog shows everything if reveals stall.
 - **`/llms.txt`**: a Markdown guide to BizzCheckup for AI assistants (llmstxt.org format):
