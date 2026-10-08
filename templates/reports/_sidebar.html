@@ -7,10 +7,12 @@
 {% with report=view.report checkup=view.checkup %}
 <aside class="report-side no-print" aria-label="Report summary">
   <div class="side-score band-{{ report.health_score|band }}">
-    <p class="eyebrow">Business Health Score</p>
-    <div class="side-score__gauge">{% include "reports/_gauge.html" with score=report.health_score %}</div>
-    <p class="text-center"><span class="band-pill">{{ report.health_score|band_label }}</span></p>
-    <p class="mt-3 text-center text-xs text-muted">Checked {{ checkup.finished_at|ago }}.</p>
+    <span class="side-score__number">{{ report.health_score|default:"–" }}</span>
+    <div class="min-w-0">
+      <p class="truncate text-sm font-bold">{{ checkup.domain }}</p>
+      <p class="mt-1"><span class="band-pill text-xs">{{ report.health_score|band_label }}</span></p>
+      <p class="mt-1 text-xs text-muted">Checked {{ checkup.finished_at|ago }}.</p>
+    </div>
   </div>
 
   <nav class="side-nav" aria-label="Report sections">

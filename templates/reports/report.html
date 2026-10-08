@@ -11,9 +11,13 @@
 {% endblock %}
 
 {% block header_container %}container-report{% endblock %}
+{# Like the homepage: the header sits on the opening band's photo. #}
+{% block header_class %}on-dark absolute inset-x-0 top-0 z-20{% endblock %}
 
 {% block content %}
-  {# Small screens: a sticky bar with the score and the jump links (the sidebar sits above). #}
+  {% include "reports/_hero.html" with pdf=False %}
+
+  {# Small screens: a sticky bar with the score and the jump links (no sidebar there). #}
   <div class="report-bar no-print lg:hidden">
     <div class="container-page flex items-center gap-3 py-2">
       <p class="flex min-w-0 shrink-0 items-center gap-2 font-semibold band-{{ view.report.health_score|band }}">
@@ -30,10 +34,12 @@
     </div>
   </div>
 
-  <div class="report-layout">
-    {% include "reports/_sidebar.html" %}
-    <div class="report min-w-0">
-      {% include "reports/_sections.html" with pdf=False %}
+  <div class="report-body">
+    <div class="report-layout">
+      {% include "reports/_sidebar.html" %}
+      <div class="report min-w-0">
+        {% include "reports/_sections.html" with pdf=False %}
+      </div>
     </div>
   </div>
 {% endblock %}

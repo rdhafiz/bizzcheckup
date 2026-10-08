@@ -1,0 +1,64 @@
+{% load bizz %}
+{% comment %}
+  The report's opening band, in the homepage hero's style: the same photo behind a dark
+  backdrop, the green badge, the highlighted title with its swoosh, and frosted cards.
+  Web: full width above the dashboard, with parallax and the reveal cascade.
+  PDF: the cover (no motion, no buttons).
+{% endcomment %}
+{% with report=view.report checkup=view.checkup brand=view.branding %}
+<section id="overview" class="report-hero" aria-labelledby="overview-title">
+  <div class="report-hero__photo" {% if not pdf %}data-parallax="0.18" data-parallax-fill{% endif %} aria-hidden="true"></div>
+  <div class="report-hero__inner {% if pdf %}px-8{% else %}container-report{% endif %}">
+    <div class="report-hero__text on-dark" data-reveal-group>
+      {% if pdf %}
+        <div class="mb-8 flex items-center justify-between gap-4">
+          {% include "partials/logo.html" %}
+          <p class="text-sm text-muted">{{ checkup.finished_at|date:"j F Y" }}</p>
+        </div>
+      {% endif %}
+      <p class="hero-pill" data-reveal="words">
+        <span class="hero-pill__icon" aria-hidden="true" data-word><svg class="size-5" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        Health report{% if not pdf %} · {{ checkup.finished_at|date:"j M Y" }}{% endif %}
+      </p>
+      <h1 id="overview-title" class="report-hero__title" data-reveal="words">
+        <span class="hero__highlight" data-word>{{ checkup.domain }}<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span>
+      </h1>
+      <p class="mt-5 font-mono text-sm text-muted break-all" data-reveal>{{ report.final_url }}</p>
+      <p class="report-hero__label" data-reveal>The diagnosis</p>
+      <p class="report-hero__verdict" data-reveal>{{ view.verdict }}</p>
+      {% if not pdf %}
+        <div class="report-hero__actions no-print" data-reveal>
+          <a class="btn-primary" href="{% url 'reports:pdf' checkup.pk %}">Download PDF</a>
+          <button type="button" class="btn-glass" data-copy-link="{{ share_url }}">Copy share link</button>
+          {% include "checkups/_recheck_form.html" with checkup=checkup button_class="btn-glass" %}
+          <p class="w-full text-sm text-muted empty:hidden" data-copy-status aria-live="polite"></p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="report-hero__panel on-dark band-{{ report.health_score|band }}" data-reveal="scale">
+      <p class="report-hero__label">Business Health Score</p>
+      <div class="mx-auto mt-3 w-full max-w-60">{% include "reports/_gauge.html" with score=report.health_score %}</div>
+      <p class="mt-2 text-center"><span class="band-pill">{{ report.health_score|band_label }}</span></p>
+      <ul class="report-hero__stats" aria-label="Summary of findings">
+        <li class="perk-card tone-rose">
+          <span class="perk-card__icon">{% include "partials/icon.html" with name="fail" css="size-5" %}</span>
+          <span><strong>{{ view.needs_treatment }}</strong>Need treatment</span>
+        </li>
+        <li class="perk-card tone-amber">
+          <span class="perk-card__icon">{% include "partials/icon.html" with name="warn" css="size-5" %}</span>
+          <span><strong>{{ view.worth_fixing }}</strong>Worth fixing</span>
+        </li>
+        <li class="perk-card tone-blue">
+          <span class="perk-card__icon">{% include "partials/icon.html" with name="bolt" css="size-5" %}</span>
+          <span><strong>{{ view.plan.quick_wins|length }}</strong>Quick wins</span>
+        </li>
+        <li class="perk-card tone-green">
+          <span class="perk-card__icon">{% include "partials/icon.html" with name="pass" css="size-5" %}</span>
+          <span><strong>{{ view.healthy_count }}</strong>Checks passed</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+{% endwith %}

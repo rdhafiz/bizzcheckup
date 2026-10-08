@@ -4,6 +4,22 @@ A finished check-up is shown at its own address, `/checkups/<uuid>/`, as the
 **BizzCheckup Health Report**. The **PDF** at `/checkups/<uuid>/report.pdf` uses the
 *same* template sections, so the two always match.
 
+## Look: the homepage's theme
+
+The report opens with a **dark band** (`_hero.html`) in the homepage hero's style: the
+same photo behind a dark backdrop (with the same slow parallax), the green "Health
+report" badge, the domain in the green gradient with its swoosh, the diagnosis and the
+actions, and a frosted panel with the score gauge and four counters (the homepage's
+glossy round icons, one colour each). The header sits on the photo, as on the homepage.
+In the PDF this band is the cover.
+
+Below it, the dashboard sits on the paper background with the homepage's soft colour
+blobs. Every section opens like the homepage's: a dash eyebrow ("Diagnosis") and a big
+title with one highlighted word ("Fix these **first**"). Headings reveal word by word
+and cards rise in, one after another, with the homepage's motion (`data-reveal`,
+`static/js/motion.js`, explained in [Motion](19-motion.md)): no motion for visitors who
+prefer reduced motion, none in the PDF, and everything is visible without JavaScript.
+
 ## Layout: a dashboard with a sidebar
 
 On a computer the report is a **dashboard** (`templates/reports/report.html`):
@@ -25,7 +41,7 @@ Each issue appears **once**. The order follows the questions a business owner as
 
 | # | Section (`id`) | Question it answers | Shows | Comes from |
 |---|----------------|---------------------|-------|------------|
-| 1 | **Overview** (`#overview`) | *How healthy is my website?* | Domain and URL; the **diagnosis** (one-sentence verdict) with 4 counters (need treatment, worth fixing, quick wins, checks passed) beside the Desktop / Tablet / Phone screenshots; the link preview card; what we checked (pages and checks) and any notes | `ReportView.verdict`, `.needs_treatment`, `.worth_fixing`, `.healthy_count` |
+| 1 | **Overview** (`#overview`, the dark band) and **At a glance** (`#snapshot`) | *How healthy is my website?* | The band: domain, URL, the **diagnosis** (one-sentence verdict), the actions, the score with 4 counters (need treatment, worth fixing, quick wins, checks passed). At a glance: the Desktop / Tablet / Phone screenshots, the link preview card, what we checked (pages and checks) and any notes; the vital signs on phones, tablets and paper | `ReportView.verdict`, `.needs_treatment`, `.worth_fixing`, `.healthy_count` |
 | 2 | **Fix these first** (`#fix-first`) | *What should I fix first?* | Up to 3 cards: the problem and what it costs you, with "See how to fix it", which opens that issue in the list (in the PDF: the solution itself) | `builder.top_risks()`, `ReportView.risk_rows` |
 | 3 | **All issues** (`#issues`) | *What do I do, and in what order?* | **One list** of every problem, quick wins first (plan order), then the "good to know" notes. Each row has a tick box and opens to show *why it matters*, *how to fix it*, *where* and any ready-made fix. Filters by vital sign and by severity; the progress bar counts what's ticked. Vital signs that weren't checked say why. Passed checks are folded under "What's healthy", grouped by vital sign | `ReportView.issues` (`builder.issue_rows()`), `.issue_filters`, `engine.treatment.build_treatment_plan()` |
 | 4 | **All pages** (`#pages`) | *Which pages were checked?* | Every page address found (sitemap and links): checked ones first with a "Checked" badge, the first 30 shown and the rest behind "Show all" ("and N more" in the PDF). When some weren't checked, the **full check-up proposal** sits beside the list | `ReportView.all_pages`, `.unchecked_count`, `branding.full_audit` |

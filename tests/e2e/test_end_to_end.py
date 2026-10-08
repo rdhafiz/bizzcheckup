@@ -5,6 +5,7 @@ Celery runs tasks inline in tests (CELERY_TASK_ALWAYS_EAGER), so this goes throu
 same task code the worker runs. Nothing reaches the internet.
 """
 
+import re
 import threading
 from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -111,7 +112,7 @@ def test_full_checkup_through_the_worker(client: Client, site: str) -> None:
     # The same URL now shows the report.
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
     assert "The diagnosis" in html
-    assert "How Ridwanul can help" in html
+    assert "How Ridwanul can help" in " ".join(re.sub(r"<[^>]+>", " ", html).split())
 
     pdf = client.get(reverse("reports:pdf", args=[checkup.pk]))
     assert pdf["Content-Type"] == "application/pdf"

@@ -5,18 +5,20 @@
 {% endcomment %}
 {% with pages=view.all_pages total=view.all_pages|length unchecked=view.unchecked_count %}
 <section id="pages" class="report-section" aria-labelledby="pages-title">
-  <p class="eyebrow">Your whole website</p>
-  <h2 id="pages-title" class="mt-2 text-3xl font-bold">We found {{ total }} page{{ total|pluralize }} on your website</h2>
-  <p class="mt-2 max-w-2xl text-muted">
+  <div class="section-head" data-reveal-group>
+  <p class="eyebrow-dash" data-reveal>Your whole website</p>
+  <h2 id="pages-title" class="section-title" data-reveal="words">We found <span class="text-highlight" data-word>{{ total }} page{{ total|pluralize }}</span> on your website</h2>
+  <p class="section-intro" data-reveal>
     {% if unchecked %}
       This check-up looked closely at {{ report.pages|length }} of them. The other {{ unchecked }} weren't checked this time, and problems found here usually repeat on them.
     {% else %}
       This check-up looked at every one of them.
     {% endif %}
   </p>
+  </div>
 
-  <div class="pages-layout mt-6">
-    <div class="card min-w-0">
+  <div class="pages-layout mt-8" data-reveal-group>
+    <div class="card min-w-0" data-reveal>
       <ol class="page-list" aria-label="Pages on your website">
         {% for url, checked in pages|first_items:30 %}
           <li class="page-list__item">
@@ -51,8 +53,8 @@
     </div>
 
     {% if unchecked %}
-      <aside class="proposal" aria-labelledby="proposal-title">
-        <p class="eyebrow">Proposal</p>
+      <aside class="proposal" aria-labelledby="proposal-title" data-reveal>
+        <p class="eyebrow-dash">Proposal</p>
         <h3 id="proposal-title" class="mt-2 text-2xl font-bold">{{ brand.full_audit.heading }}</h3>
         <p class="mt-1 font-semibold">All {{ total }} pages, not just {{ report.pages|length }}.</p>
         <p class="mt-3 text-sm">{{ brand.full_audit.text }}</p>

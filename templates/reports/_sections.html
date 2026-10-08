@@ -2,91 +2,52 @@
 {% comment %}
   The report sections, shared by the web page and the PDF so they always match.
   Needs `view` (reports.builder.ReportView) and `pdf` (True when rendering the PDF).
-  On the web the sidebar (_sidebar.html) holds the score and the vital signs; the PDF
-  shows them in the overview instead. Reading order follows the questions a business
-  owner asks:
-    1. How healthy is my website?   2. What should I fix first?
+  The opening band (_hero.html) sits above the dashboard on the web page and is the
+  cover in the PDF. On the web the sidebar (_sidebar.html) holds the score and the vital
+  signs; phones, tablets and the PDF show the vital signs under "At a glance".
+  Headings and cards use the homepage's reveal animations (data-reveal, motion.js).
+  Reading order follows the questions a business owner asks:
+    1. How healthy is my website? (the band, then "At a glance")   2. What should I fix first?
     3. Every issue, in order: why it matters, how to fix it, where (tick off when done).
     4. Which pages were checked?    5. Who can help?    6. How do I reach them?
 {% endcomment %}
 {% with report=view.report checkup=view.checkup brand=view.branding %}
 
-{# 1. Overview --------------------------------------------------------------------- #}
-<section id="overview" class="report-section" aria-labelledby="overview-title">
-  {% if pdf %}
-    <div class="mb-10 flex items-center justify-between gap-4">
-      {% include "partials/logo.html" %}
-      <p class="text-sm text-muted">{{ checkup.finished_at|date:"j F Y" }}</p>
-    </div>
-  {% endif %}
-  <div class="report-head">
-    <div class="min-w-0">
-      <p class="eyebrow">{{ brand.report_title }}{% if not pdf %} · {{ checkup.finished_at|date:"j F Y" }}{% endif %}</p>
-      <h1 id="overview-title" class="mt-2 text-4xl font-bold break-words sm:text-5xl">{{ checkup.domain }}</h1>
-      <p class="mt-2 font-mono text-sm text-muted break-all">{{ report.final_url }}</p>
-    </div>
-    {% if not pdf %}
-      <div class="report-head__actions no-print">
-        <a class="btn-primary" href="{% url 'reports:pdf' checkup.pk %}">Download PDF</a>
-        <button type="button" class="btn-secondary" data-copy-link="{{ share_url }}">Copy share link</button>
-        {% include "checkups/_recheck_form.html" with checkup=checkup %}
-        <p class="w-full text-sm text-muted empty:hidden" data-copy-status aria-live="polite"></p>
-      </div>
-    {% endif %}
+{# 1. The cover band (PDF; on the web page it sits above the dashboard, report.html) - #}
+{% if pdf %}{% include "reports/_hero.html" %}{% endif %}
+
+{# 1b. At a glance: the site on each device, the share card, what we checked ------ #}
+<section id="snapshot" class="report-section" aria-labelledby="snapshot-title">
+  <div class="section-head" data-reveal-group>
+    <p class="eyebrow-dash" data-reveal>At a glance</p>
+    <h2 id="snapshot-title" class="section-title" data-reveal="words">How your website looks <span class="text-highlight" data-word>today</span></h2>
   </div>
 
-  <div class="hero-card mt-8 band-{{ report.health_score|band }}">
-    <div class="hero-card__text">
-      {# The score lives in the sidebar on large screens; here for phones, tablets and paper. #}
-      <div class="mb-6 {% if not pdf %}lg:hidden{% endif %}">
-        <div class="mx-auto w-full max-w-52">{% include "reports/_gauge.html" with score=report.health_score %}</div>
-        <p class="mt-1 text-center text-sm font-semibold">Business Health Score</p>
-        <p class="mt-2 text-center"><span class="band-pill">{{ report.health_score|band_label }}</span></p>
+  <div class="glance-grid" data-reveal-group>
+    <div class="card min-w-0" data-reveal>{% include "reports/_devices.html" %}</div>
+    <div class="glance-side">
+      {% if report.link_preview %}
+        <div data-reveal>{% include "reports/_link_preview.html" with card=report.link_preview %}</div>
+      {% endif %}
+      <div class="card tone-teal glance-card min-w-0" data-reveal>
+        <span class="tone-tile">{% include "partials/icon.html" with name="file" css="size-5" %}</span>
+        <div class="min-w-0">
+          <p class="text-xs font-bold tracking-wider text-muted uppercase">What we checked</p>
+          <p class="mt-1 font-semibold">{{ report.pages|length }} of {{ view.all_pages|length }} page{{ view.all_pages|length|pluralize }}, {{ report.results|length }} checks in 5 vital signs.</p>
+          {% if not pdf %}<a class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary" href="#pages">See every page we found {% include "partials/icon.html" with name="arrow" css="size-4" %}</a>{% endif %}
+          {% if report.notes %}
+            <ul class="mt-3 space-y-1 border-t border-line pt-3 text-sm text-muted">{% for note in report.notes %}<li>{{ note }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
       </div>
-      <p class="hero-card__label">The diagnosis</p>
-      <p class="hero-card__verdict">{{ view.verdict }}</p>
-      <ul class="hero-stats" aria-label="Summary of findings">
-        <li class="hero-stat band-urgent">
-          <span class="hero-stat__number">{{ view.needs_treatment }}</span>
-          <span class="hero-stat__label">{% include "partials/icon.html" with name="fail" css="size-4" %}Need treatment</span>
-        </li>
-        <li class="hero-stat band-attention">
-          <span class="hero-stat__number">{{ view.worth_fixing }}</span>
-          <span class="hero-stat__label">{% include "partials/icon.html" with name="warn" css="size-4" %}Worth fixing</span>
-        </li>
-        <li class="hero-stat hero-stat--primary">
-          <span class="hero-stat__number">{{ view.plan.quick_wins|length }}</span>
-          <span class="hero-stat__label">{% include "partials/icon.html" with name="bolt" css="size-4" %}Quick wins</span>
-        </li>
-        <li class="hero-stat band-healthy">
-          <span class="hero-stat__number">{{ view.healthy_count }}</span>
-          <span class="hero-stat__label">{% include "partials/icon.html" with name="pass" css="size-4" %}Checks passed</span>
-        </li>
-      </ul>
-    </div>
-    <div class="hero-card__shot">
-      {% include "reports/_devices.html" %}
     </div>
   </div>
 
-  <div class="card mt-6 {% if not pdf %}lg:hidden{% endif %}">
+  {# The vital signs live in the sidebar on large screens; here for phones, tablets and paper. #}
+  <div class="card mt-6 {% if not pdf %}lg:hidden{% endif %}" data-reveal>
     <h3 class="text-lg font-bold">The 5 vital signs</h3>
     <div class="mt-4 divide-y divide-line">
       {% for sign in view.vital_signs %}{% include "reports/_bullet.html" %}{% endfor %}
-    </div>
-  </div>
-
-  <div class="overview-extras mt-6">
-    {% if report.link_preview %}
-      {% include "reports/_link_preview.html" with card=report.link_preview %}
-    {% endif %}
-    <div class="card min-w-0">
-      <p class="hero-card__label">What we checked</p>
-      <p class="mt-2 text-lg font-semibold">{{ report.pages|length }} of {{ view.all_pages|length }} page{{ view.all_pages|length|pluralize }}, {{ report.results|length }} checks in 5 vital signs.</p>
-      {% if not pdf %}<a class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary" href="#pages">See every page we found {% include "partials/icon.html" with name="arrow" css="size-4" %}</a>{% endif %}
-      {% if report.notes %}
-        <ul class="mt-4 space-y-1 border-t border-line pt-3 text-sm text-muted">{% for note in report.notes %}<li>{{ note }}</li>{% endfor %}</ul>
-      {% endif %}
     </div>
   </div>
 </section>
@@ -94,13 +55,16 @@
 {# 2. The few problems to fix first ------------------------------------------------ #}
 {% if view.risk_rows %}
 <section id="fix-first" class="report-section" aria-labelledby="risks-title">
-  <p class="eyebrow">Diagnosis</p>
-  <h2 id="risks-title" class="mt-2 text-3xl font-bold">Fix these first</h2>
-  <p class="mt-2 max-w-2xl text-muted">If you only fix a few things, fix these: they cost your business the most.</p>
-  <ol class="risks mt-6">
+  <div class="section-head" data-reveal-group>
+    <svg class="deco-spark section-spark" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 8 18M30 8 20 20M34 24l-12-1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+    <p class="eyebrow-dash" data-reveal>Diagnosis</p>
+    <h2 id="risks-title" class="section-title" data-reveal="words">Fix these <span class="text-highlight" data-word>first</span></h2>
+    <p class="section-intro" data-reveal>If you only fix a few things, fix these: they cost your business the most.</p>
+  </div>
+  <ol class="risks mt-8" data-reveal-group>
     {% for row in view.risk_rows %}
       {% with risk=row.finding %}
-      <li class="risk band-{{ risk.severity|severity_band }}">
+      <li class="risk band-{{ risk.severity|severity_band }}" data-reveal>
         <div class="flex items-center justify-between gap-3">
           <span class="risk__rank" aria-hidden="true">{{ forloop.counter }}</span>
           <span class="band-pill text-xs">{% include "partials/icon.html" with name=risk.severity css="size-4" %}{{ risk.severity|severity_label }}</span>
@@ -126,17 +90,17 @@
 {# 3. Every issue, in one list: filter, tick off, open for the details ------------ #}
 <section id="issues" class="report-section" aria-labelledby="issues-title">
   <div class="flex flex-wrap items-end justify-between gap-4">
-    <div>
-      <p class="eyebrow">Treatment plan</p>
-      <h2 id="issues-title" class="mt-2 text-3xl font-bold">All issues</h2>
-      <p class="mt-1 font-semibold">{{ view.problem_rows|length }} to fix{% if view.note_rows %} · {{ view.note_rows|length }} good to know{% endif %}</p>
-      <p class="mt-2 max-w-2xl text-muted">Sorted by business impact, quick wins first. {% if pdf %}Tick the boxes as you fix them.{% else %}Open an issue to see why it matters and how to fix it; tick it off when it's done (saved in this browser).{% endif %}</p>
+    <div class="section-head" data-reveal-group>
+      <p class="eyebrow-dash" data-reveal>Treatment plan</p>
+      <h2 id="issues-title" class="section-title" data-reveal="words">All <span class="text-highlight" data-word>issues</span></h2>
+      <p class="mt-3 font-semibold" data-reveal>{{ view.problem_rows|length }} to fix{% if view.note_rows %} · {{ view.note_rows|length }} good to know{% endif %}</p>
+      <p class="section-intro" data-reveal>Sorted by business impact, quick wins first. {% if pdf %}Tick the boxes as you fix them.{% else %}Open an issue to see why it matters and how to fix it; tick it off when it's done (saved in this browser).{% endif %}</p>
     </div>
   </div>
 
   {% if view.issues %}
     {% if not pdf %}
-      <div class="issue-tools no-print" data-issue-tools hidden>
+      <div class="issue-tools no-print" data-issue-tools hidden data-reveal>
         <div class="filter-row" role="group" aria-label="Show issues for">
           <button type="button" class="filter-chip" data-filter-category="" aria-pressed="true">All <span>{{ view.issues|length }}</span></button>
           {% for sign, count in view.issue_filters %}
@@ -158,7 +122,7 @@
         </div>
       </div>
     {% endif %}
-    <ol class="issue-list" data-plan="{{ checkup.pk }}">
+    <ol class="issue-list" data-plan="{{ checkup.pk }}" data-reveal-group>
       {% for row in view.issues %}{% include "reports/_issue.html" %}{% endfor %}
     </ol>
     {% if not pdf %}<p class="issue-empty" data-issue-empty hidden>No issues match these filters.</p>{% endif %}
@@ -173,7 +137,7 @@
   {% endfor %}
 
   {% if view.healthy_count %}
-    <details class="healthy-group mt-8" {% if pdf %}open{% endif %}>
+    <details class="healthy-group mt-8" {% if pdf %}open{% endif %} data-reveal>
       <summary class="healthy-group__summary">
         {% include "partials/icon.html" with name="pass" css="size-5 text-healthy" %}
         <span>What's healthy ({{ view.healthy_count }})</span>
@@ -196,12 +160,15 @@
 
 {# 5. How the consultant can help ------------------------------------------------- #}
 <section id="help" class="report-section" aria-labelledby="help-title">
-  <p class="eyebrow">Your next step</p>
-  <h2 id="help-title" class="mt-2 text-3xl font-bold">How {{ brand.first_name }} can help</h2>
+  <div class="section-head" data-reveal-group>
+    <svg class="deco-spark section-spark section-spark--violet" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 13 22M16 34l18-9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+    <p class="eyebrow-dash" data-reveal>Your next step</p>
+    <h2 id="help-title" class="section-title" data-reveal="words">How {{ brand.first_name }} can <span class="text-highlight" data-word>help</span></h2>
+  </div>
   {% if view.recommendations %}
-    <div class="mt-6 grid gap-4 md:grid-cols-2">
+    <div class="mt-8 grid gap-4 md:grid-cols-2" data-reveal-group>
       {% for rec in view.recommendations %}
-        <article class="card band-{{ rec.score|band }}">
+        <article class="card help-card band-{{ rec.score|band }}" data-reveal>
           <p class="flex items-center gap-2 text-sm font-semibold">
             {% include "partials/icon.html" with name=rec.category.value css="size-5 text-primary" %}
             <span class="band-pill text-xs">{{ rec.category.label }} · {{ rec.score }}</span>
@@ -211,8 +178,8 @@
         </article>
       {% endfor %}
       {% for service in view.extra_services %}
-        <article class="card">
-          <p class="eyebrow">When patching isn't enough</p>
+        <article class="card help-card" data-reveal>
+          <p class="eyebrow-dash">When patching isn't enough</p>
           <h3 class="mt-3 text-lg font-bold">{{ service.name }}</h3>
           <p class="mt-2 text-sm text-muted">{{ service.description }}</p>
         </article>
@@ -222,7 +189,7 @@
     <p class="mt-4 max-w-2xl text-muted">Your website is healthy. If you're planning something new, a web app, a redesign or a new business system, {{ brand.first_name }} is happy to help.</p>
   {% endif %}
 
-  <div class="cta mt-8">
+  <div class="cta mt-8" data-reveal="scale">
     <div>
       <h3 class="text-2xl font-bold">{{ brand.call_to_action.heading }}</h3>
       <p class="mt-2 max-w-2xl">{{ brand.call_to_action.text }}</p>
@@ -235,8 +202,8 @@
 
 {# 6. Contact -------------------------------------------------------------------------- #}
 <section id="contact" class="report-section" aria-labelledby="contact-title">
-  <p class="eyebrow">Contact</p>
-  <div class="card mt-4">
+  <p class="eyebrow-dash" data-reveal>Contact</p>
+  <div class="card mt-4" data-reveal>
     <div class="grid gap-8 md:grid-cols-[auto_1fr]">
       {% if brand.photo_url %}
         <img class="size-36 rounded-2xl border border-line bg-primary-soft object-cover" src="{{ brand.photo_url }}" alt="Photo of {{ brand.name }}" width="144" height="144">

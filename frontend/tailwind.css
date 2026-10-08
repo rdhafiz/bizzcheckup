@@ -235,6 +235,16 @@
   @apply btn border border-line bg-card text-ink hover:border-primary;
 }
 
+@utility btn-glass {
+  /* a secondary button on a dark photo (the report's opening band) */
+  @apply btn border text-white backdrop-blur-md;
+  border-color: rgb(255 255 255 / 0.22);
+  background: rgb(255 255 255 / 0.08);
+  &:hover {
+    background: rgb(255 255 255 / 0.16);
+  }
+}
+
 @utility card {
   @apply rounded-2xl border border-line bg-card p-5 sm:p-6;
 }
@@ -1347,6 +1357,130 @@
     color: var(--healthy);
   }
 
+  /* --- The report in the homepage's theme ------------------------------------------- */
+
+  /* Opening band: the homepage hero's photo, backdrop and frosted cards, shorter. */
+  .report-hero {
+    @apply relative isolate flex items-center;
+    overflow: clip; /* the parallax photo must not spill out (see the Motion notes) */
+    background-color: #0c1517; /* shown until the photo has loaded */
+  }
+  /* Scaled 1.5 = about what motion.js computes for a band this tall, so nothing jumps
+     when the script starts. */
+  .report-hero__photo {
+    @apply absolute inset-0 -z-20 bg-cover bg-center;
+    background-image: url("../img/hero-bg.webp");
+    transform: scale(1.5);
+  }
+  .report-hero::before {
+    @apply absolute inset-0 -z-10;
+    content: "";
+    background:
+      radial-gradient(40rem 22rem at 85% 30%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 70%),
+      linear-gradient(100deg, rgb(5 14 16 / 0.94) 0%, rgb(5 14 16 / 0.82) 55%, rgb(5 14 16 / 0.7) 100%);
+    backdrop-filter: blur(3px);
+  }
+  .report-hero__inner {
+    @apply grid w-full items-center gap-10 pt-28 pb-14 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)]
+      lg:gap-14 lg:pt-32 lg:pb-20;
+  }
+  .report-hero__text {
+    @apply min-w-0;
+    --muted: #c9d6d4;
+  }
+  .report-hero__title {
+    @apply relative mt-6 text-4xl leading-[1.08] font-extrabold tracking-tight break-words
+      sm:text-5xl xl:text-6xl;
+  }
+  .report-hero__label {
+    @apply mt-8 text-xs font-bold tracking-[0.18em] text-muted uppercase;
+  }
+  .report-hero__panel .report-hero__label {
+    @apply mt-0 text-center;
+  }
+  .report-hero__verdict {
+    @apply mt-2 max-w-2xl text-2xl leading-snug font-bold text-balance sm:text-3xl;
+    font-family: var(--font-display);
+  }
+  .report-hero__actions {
+    @apply mt-8 flex flex-wrap items-center gap-3;
+  }
+  .report-hero__panel {
+    @apply rounded-3xl p-6 backdrop-blur-md;
+    background: rgb(255 255 255 / 0.06);
+    border: 1px solid rgb(255 255 255 / 0.12);
+    box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.6);
+  }
+  .report-hero__panel .gauge__track {
+    stroke: rgb(255 255 255 / 0.14);
+  }
+  .report-hero__stats {
+    @apply mt-6 grid grid-cols-2 gap-3;
+  }
+  .report-hero__stats .perk-card {
+    @apply px-3 py-3;
+  }
+  .report-hero__stats .perk-card__icon {
+    @apply size-10;
+  }
+  .report-hero__stats strong {
+    @apply font-mono text-2xl leading-none;
+  }
+
+  /* Below the band: the paper background with the homepage's soft colour blobs. */
+  .report-body {
+    @apply relative isolate;
+    overflow: clip;
+    background:
+      radial-gradient(34rem 26rem at 0% 6rem, color-mix(in srgb, var(--tone-green-soft) 85%, transparent), transparent 70%),
+      radial-gradient(30rem 26rem at 100% 38%, color-mix(in srgb, var(--tone-violet-soft) 70%, transparent), transparent 70%),
+      radial-gradient(32rem 28rem at 0% 72%, color-mix(in srgb, var(--tone-blue-soft) 70%, transparent), transparent 70%),
+      radial-gradient(30rem 24rem at 100% 96%, color-mix(in srgb, var(--tone-amber-soft) 75%, transparent), transparent 70%),
+      var(--paper);
+  }
+
+  /* Section openers, like the homepage's: dash eyebrow, big title with a highlighted word. */
+  .section-head {
+    @apply relative;
+  }
+  .section-title {
+    @apply mt-3 text-3xl leading-[1.1] font-bold sm:text-[2.5rem];
+  }
+  .section-intro {
+    @apply mt-3 max-w-2xl text-muted;
+  }
+  .section-spark {
+    @apply -top-6 right-[4%];
+    color: var(--tone-green);
+  }
+  .section-spark--violet {
+    color: var(--tone-violet);
+  }
+
+  /* "At a glance": the devices beside the share card and what we checked. */
+  .glance-grid {
+    @apply mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)];
+  }
+  .glance-side {
+    @apply grid gap-6;
+  }
+  .glance-side .share {
+    @apply max-w-none;
+  }
+  .glance-card {
+    @apply flex items-start gap-4;
+    background: linear-gradient(160deg, var(--card) 40%, var(--tone-soft));
+  }
+
+  /* Cards with the homepage's tinted glow. */
+  .risk,
+  .help-card {
+    box-shadow: 0 26px 40px -30px color-mix(in srgb, var(--band, var(--primary)) 55%, transparent);
+  }
+  .help-card {
+    background: linear-gradient(165deg, var(--card) 45%, var(--band-soft, var(--primary-soft)));
+  }
+
   /* --- The report as a dashboard: sidebar + main column ----------------------------- */
   .report-layout {
     @apply container-report grid grid-cols-[minmax(0,1fr)] gap-8 py-8
@@ -1358,14 +1492,14 @@
     scrollbar-width: thin;
   }
   .side-score {
-    @apply rounded-2xl border border-line bg-card p-4;
-    background-image: linear-gradient(160deg, var(--band-soft), transparent 55%);
+    @apply flex items-center gap-3 rounded-2xl border border-line bg-card p-4;
+    background-image: linear-gradient(160deg, var(--band-soft), transparent 60%);
   }
-  .side-score__gauge {
-    @apply mx-auto mt-2 w-full max-w-36;
-  }
-  .side-score .gauge__number {
-    @apply text-4xl;
+  .side-score__number {
+    @apply inline-flex size-14 shrink-0 items-center justify-center rounded-xl font-mono text-2xl
+      font-bold;
+    color: var(--band);
+    background: var(--band-soft);
   }
   .report-head {
     @apply flex flex-wrap items-end justify-between gap-x-6 gap-y-4;
@@ -1414,57 +1548,6 @@
     @apply col-span-2 mt-1.5 h-1 w-full;
   }
 
-  /* Overview: the diagnosis and counters beside the device screenshots. */
-  .hero-card {
-    @apply grid grid-cols-[minmax(0,1fr)] items-center gap-6 rounded-3xl border border-line bg-card
-      p-5 sm:p-7 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)];
-    background-image: linear-gradient(135deg, var(--band-soft), transparent 40%);
-  }
-  .hero-card__label {
-    @apply text-xs font-bold tracking-wider text-muted uppercase;
-  }
-  .hero-card__verdict {
-    @apply mt-2 text-2xl leading-tight font-bold text-balance sm:text-3xl;
-    font-family: var(--font-display);
-  }
-  .hero-stats {
-    @apply mt-6 grid grid-cols-2 gap-3;
-  }
-  .hero-stat {
-    @apply rounded-2xl border border-line bg-paper px-4 py-3;
-  }
-  .hero-stat--primary {
-    --band: var(--primary);
-    --band-soft: var(--primary-soft);
-  }
-  .hero-stat__number {
-    @apply block font-mono text-3xl leading-none font-bold;
-    color: var(--band);
-  }
-  .hero-stat__label {
-    @apply mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted;
-  }
-  .hero-stat__label svg {
-    color: var(--band);
-  }
-  .hero-card__shot {
-    @apply min-w-0;
-  }
-  .overview-extras {
-    @apply grid grid-cols-[minmax(0,1fr)] items-start gap-6 md:grid-cols-2;
-  }
-  .overview-extras .share {
-    @apply max-w-none;
-  }
-  /* beside "What we checked": picture left, text right */
-  @media (min-width: 40rem) {
-    .overview-extras .share-card {
-      @apply grid grid-cols-2 items-center;
-    }
-    .overview-extras .share-card__text {
-      @apply border-t-0 border-l self-center;
-    }
-  }
 
   /* "Fix these first" */
   .risks {
@@ -1585,7 +1668,6 @@
   }
   .issue-row,
   .risk,
-  .hero-stat,
   .card {
     break-inside: avoid;
   }

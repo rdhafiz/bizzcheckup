@@ -7,6 +7,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Changed
+- **The report wears the homepage's theme**: a dark opening band with the hero photo,
+  parallax, the green badge, the domain in the green gradient with its swoosh and a
+  frosted score panel (the PDF's cover too); the header on the photo; soft colour blobs
+  behind the dashboard; homepage-style section titles; and the same word-by-word and
+  card reveal animations.
+
+### Fixed
+- The motion watchdog no longer switches animation off when a card only peeks in at
+  the bottom of the screen on load.
+
 - **The report is redesigned as a dashboard**: a sticky sidebar with the score,
   the sections and the five vital signs (click one to see only its issues); the
   diagnosis and counters beside the device screenshots; "Fix these first"; then **one
