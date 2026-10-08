@@ -1,8 +1,7 @@
-// Report page: "Copy share link", the issue checklist and filters, "Copy" on code
+// Report page: "Copy share link", the issue filters, "Copy" on code
 // blocks, the device screenshot tabs and the sidebar's "you are here" highlight.
 document.addEventListener("DOMContentLoaded", function () {
   setUpCopyLink();
-  setUpPlanChecklist();
   setUpIssueFilters();
   setUpIssueLinks();
   setUpCopyCode();
@@ -198,56 +197,4 @@ function setUpCopyLink() {
       window.prompt("Copy this link:", url);  // older browsers / plain http
     }
   });
-}
-
-// Ticks are remembered per report in this browser only (localStorage). If storage is
-// blocked (private mode, strict settings) the checklist still works, it just forgets.
-function setUpPlanChecklist() {
-  var plan = document.querySelector("[data-plan]");
-  if (!plan) return;
-  var storageKey = "bizzcheckup-plan-" + plan.getAttribute("data-plan");
-  var boxes = Array.prototype.slice.call(plan.querySelectorAll("[data-plan-key]"));
-  var panel = document.querySelector("[data-plan-progress]");
-  var count = document.querySelector("[data-plan-count]");
-  var bar = document.querySelector("[data-plan-bar]");
-  var reset = document.querySelector("[data-plan-reset]");
-
-  function load() {
-    try { return JSON.parse(window.localStorage.getItem(storageKey)) || []; }
-    catch (e) { return []; }
-  }
-  function save(keys) {
-    try {
-      if (keys.length) window.localStorage.setItem(storageKey, JSON.stringify(keys));
-      else window.localStorage.removeItem(storageKey);
-    } catch (e) { /* storage unavailable: keep working without it */ }
-  }
-  function update() {
-    var done = boxes.filter(function (box) { return box.checked; });
-    save(done.map(function (box) { return box.getAttribute("data-plan-key"); }));
-    boxes.forEach(function (box) {
-      var row = box.closest(".issue-row");
-      if (row) row.classList.toggle("is-done", box.checked);
-    });
-    if (bar) bar.value = done.length;
-    if (count) {
-      count.textContent = done.length === boxes.length
-        ? "All " + boxes.length + " issues fixed. Check again to see your new score."
-        : done.length + " of " + boxes.length + " issues fixed";
-    }
-  }
-
-  var saved = load();
-  boxes.forEach(function (box) {
-    box.checked = saved.indexOf(box.getAttribute("data-plan-key")) !== -1;
-    box.addEventListener("change", update);
-  });
-  if (reset) {
-    reset.addEventListener("click", function () {
-      boxes.forEach(function (box) { box.checked = false; });
-      update();
-    });
-  }
-  if (panel) panel.hidden = false;  // only shown when JavaScript can run it
-  update();
 }

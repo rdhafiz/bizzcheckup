@@ -1,24 +1,12 @@
 {% load bizz %}
 {% comment %}
   One row of the issue list. Needs `row` (builder.IssueRow), `view`, `checkup`, `pdf`.
-  - A tick box marks it fixed (kept in this browser by static/js/report.js); on paper an
-    empty box to tick by hand. Notes ("good to know") have no box.
   - Native <details>: the problem in one line, the why / how / where one tap away. Always
     open in the PDF. data-category / data-severity drive the filters.
 {% endcomment %}
 {% with finding=row.finding %}
 <li class="issue-row band-{{ finding.severity|severity_band }}" id="{{ row.anchor }}"
     data-category="{{ finding.category.value }}" data-severity="{{ finding.severity.value }}">
-  {% if finding.severity.value != "info" %}
-    {% if pdf %}
-      <span class="issue-row__box" aria-hidden="true"></span>
-    {% else %}
-      <input type="checkbox" class="issue-row__check" data-plan-key="{{ row.key }}"
-             aria-label="Mark as fixed: {{ finding.message }}">
-    {% endif %}
-  {% else %}
-    <span class="issue-row__spacer" aria-hidden="true"></span>
-  {% endif %}
 <details class="issue" {% if pdf %}open{% endif %}>
   <summary class="issue__summary">
     <span class="issue__icon">{% include "partials/icon.html" with name=finding.severity css="size-5" %}</span>

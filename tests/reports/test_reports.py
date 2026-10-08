@@ -185,12 +185,11 @@ def test_report_page_helps_find_issues_and_solutions(client: Client, finished: C
         assert f'href="{anchor}"' in html, anchor
     # The sidebar: a vital sign filters the issue list.
     assert 'class="side-sign band-urgent" href="#issues" data-filter-category="seo"' in html
-    # Each issue appears once, in the list: tick box, details on demand, a stable anchor.
+    # Each issue appears once, in the list: details on demand, a stable anchor.
     assert html.count('<span class="issue__message">Your homepage has no title.') == 1
     assert 'id="issue-seo-title-1"' in html
     assert 'href="#issue-seo-title-1"' in html  # "See how to fix it" from the top risks
-    assert f'data-plan="{finished.pk}"' in html
-    assert 'data-plan-key="seo-title-1"' in html
+    assert "data-plan" not in html  # no tick boxes or progress bar
     assert '<details class="issue"' in html
 
 

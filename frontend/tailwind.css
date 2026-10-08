@@ -1558,7 +1558,7 @@
     @apply mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-primary;
   }
 
-  /* The issue list: filters, then one row per issue with its tick box. */
+  /* The issue list: filters, then one row per issue. */
   .issue-tools {
     @apply mt-6 grid gap-3 rounded-2xl border border-line bg-card p-4;
   }
@@ -1584,21 +1584,7 @@
     @apply mt-4 grid gap-3;
   }
   .issue-row {
-    @apply grid grid-cols-[1.25rem_minmax(0,1fr)] items-start gap-3;
-  }
-  .issue-row__check {
-    @apply mt-5 size-5 cursor-pointer rounded;
-    accent-color: var(--healthy);
-  }
-  .issue-row__box {
-    @apply mt-5 size-5 rounded border-2 border-muted;
-  }
-  .issue-row.is-done .issue {
-    @apply border-healthy bg-healthy-soft;
-    border-left-color: var(--healthy);
-  }
-  .issue-row.is-done .issue__message {
-    @apply text-muted line-through;
+    @apply min-w-0;
   }
   .issue__meta {
     @apply flex flex-wrap items-center gap-x-3 gap-y-1;

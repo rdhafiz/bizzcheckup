@@ -107,7 +107,7 @@ class IssueRow:
     """One problem (or note) in the report's single issue list."""
 
     finding: Finding
-    key: str  # stable within the report: the checklist and links use it, e.g. "seo-title-1"
+    key: str  # stable within the report, for links to the row, e.g. "seo-title-1"
     quick_win: bool = False
 
     @property

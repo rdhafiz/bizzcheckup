@@ -6,6 +6,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Removed
+- The tick boxes and the "issues fixed" progress bar in the report's issue list (and
+  the browser storage they used).
+
 ### Changed
 - **"How … can help" is redesigned** with the homepage's vital-sign cards: each service in
   its vital sign's colour and icon, with the score and a link to the issues it treats; the

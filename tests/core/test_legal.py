@@ -50,8 +50,9 @@ def test_terms_use_the_country_and_the_real_limits(client: Client, settings) -> 
 
 def test_cookie_policy_lists_what_the_site_really_stores(client: Client) -> None:
     html = client.get(reverse("core:cookies")).content.decode()
-    for name in ("csrftoken", "messages", "bizzcheckup-theme", "bizzcheckup-plan-"):
+    for name in ("csrftoken", "messages", "bizzcheckup-theme"):
         assert name in html
+    assert "bizzcheckup-plan-" not in html  # the report's checklist (and its storage) is gone
 
 
 def test_branding_has_legal_details() -> None:
