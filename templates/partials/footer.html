@@ -72,7 +72,10 @@
 
     <div class="site-footer__bottom">
       <p>© {% now "Y" %} {{ branding.legal.operator }}. All rights reserved.</p>
-      <p class="flex items-center gap-4">
+      <p class="flex flex-wrap items-center gap-x-4">
+        <a href="{% url 'llms_txt' %}" class="inline-flex min-h-11 items-center gap-1.5" aria-label="llms.txt: a guide to this site for AI assistants">
+          {% include "partials/icon.html" with name="agentic" css="size-4" %}<span class="font-mono text-xs">llms.txt</span>
+        </a>
         <span class="font-mono text-xs">v{{ app_version }}</span>
         <a href="#main" class="inline-flex min-h-11 items-center gap-1.5">Back to top {% include "partials/icon.html" with name="arrow-up" css="size-4" %}</a>
       </p>

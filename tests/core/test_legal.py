@@ -68,6 +68,7 @@ def test_footer_on_every_page(client: Client) -> None:
         assert f"© {date.today().year} Ridwanul Hafiz" in html
         assert "mailto:ridwanul.hafiz@gmail.com" in html
         assert 'aria-label="GitHub"' in html
+        assert 'href="/llms.txt"' in html
         for name, _ in LEGAL_PAGES:
             assert f'href="{reverse(f"core:{name}")}"' in html
 
