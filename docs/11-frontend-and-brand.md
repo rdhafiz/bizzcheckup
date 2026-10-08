@@ -232,4 +232,5 @@ while `DEBUG` is on.
 - A "Skip to content" link (visible when you press Tab).
 - Visible focus outline on everything you can click.
 - Score rings have an `aria-label` such as "SEO: 72 out of 100, Needs attention".
-- `prefers-reduced-motion` turns animations off.
+- `prefers-reduced-motion` turns animations off, including scroll reveal and parallax
+  ([Motion](19-motion.md)).

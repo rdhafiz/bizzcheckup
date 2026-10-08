@@ -26,6 +26,7 @@ Read them in order the first time. Later, jump to the page you need.
 | 16 | [The Health Report](16-health-report.md) | The six report sections, branding.yaml, how the PDF is made |
 | 17 | [Security & abuse protection](17-security.md) | SSRF, rate limits, reuse, bots, IP privacy, headers |
 | 18 | [Legal pages, footer & crawler files](18-legal-pages.md) | Privacy, terms, cookies, acceptable use, disclaimer; the footer; robots.txt, sitemap.xml and llms.txt |
+| 19 | [Motion: scroll reveal & parallax](19-motion.md) | How sections animate in and photos drift; the safety nets; performance |
 
 ## What is BizzCheckup?
 

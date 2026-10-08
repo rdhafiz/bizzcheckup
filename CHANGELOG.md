@@ -7,6 +7,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **Scroll reveal and parallax** on the homepage (`static/js/motion.js`, no library):
+  sections and footer columns fade in and rise as they scroll into view (staggered, and
+  again on every return); the hero and benefits photos drift slower than the page while the
+  hero text moves slightly against them. Fails open (nothing hidden without the script),
+  off with reduced motion, parallax off below 768px, keyboard focus and #anchors show hidden
+  content at once, and a watchdog shows everything if reveals stall.
 - **`/llms.txt`**: a Markdown guide to BizzCheckup for AI assistants (llmstxt.org format):
   what it does, the five vital signs, the limits, and links to the main and legal pages.
   A test checks that BizzCheckup passes its own llms.txt and AI-crawler checks.
@@ -39,6 +45,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - Messages (for example "rate limit reached") are shown at the top of any page.
 
 ### Fixed
+- The benefits photo's desktop crop was overridden by a leftover duplicate CSS rule.
 - Sites behind Vercel's bot protection (and similar) answered "HTTP 429" with a challenge
   page. The User-Agent is now a browser identity with `BizzCheckup/0.1
   (+https://ridwanulhafiz.me)` at the end (as Lighthouse does). If a firewall still blocks
