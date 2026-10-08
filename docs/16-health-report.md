@@ -4,19 +4,47 @@ A finished check-up is shown at its own address, `/checkups/<uuid>/`, as the
 **BizzCheckup Health Report**. The **PDF** at `/checkups/<uuid>/report.pdf` uses the
 *same* template sections, so the two always match.
 
-## The six sections (`templates/reports/_sections.html`)
+## Layout: a dashboard with a sidebar
 
-The order follows the questions a business owner asks, one at a time:
+On a computer the report is a **dashboard** (`templates/reports/report.html`):
+
+- **Sidebar** (`_sidebar.html`, sticky): the Business Health Score gauge, the sections
+  with how many items each has, and the five **vital signs** with their score and a bar.
+  Clicking a vital sign shows only its issues. While you scroll, the section you're
+  reading is highlighted (`setUpSectionHighlight()` in `report.js`).
+- **Main column**: the sections below. The actions (Download PDF, Copy share link,
+  Check again now) sit next to the domain name.
+
+On phones and tablets (under 1024 px) the sidebar is hidden: a sticky bar keeps the
+score and the section links in view, and the score and vital signs appear inside the
+overview instead. The PDF has no sidebar either; it shows them in the overview too.
+
+## The sections (`templates/reports/_sections.html`)
+
+Each issue appears **once**. The order follows the questions a business owner asks:
 
 | # | Section (`id`) | Question it answers | Shows | Comes from |
 |---|----------------|---------------------|-------|------------|
-| 1 | **Overview** (`#overview`) | *How healthy is my website?* | Domain, URL, half-circle **gauge** with the Business Health Score and band, a one-sentence **verdict**, the homepage screenshot, 4 counters (need treatment, worth fixing, quick wins, checks passed), the 5 vital signs as **bullet bars**, and any notes (e.g. pages robots.txt kept us out of). The pages checked are listed in **All pages** | `ReportView.verdict`, `.needs_treatment`, `.worth_fixing`, `.healthy_count` |
-| 2 | **Top risks** (`#top-issues`) | *What are the biggest problems?* | Up to 3 cards: the problem, **what it costs you**, and **the solution** side by side | `builder.top_risks()` |
-| 3 | **Treatment plan** (`#plan`) | *What do I do, and in what order?* | A **checklist**: quick wins first, then next steps; each step links to its details | `engine.treatment.build_treatment_plan()` |
-| 4 | **Vital signs** ×5 (`#sign-<category>`) | *Tell me more.* | Icon, score ring, a one-line **headline** ("5 issues worth fixing."), then each issue as a row that opens to show *why it matters*, *how to fix it* and *where*; "Good to know" notes; passed checks folded | `builder.vital_sign()`, `VitalSign.headline` |
-| 4b | **All pages** (`#pages`) | *Which pages were checked?* | Every page address found (sitemap and links): checked ones first with a "Checked" badge, the first 30 shown and the rest behind "Show all" ("and N more" in the PDF). When some weren't checked, the **full check-up proposal** sits beside the list | `ReportView.all_pages`, `.unchecked_count`, `branding.full_audit` |
+| 1 | **Overview** (`#overview`) | *How healthy is my website?* | Domain and URL; the **diagnosis** (one-sentence verdict) with 4 counters (need treatment, worth fixing, quick wins, checks passed) beside the Desktop / Tablet / Phone screenshots; the link preview card; what we checked (pages and checks) and any notes | `ReportView.verdict`, `.needs_treatment`, `.worth_fixing`, `.healthy_count` |
+| 2 | **Fix these first** (`#fix-first`) | *What should I fix first?* | Up to 3 cards: the problem and what it costs you, with "See how to fix it", which opens that issue in the list (in the PDF: the solution itself) | `builder.top_risks()`, `ReportView.risk_rows` |
+| 3 | **All issues** (`#issues`) | *What do I do, and in what order?* | **One list** of every problem, quick wins first (plan order), then the "good to know" notes. Each row has a tick box and opens to show *why it matters*, *how to fix it*, *where* and any ready-made fix. Filters by vital sign and by severity; the progress bar counts what's ticked. Vital signs that weren't checked say why. Passed checks are folded under "What's healthy", grouped by vital sign | `ReportView.issues` (`builder.issue_rows()`), `.issue_filters`, `engine.treatment.build_treatment_plan()` |
+| 4 | **All pages** (`#pages`) | *Which pages were checked?* | Every page address found (sitemap and links): checked ones first with a "Checked" badge, the first 30 shown and the rest behind "Show all" ("and N more" in the PDF). When some weren't checked, the **full check-up proposal** sits beside the list | `ReportView.all_pages`, `.unchecked_count`, `branding.full_audit` |
 | 5 | **How {first name} can help** (`#help`) | *Who can fix this?* | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, plus the broad "rebuild" service when 3+ areas need care, and the call to action | `builder.recommend_services()` |
 | 6 | **Contact** (`#contact`) | *How do I reach them?* | Photo, name, title, intro, highlights, email, WhatsApp, website, GitHub, CV, portfolio, QR code, footer note | `branding.yaml`, `builder.qr_code_svg()` |
+
+### The issue list (`_issue.html`, `builder.IssueRow`)
+
+Every row has a **key** that stays the same within a report, such as `seo-title-1` (the
+check id, then a number when a check gives more than one finding). It's used for:
+
+- the row's anchor, `#issue-seo-title-1`, which "See how to fix it" links to;
+- the tick box (`data-plan-key`). Ticks are saved per report in the browser's
+  `localStorage`, and a ticked row turns green and is struck through.
+
+The filters are plain buttons with `aria-pressed`. Rows carry `data-category` and
+`data-severity`, and `setUpIssueFilters()` hides the ones that don't match. Without
+JavaScript the filters stay hidden and every issue shows. In the PDF every row is open,
+and the tick box is an empty square to tick by hand.
 
 Every finding shows its severity ("Needs treatment", "Worth fixing", "Good to know",
 "Healthy") as **an icon, a colour and a word** (never colour alone), plus impact, effort,
@@ -68,7 +96,7 @@ would tell that site who is reading the report).
 | **Bullet bars** with a line at 90 | `reports/_bullet.html` | Five scores compared against one target ("Healthy"). The bar is an SVG `<rect width="72">` because our CSP forbids `style="width:72%"` |
 | **Problem → cost → solution** cards | Top risks | Answers "what's wrong and what do I do" without scrolling |
 | **Expandable rows** (`<details>`) | `reports/_issue.html` | 40+ findings at full length make a wall of text. One line each, details on demand. `<details>` is native HTML: keyboard and screen-reader friendly, no JavaScript. In the PDF they are always `open` |
-| **Checklist** | `reports/_plan_item.html`, `static/js/report.js` | Turns the report into a to-do list. Ticks are saved in the visitor's browser (`localStorage`, key `bizzcheckup-plan-<uuid>`), never on the server. If storage is blocked it still works, it just forgets. The progress bar only appears when JavaScript runs. The PDF prints empty boxes |
+| **Checklist** | The tick box on each row of `reports/_issue.html`, `static/js/report.js` | Turns the report into a to-do list. Ticks are saved in the visitor's browser (`localStorage`, key `bizzcheckup-plan-<uuid>`), never on the server. If storage is blocked it still works, it just forgets. The progress bar only appears when JavaScript runs. The PDF prints empty boxes |
 | **One icon set** | `partials/icon.html` | SVG line icons (2 px stroke), `aria-hidden` because the text next to them says the same thing. No emoji |
 
 Responsive: one column on phones (bars go under the names, the nav scrolls sideways),
@@ -147,7 +175,7 @@ right now" page (HTTP 503), never an error page.
 |--------|------|
 | **Download PDF** | `/checkups/<uuid>/report.pdf`, ready straight away because the PDF is made before the report appears |
 | **Copy share link** | Copies the report's address (`static/js/report.js`) |
-| **Jump links** (sticky bar) | Overview · Top issues · Action plan · Details · Get help |
+| **Section links** | In the sidebar (with counts and a "you are here" highlight), or the sticky bar on phones: Overview · Fix these first · All issues · All pages · Get help · Contact |
 | **Check again now** | A fresh check-up of the same site, skipping report reuse (`checkups/_recheck_form.html`, `views.recheck`; rules in [Security](17-security.md)) |
 
 Below the buttons, the report says how old it is: `{{ checkup.finished_at|timesince }}`

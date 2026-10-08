@@ -1,0 +1,43 @@
+{% load bizz %}
+{% comment %}
+  The report's sidebar (web only): the score, the sections and the five vital signs. Sticky beside the report on large screens; above it on small ones.
+  A vital sign filters the issue list to that sign (static/js/report.js); without
+  JavaScript it is a plain link to the list.
+{% endcomment %}
+{% with report=view.report checkup=view.checkup %}
+<aside class="report-side no-print" aria-label="Report summary">
+  <div class="side-score band-{{ report.health_score|band }}">
+    <p class="eyebrow">Business Health Score</p>
+    <div class="side-score__gauge">{% include "reports/_gauge.html" with score=report.health_score %}</div>
+    <p class="text-center"><span class="band-pill">{{ report.health_score|band_label }}</span></p>
+    <p class="mt-3 text-center text-xs text-muted">Checked {{ checkup.finished_at|ago }}.</p>
+  </div>
+
+  <nav class="side-nav" aria-label="Report sections">
+    <a href="#overview">{% include "partials/icon.html" with name="chart" css="size-4" %}<span>Overview</span></a>
+    {% if view.risk_rows %}<a href="#fix-first">{% include "partials/icon.html" with name="bolt" css="size-4" %}<span>Fix these first</span><span class="side-nav__count">{{ view.risk_rows|length }}</span></a>{% endif %}
+    <a href="#issues">{% include "partials/icon.html" with name="list" css="size-4" %}<span>All issues</span><span class="side-nav__count">{{ view.problem_rows|length }}</span></a>
+    <a href="#pages">{% include "partials/icon.html" with name="file" css="size-4" %}<span>All pages</span><span class="side-nav__count">{{ view.all_pages|length }}</span></a>
+    <a href="#help">{% include "partials/icon.html" with name="handshake" css="size-4" %}<span>Get help</span></a>
+    <a href="#contact">{% include "partials/icon.html" with name="mail" css="size-4" %}<span>Contact</span></a>
+  </nav>
+
+  <div class="side-signs">
+    <p class="side-signs__title">Vital signs</p>
+    <ul>
+      {% for sign in view.vital_signs %}
+        <li>
+          <a class="side-sign band-{{ sign.score.score|band }}" href="#issues" data-filter-category="{{ sign.category.value }}" title="{{ sign.intro }}">
+            <span class="side-sign__name">{% include "partials/icon.html" with name=sign.category.value css="size-4" %}{{ sign.label }}</span>
+            <span class="side-sign__score">{{ sign.score.score|default:"–" }}</span>
+            <svg class="side-sign__bar" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+              <rect class="bullet__track" width="100" height="4" rx="2"/>
+              {% if sign.score.score is not None %}<rect class="bullet__fill" width="{{ sign.score.score }}" height="4" rx="2"/>{% endif %}
+            </svg>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</aside>
+{% endwith %}

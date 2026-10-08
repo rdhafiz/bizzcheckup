@@ -110,7 +110,7 @@ def test_full_checkup_through_the_worker(client: Client, site: str) -> None:
 
     # The same URL now shows the report.
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
-    assert "Your website at a glance" in html
+    assert "The diagnosis" in html
     assert "How Ridwanul can help" in html
 
     pdf = client.get(reverse("reports:pdf", args=[checkup.pk]))

@@ -83,6 +83,19 @@ class Recommendation:
 
 
 @dataclass
+class IssueRow:
+    """One problem (or note) in the report's single issue list."""
+
+    finding: Finding
+    key: str  # stable within the report: the checklist and links use it, e.g. "seo-title-1"
+    quick_win: bool = False
+
+    @property
+    def anchor(self) -> str:
+        return f"issue-{self.key}"
+
+
+@dataclass
 class ReportView:
     checkup: Checkup
     report: AuditReport
@@ -94,6 +107,30 @@ class ReportView:
     extra_services: list[Service] = field(default_factory=list)
     qr_svg: str = ""
     image_kinds: set[str] = field(default_factory=set)  # pictures saved, e.g. {"mobile"}
+    issues: list[IssueRow] = field(default_factory=list)  # every problem, then every note
+
+    # --- the issue list ------------------------------------------------------------------
+    @property
+    def risk_rows(self) -> list[IssueRow]:
+        """The top risks, as rows of the issue list (so they can link to their details)."""
+        by_finding = {id(row.finding): row for row in self.issues}
+        return [by_finding[id(f)] for f in self.top_risks if id(f) in by_finding]
+
+    @property
+    def problem_rows(self) -> list[IssueRow]:
+        return [row for row in self.issues if row.finding.severity is not Severity.INFO]
+
+    @property
+    def note_rows(self) -> list[IssueRow]:
+        return [row for row in self.issues if row.finding.severity is Severity.INFO]
+
+    @property
+    def issue_filters(self) -> list[tuple[VitalSign, int]]:
+        """Each vital sign with how many issues it has in the list, for the filter chips."""
+        return [
+            (sign, sum(1 for row in self.issues if row.finding.category is sign.category))
+            for sign in self.vital_signs
+        ]
 
     @property
     def band(self) -> Band | None:
@@ -173,7 +210,23 @@ def build_report(checkup: Checkup) -> ReportView:
         extra_services=extra,
         qr_svg=qr_code_svg(str(branding.qr_target)) if branding.qr_target else "",
         image_kinds=set(checkup.images.values_list("kind", flat=True)),
+        issues=issue_rows(plan, vital_signs),
     )
+
+
+def issue_rows(plan: TreatmentPlan, signs: list[VitalSign]) -> list[IssueRow]:
+    """Quick wins, then the other problems (plan order), then the "good to know" notes."""
+    counts: dict[str, int] = {}
+
+    def row(finding: Finding, quick_win: bool = False) -> IssueRow:
+        base = finding.check_id.replace(".", "-").replace("_", "-")
+        counts[base] = counts.get(base, 0) + 1
+        return IssueRow(finding=finding, key=f"{base}-{counts[base]}", quick_win=quick_win)
+
+    rows = [row(f, quick_win=True) for f in plan.quick_wins]
+    rows += [row(f) for f in plan.others]
+    rows += [row(f) for sign in signs for f in sign.notes]
+    return rows
 
 
 def vital_sign(report: AuditReport, category: Category) -> VitalSign:

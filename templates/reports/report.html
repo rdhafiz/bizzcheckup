@@ -10,37 +10,29 @@
   {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
+{% block header_container %}container-report{% endblock %}
+
 {% block content %}
-  {# Sticky bar: where am I (domain + score), jump links, and the actions. #}
-  <div class="report-bar no-print">
+  {# Small screens: a sticky bar with the score and the jump links (the sidebar sits above). #}
+  <div class="report-bar no-print lg:hidden">
     <div class="container-page flex items-center gap-3 py-2">
       <p class="flex min-w-0 shrink-0 items-center gap-2 font-semibold band-{{ view.report.health_score|band }}">
         <span class="report-bar__score">{{ view.report.health_score|default:"–" }}</span>
         <span class="hidden truncate sm:inline">{{ view.checkup.domain }}</span>
       </p>
-      <nav class="report-nav" aria-label="Report sections">
+      <nav class="report-nav" aria-label="Report sections (short)">
         <a href="#overview">Overview</a>
-        {% if view.top_risks %}<a href="#top-issues">Top issues</a>{% endif %}
-        <a href="#plan">Action plan</a>
-        <a href="#details">Details</a>
-        <a href="#pages">All pages</a>
+        {% if view.risk_rows %}<a href="#fix-first">Fix first</a>{% endif %}
+        <a href="#issues">Issues</a>
+        <a href="#pages">Pages</a>
         <a href="#help">Get help</a>
       </nav>
     </div>
   </div>
 
-  <div class="container-page py-8 sm:py-10">
-    <div class="report-actions no-print flex flex-wrap items-center gap-3">
-      <a class="btn-primary" href="{% url 'reports:pdf' view.checkup.pk %}">Download PDF</a>
-      <button type="button" class="btn-secondary" data-copy-link="{{ share_url }}">Copy share link</button>
-      {% include "checkups/_recheck_form.html" with checkup=view.checkup %}
-      <span class="text-sm text-muted" data-copy-status aria-live="polite"></span>
-    </div>
-    <p class="no-print mt-3 text-sm text-muted">
-      Checked {{ view.checkup.finished_at|ago }}. Changed something on your website?
-      Check again to see the new result.
-    </p>
-    <div class="report mt-8">
+  <div class="report-layout">
+    {% include "reports/_sidebar.html" %}
+    <div class="report min-w-0">
       {% include "reports/_sections.html" with pdf=False %}
     </div>
   </div>

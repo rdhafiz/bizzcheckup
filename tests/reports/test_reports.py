@@ -145,16 +145,15 @@ def test_qr_code_is_inline_svg() -> None:
 # --- report page -----------------------------------------------------------------------
 
 
-def test_report_page_has_all_six_sections(client: Client, finished: Checkup) -> None:
+def test_report_page_has_all_sections(client: Client, finished: Checkup) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
 
     for heading in [
-        "BizzCheckup Health Report",  # 1 cover
-        "Your website at a glance",  # 2 diagnosis
-        "Top 1 risks to your business",
-        "Vital sign 1 of 5",  # 3 vital signs
-        "Vital sign 5 of 5",
-        "What to fix first",  # 4 treatment plan
+        "BizzCheckup Health Report",  # 1 overview
+        "The diagnosis",
+        "Fix these first",  # 2 the top risks
+        "All issues",  # 3 one list of every issue
+        "We found 1 page on your website",  # 4 pages
         "How Ridwanul can help",  # 5 proposal
         "Let&#x27;s fix this together",
         "ridwanul.hafiz@gmail.com",  # 6 contact
@@ -170,12 +169,17 @@ def test_report_page_has_all_six_sections(client: Client, finished: Checkup) -> 
 
 def test_report_page_helps_find_issues_and_solutions(client: Client, finished: Checkup) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
-    for anchor in ["#overview", "#top-issues", "#plan", "#details", "#help", "#sign-seo"]:
+    for anchor in ["#overview", "#fix-first", "#issues", "#pages", "#help"]:
         assert f'href="{anchor}"' in html, anchor
-    assert "The solution" in html  # top risks show the fix next to the problem
-    assert '<details class="issue band-urgent"' in html  # issues expand on demand
-    assert f'data-plan="{finished.pk}"' in html  # the checklist
-    assert 'data-plan-key="qseo.title-1"' in html
+    # The sidebar: a vital sign filters the issue list.
+    assert 'class="side-sign band-urgent" href="#issues" data-filter-category="seo"' in html
+    # Each issue appears once, in the list: tick box, details on demand, a stable anchor.
+    assert html.count('<span class="issue__message">Your homepage has no title.') == 1
+    assert 'id="issue-seo-title-1"' in html
+    assert 'href="#issue-seo-title-1"' in html  # "See how to fix it" from the top risks
+    assert f'data-plan="{finished.pk}"' in html
+    assert 'data-plan-key="seo-title-1"' in html
+    assert '<details class="issue"' in html
 
 
 def test_report_shows_suggested_fixes_with_a_copy_button(client: Client, finished: Checkup) -> None:

@@ -4,7 +4,7 @@
   An SVG (not a styled div) because the bar length is data and our CSP forbids inline styles.
   A jump link on the web; plain text in the PDF.
 {% endcomment %}
-{% if pdf %}<div class="bullet band-{{ sign.score.score|band }}">{% else %}<a href="#{{ sign.anchor }}" class="bullet band-{{ sign.score.score|band }}">{% endif %}
+{% if pdf %}<div class="bullet band-{{ sign.score.score|band }}">{% else %}<a href="#issues" data-filter-category="{{ sign.category.value }}" class="bullet band-{{ sign.score.score|band }}">{% endif %}
   <span class="bullet__name">
     {% include "partials/icon.html" with name=sign.category.value css="size-5 text-primary" %}
     {{ sign.label }}

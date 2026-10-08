@@ -152,8 +152,8 @@ page can change the header without copying it.
 | `templates/partials/icon.html` | One SVG icon set for the whole site: severities, vital signs, form fields, homepage |
 | `templates/reports/_gauge.html` | Half-circle gauge for the Business Health Score |
 | `templates/reports/_bullet.html` | One vital sign as a bar against the "Healthy" line at 90 |
-| `templates/reports/_issue.html` | One finding as an expandable `<details>` row |
-| `templates/reports/_plan_item.html` | One treatment-plan step with its checkbox |
+| `templates/reports/_issue.html` | One row of the issue list: tick box + an expandable `<details>` with why / how / where |
+| `templates/reports/_sidebar.html` | The report's sticky sidebar: score, sections, vital signs |
 
 How and why the report looks the way it does: [Health report](16-health-report.md#the-reports-design-and-why).
 

@@ -6,6 +6,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Changed
+- **The report is redesigned as a dashboard**: a sticky sidebar with the score,
+  the sections and the five vital signs (click one to see only its issues); the
+  diagnosis and counters beside the device screenshots; "Fix these first"; then **one
+  list of every issue** with filters by vital sign and severity, a tick box per issue and
+  a progress bar. Each issue now appears once (the separate action plan and per-vital-sign
+  lists are merged), so the page is about 40% shorter. Phones get the score and vital
+  signs in the overview; the PDF keeps every issue open.
+
 ### Removed
 - The three summary sentences and the "We checked N pages" list under the report
   overview. The pages checked are shown in **All pages**.

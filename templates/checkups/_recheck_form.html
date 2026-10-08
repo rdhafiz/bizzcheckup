@@ -1,5 +1,5 @@
 {# "Check again now": a fresh check-up of the same site (POST, so it needs CSRF). #}
-<form method="post" action="{% url 'checkups:recheck' checkup.pk %}" class="inline-flex flex-wrap items-center gap-3">
+<form method="post" action="{% url 'checkups:recheck' checkup.pk %}" class="{{ form_class|default:'inline-flex flex-wrap items-center gap-3' }}">
   {% csrf_token %}
   {% if turnstile_site_key %}<div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>{% endif %}
   <button type="submit" class="{{ button_class|default:'btn-secondary' }}">
