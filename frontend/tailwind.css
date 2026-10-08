@@ -1680,9 +1680,9 @@
   .contact-card__reach {
     @apply grid content-start gap-3;
   }
-  /* Two tiles side by side while the card is wide; one column beside the sidebar. */
+  /* One full-width tile per row, so every address shows in full. */
   .contact-links {
-    @apply grid content-start gap-3 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2;
+    @apply grid content-start gap-3;
   }
   .contact-link {
     @apply flex min-h-16 items-center gap-3 rounded-2xl px-4 py-3 text-ink no-underline
