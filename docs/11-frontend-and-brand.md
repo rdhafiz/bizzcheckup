@@ -146,6 +146,7 @@ page can change the header without copying it.
 | File | What |
 |------|------|
 | `templates/base.html` | Skeleton: `<head>`, skip link, header with logo and theme button, footer |
+| `templates/partials/footer.html` | The dark site footer on every page ([details](18-legal-pages.md#the-footer-templatespartialsfooterhtml)) |
 | `templates/partials/logo.html` | Wordmark: pulse mark (`brand` green) + **Bizz** (green) + **Checkup** (ink) |
 | `templates/partials/score_ring.html` | Circular score gauge (see below) |
 | `templates/partials/icon.html` | One SVG icon set for the whole site: severities, vital signs, form fields, homepage |

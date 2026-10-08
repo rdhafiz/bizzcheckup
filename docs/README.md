@@ -25,6 +25,7 @@ Read them in order the first time. Later, jump to the page you need.
 | 15 | [Checks reference](15-checks-reference.md) | Every check: what it looks at, when it passes, warns or fails |
 | 16 | [The Health Report](16-health-report.md) | The six report sections, branding.yaml, how the PDF is made |
 | 17 | [Security & abuse protection](17-security.md) | SSRF, rate limits, reuse, bots, IP privacy, headers |
+| 18 | [Legal pages & footer](18-legal-pages.md) | Privacy, terms, cookies, acceptable use, disclaimer; the footer; where their details come from |
 
 ## What is BizzCheckup?
 

@@ -132,6 +132,9 @@ This file controls everything personal in the report: product name, consultant i
 contact links, services and the call to action. Someone who forks the project only
 edits this file.
 
+The `legal` section (operator, country, "last updated" date) feeds the legal pages; see
+[Legal pages & footer](18-legal-pages.md).
+
 `services[].related_categories` must use the engine's category ids: `performance`,
 `accessibility`, `best_practices`, `seo` and `agentic`. A failing category recommends
 the services linked to it.

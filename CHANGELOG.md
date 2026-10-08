@@ -7,6 +7,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **Site footer** on every page: brand and call to action, product links, legal links,
+  contact details with profile icons, copyright, version and "Back to top".
+- **Legal pages**: Terms of service, Cookie policy, Acceptable use policy and Disclaimer,
+  plus a restyled Privacy policy, all sharing one layout with a side menu. Operator,
+  country and "last updated" date come from the new `legal` section in `branding.yaml`;
+  limits in the text come from the settings.
 - **Theme colour #31ac64** (green) across the site: buttons, logo, favicon, links, progress
   bars and highlights. Text on the green is white and bold; green text uses a deeper
   shade so it stays readable.
