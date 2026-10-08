@@ -12,6 +12,7 @@
   {# htmx would otherwise add an inline <style>, which our Content Security Policy blocks. #}
   <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'js/motion.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body class="flex min-h-dvh flex-col {% block body_class %}{% endblock %}">
