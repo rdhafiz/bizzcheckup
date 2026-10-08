@@ -252,10 +252,14 @@
         document.addEventListener("visibilitychange", startWatchdog, { once: true });
         return;
       }
+      // "Stuck" = enough of it is on screen that it should have been revealed (the same
+      // 15% rule the observer uses). An element only peeking in at the bottom edge is fine.
       var stuck = revealables.some(function (el) {
         if (el.classList.contains("is-revealed")) return false;
         var r = el.getBoundingClientRect();
-        return r.height > 0 && r.bottom > 0 && r.top < window.innerHeight;
+        if (r.height <= 0) return false;
+        var onScreen = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0);
+        return onScreen > 0 && onScreen >= r.height * ENTER_RATIO + 1;
       });
       if (stuck) disarm();
     }

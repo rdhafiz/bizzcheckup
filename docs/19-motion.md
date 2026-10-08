@@ -125,7 +125,7 @@ an animation must "hold" its first frame or it flashes).
 | Both scripts blocked, or JavaScript off | No flag is ever set: nothing hidden |
 | Visitor asked for **reduced motion** (system setting) | Nothing is armed: no hiding, no transforms, no delays. Switching the setting on while on the page disarms everything |
 | Page opened in a **background tab** | Not armed until the tab becomes visible (background tabs get no animation frames) |
-| Observer never fires (collapsed layout, odd browser) | **Watchdog:** 2 seconds after arming (while the page is visible), if anything on screen is still hidden, everything is disarmed and shown |
+| Observer never fires (collapsed layout, odd browser) | **Watchdog:** 2 seconds after arming (while the page is visible), if anything that should have been revealed is still hidden, everything is disarmed and shown. "Should have been" uses the same 15% rule as the reveal: an element only peeking in at the bottom edge doesn't count (the report page has cards just below its opening band) |
 | Keyboard focus lands inside hidden content | Shown instantly (`focusin` listener), even mid-fade |
 | Link to an `#anchor` inside hidden content | Shown instantly (on load and on `hashchange`) |
 | Old browser without `IntersectionObserver` | Script does nothing: static page |
