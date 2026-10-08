@@ -65,3 +65,31 @@ def test_footer_on_every_page(client: Client) -> None:
         assert 'aria-label="GitHub"' in html
         for name, _ in LEGAL_PAGES:
             assert f'href="{reverse(f"core:{name}")}"' in html
+
+
+# --- robots.txt and sitemap.xml -----------------------------------------------------------
+
+
+def test_robots_txt_keeps_crawlers_out_of_reports_and_points_to_the_sitemap(client: Client) -> None:
+    response = client.get("/robots.txt")
+    text = response.content.decode()
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "text/plain; charset=utf-8"
+    assert "User-agent: *" in text
+    for path in ("/checkups/", "/admin/", "/healthz/", "/styleguide/"):
+        assert f"Disallow: {path}" in text
+    assert "Sitemap: http://testserver/sitemap.xml" in text  # absolute, as crawlers need
+
+
+def test_sitemap_lists_the_home_and_legal_pages(client: Client) -> None:
+    response = client.get("/sitemap.xml")
+    xml = response.content.decode()
+
+    assert response.status_code == 200
+    assert "<loc>http://testserver/</loc>" in xml
+    for name, _ in LEGAL_PAGES:
+        assert f"<loc>http://testserver{reverse(f'core:{name}')}</loc>" in xml
+    updated = load_branding().legal.updated.isoformat()
+    assert xml.count(f"<lastmod>{updated}</lastmod>") == len(LEGAL_PAGES)
+    assert "/checkups/" not in xml  # reports are private, never listed

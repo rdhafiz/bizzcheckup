@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.sitemaps",  # /sitemap.xml (part of Django, no extra package)
     # Before staticfiles so runserver serves files the same way as production.
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",

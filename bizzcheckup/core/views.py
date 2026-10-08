@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
 
 from bizzcheckup.checkups.forms import CheckupForm
 
@@ -69,6 +70,25 @@ def legal_page(request: HttpRequest, page: str) -> HttpResponse:
             "max_pages": settings.CHECKUP_MAX_PAGES,
         },
     )
+
+
+# Private or technical areas crawlers should stay out of. /checkups/ holds the reports
+# (private links) and their progress pages, so well-behaved bots, AI crawlers included,
+# never read a client's report.
+ROBOTS_DISALLOW = ["/checkups/", "/admin/", "/healthz/", "/styleguide/"]
+
+
+def robots_txt(request: HttpRequest) -> HttpResponse:
+    """/robots.txt: what search engines may crawl, and where the sitemap is."""
+    lines = [
+        "User-agent: *",
+        *(f"Disallow: {path}" for path in ROBOTS_DISALLOW),
+        "Allow: /",
+        "",
+        f"Sitemap: {request.build_absolute_uri(reverse('sitemap'))}",
+        "",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")
 
 
 def healthz(request: HttpRequest) -> JsonResponse:
