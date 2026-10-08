@@ -1360,6 +1360,26 @@
   .qr svg {
     @apply block h-auto w-36;
   }
+
+  /* "We found N pages": the list, and the full check-up proposal beside it. */
+  .pages-layout {
+    @apply grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)];
+  }
+  .page-list {
+    @apply divide-y divide-line;
+  }
+  .page-list__item {
+    @apply flex items-center gap-3 py-2;
+  }
+  .page-list__badge {
+    @apply shrink-0 rounded-full border border-line px-2 py-0.5 text-xs font-semibold text-muted;
+  }
+  .page-list__badge--checked {
+    @apply border-transparent bg-primary-soft text-primary;
+  }
+  .proposal {
+    @apply rounded-2xl bg-primary-soft p-6 sm:p-8 lg:sticky lg:top-24;
+  }
 }
 
 /* The PDF (and printing from the browser): light colours, one section per page. */

@@ -214,6 +214,26 @@ def test_report_shows_how_the_homepage_looks_when_shared(client: Client, db: Non
     assert "SHOP.TEST" in html
 
 
+def test_report_lists_every_page_found_and_offers_a_full_checkup(client: Client, db: None) -> None:
+    found = ["https://shop.test/", *(f"https://shop.test/p{n}" for n in range(40))]
+    checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
+    services.save_report(checkup, make_report().model_copy(update={"discovered_pages": found}))
+    services.mark_done(checkup)
+    html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
+    assert "We found 41 pages on your website" in html
+    assert "The other 40 weren't checked this time" in html
+    assert ">/p39<" in html  # behind "Show all 41 pages", shown without the domain
+    assert "All 41 pages, not just 1." in html
+    assert load_branding().full_audit_url in html.replace("&amp;", "&")
+
+
+def test_no_proposal_when_every_page_was_checked(client: Client, finished: Checkup) -> None:
+    html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
+    assert "We found 1 page on your website" in html
+    assert "This check-up looked at every one of them." in html
+    assert 'id="proposal-title"' not in html
+
+
 def test_report_contact_links_come_from_branding(client: Client, finished: Checkup) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
     branding = load_branding()

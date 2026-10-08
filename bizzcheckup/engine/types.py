@@ -159,6 +159,8 @@ class CrawlResult(BaseModel):
     sitemap: SitemapInfo
     skipped_by_robots: list[str] = Field(default_factory=list)
     errors: dict[str, str] = Field(default_factory=dict)  # url -> what went wrong
+    # Every page address of the site we came across (sitemap and links), checked or not.
+    discovered: list[str] = Field(default_factory=list)
 
     @property
     def homepage(self) -> Page:
@@ -319,6 +321,7 @@ class AuditReport(BaseModel):
     started_at: datetime
     finished_at: datetime
     pages: list[str]  # URLs that were analysed
+    discovered_pages: list[str] = Field(default_factory=list)  # every page we came across
     categories: list[CategoryScore]
     health_score: int | None
     health_band: Band | None

@@ -129,6 +129,19 @@ class ReportView:
             return f"Your website works, but {problems} holding your business back."
         return f"Your website works, but {total} issues are holding your business back."
 
+    # --- "Pages we found" ------------------------------------------------------------
+    @property
+    def all_pages(self) -> list[tuple[str, bool]]:
+        """Every page address we came across, and whether it was checked."""
+        checked = set(self.report.pages)
+        found = self.report.discovered_pages or self.report.pages
+        rows = [(url, url in checked) for url in found]
+        return sorted(rows, key=lambda row: not row[1])  # checked ones first, order kept
+
+    @property
+    def unchecked_count(self) -> int:
+        return sum(1 for _, checked in self.all_pages if not checked)
+
     @property
     def problem_categories(self) -> list[VitalSign]:
         """Vital signs that have something to fix, for the overview."""

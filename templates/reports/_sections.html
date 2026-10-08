@@ -5,7 +5,7 @@
   Reading order follows the questions a business owner asks:
     1. How healthy is my website?   2. What are the biggest problems?
     3. What do I do, in what order? 4. The details, per vital sign.
-    5. Who can help?                6. How do I reach them?
+    5. Which pages were checked?    6. Who can help?    7. How do I reach them?
 {% endcomment %}
 {% with report=view.report checkup=view.checkup brand=view.branding %}
 
@@ -198,7 +198,10 @@
 {% endfor %}
 </div>
 
-{# 5. How the consultant can help ------------------------------------------------- #}
+{# 5. Every page we found, and the offer to check them all ------------------------- #}
+{% include "reports/_pages.html" %}
+
+{# 6. How the consultant can help ------------------------------------------------- #}
 <section id="help" class="report-section" aria-labelledby="help-title">
   <p class="eyebrow">Your next step</p>
   <h2 id="help-title" class="mt-2 text-3xl font-bold">How {{ brand.first_name }} can help</h2>
@@ -237,7 +240,7 @@
   </div>
 </section>
 
-{# 6. Contact -------------------------------------------------------------------------- #}
+{# 7. Contact -------------------------------------------------------------------------- #}
 <section id="contact" class="report-section" aria-labelledby="contact-title">
   <p class="eyebrow">Contact</p>
   <div class="card mt-4">

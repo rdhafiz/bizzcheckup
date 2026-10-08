@@ -41,7 +41,9 @@ async def test_crawl_uses_robots_sitemap_and_links(fetcher: Fetcher, router: res
     router.get("https://shop.test/robots.txt").respond(200, text=ROBOTS)
     router.get("https://shop.test/sitemap.xml").respond(200, text=SITEMAP)
     router.get("https://shop.test/about").mock(return_value=html("About us"))
-    router.get("https://shop.test/contact").mock(return_value=html("Contact us"))
+    router.get("https://shop.test/contact").mock(
+        return_value=html('<a href="/team#people">Team</a> <a href="/contact">Again</a>')
+    )
 
     result = await crawl(fetcher, "http://shop.test/")
 
@@ -54,6 +56,13 @@ async def test_crawl_uses_robots_sitemap_and_links(fetcher: Fetcher, router: res
     assert result.robots.exists
     assert result.sitemap.found
     assert result.skipped_by_robots == ["https://shop.test/private/secret"]
+    assert result.discovered == [  # every page we came across, even ones we didn't check
+        "https://shop.test/",
+        "https://shop.test/about",
+        "https://shop.test/private/secret",
+        "https://shop.test/contact",
+        "https://shop.test/team",  # found on the contact page
+    ]
 
 
 async def test_crawl_respects_max_pages(router: respx.Router) -> None:
@@ -69,6 +78,7 @@ async def test_crawl_respects_max_pages(router: respx.Router) -> None:
         result = await crawl(f, "https://shop.test/")
 
     assert len(result.pages) == 4
+    assert len(result.discovered) == 21  # the homepage and all 20 linked pages
     assert not result.robots.exists
     assert not result.sitemap.found
 

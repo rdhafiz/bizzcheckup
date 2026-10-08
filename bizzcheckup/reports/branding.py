@@ -37,6 +37,19 @@ class CallToAction(BaseModel):
     button_url: HttpUrl
 
 
+class FullAudit(BaseModel):
+    """The offer to check every page of the site, shown under "Pages we found"."""
+
+    heading: str = "Check every page of your website"
+    text: str = (
+        "This free check-up looked at a sample of your pages. A full check-up runs every "
+        "check on every page and gives you a page-by-page list of fixes."
+    )
+    includes: list[str] = Field(default_factory=list)
+    button_label: str = "Ask for a full website check-up"
+    button_url: HttpUrl | None = None  # empty: uses the call to action's button
+
+
 class Branding(BaseModel):
     product_name: str = "BizzCheckup"
     tagline: str = "Check your business's online health"
@@ -59,7 +72,12 @@ class Branding(BaseModel):
 
     services: list[Service] = Field(default_factory=list)
     call_to_action: CallToAction
+    full_audit: FullAudit = Field(default_factory=FullAudit)
     legal: Legal
+
+    @property
+    def full_audit_url(self) -> str:
+        return str(self.full_audit.button_url or self.call_to_action.button_url)
 
     @property
     def first_name(self) -> str:

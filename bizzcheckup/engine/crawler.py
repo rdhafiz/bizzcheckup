@@ -23,6 +23,7 @@ from .types import CrawlResult, Page, RobotsInfo, SitemapInfo
 from .urls import absolute, normalize_url, origin, same_origin
 
 MAX_SITEMAP_FILES = 3
+MAX_DISCOVERED = 1000  # page addresses listed in the report ("pages we found")
 # Links to files like these are not web pages, so they aren't crawled.
 NON_PAGE_EXTENSIONS = (
     ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico", ".zip", ".rar",
@@ -67,6 +68,7 @@ async def crawl(fetcher: Fetcher, start_url: str) -> CrawlResult:
     errors: dict[str, str] = {}
     results = await asyncio.gather(*(fetch_page(fetcher, url, errors) for url in wanted))
     pages = [homepage] + [page for page in results if page is not None]
+    found_on_pages = [link for page in pages[1:] for link in extract_links(page)]
 
     return CrawlResult(
         start_url=start_url,
@@ -76,6 +78,7 @@ async def crawl(fetcher: Fetcher, start_url: str) -> CrawlResult:
         sitemap=sitemap,
         skipped_by_robots=skipped,
         errors=errors,
+        discovered=discover([homepage.final_url, *candidates, *found_on_pages], base=base),
     )
 
 
@@ -160,6 +163,21 @@ def extract_links(page: Page) -> list[str]:
         if url is not None:
             links.append(url)
     return links
+
+
+def discover(candidates: list[str], *, base: str) -> list[str]:
+    """Every distinct page address of the site we came across, in the order found."""
+    found: dict[str, None] = {}
+    for raw in candidates:
+        if len(found) >= MAX_DISCOVERED:
+            break
+        try:
+            url = normalize_url(raw.split("#")[0])
+        except ValueError:
+            continue
+        if same_origin(url, base) and not url.split("?")[0].lower().endswith(NON_PAGE_EXTENSIONS):
+            found.setdefault(url, None)
+    return list(found)
 
 
 def choose_pages(

@@ -1,6 +1,7 @@
 """Template filters used across BizzCheckup pages: {% load bizz %}."""
 
 from datetime import datetime, timedelta
+from urllib.parse import urlsplit
 
 from django import template
 from django.utils import timezone
@@ -50,6 +51,13 @@ def severity_band(severity: str) -> str:
 def first_items(items: list[str], count: int = 5) -> list[str]:
     """The first `count` items of a list (for long URL lists)."""
     return list(items)[:count]
+
+
+@register.filter
+def url_path(url: str) -> str:
+    """The part after the domain: https://shop.com/about?x=1 -> /about?x=1"""
+    parts = urlsplit(url)
+    return parts.path + (f"?{parts.query}" if parts.query else "") or "/"
 
 
 @register.filter

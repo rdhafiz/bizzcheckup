@@ -1,0 +1,73 @@
+{% load bizz %}
+{% comment %}
+  Every page of the site we came across (sitemap and links), which ones this check-up
+  looked at, and the offer of a full check-up of all of them.
+{% endcomment %}
+{% with pages=view.all_pages total=view.all_pages|length unchecked=view.unchecked_count %}
+<section id="pages" class="report-section" aria-labelledby="pages-title">
+  <p class="eyebrow">Your whole website</p>
+  <h2 id="pages-title" class="mt-2 text-3xl font-bold">We found {{ total }} page{{ total|pluralize }} on your website</h2>
+  <p class="mt-2 max-w-2xl text-muted">
+    {% if unchecked %}
+      This check-up looked closely at {{ report.pages|length }} of them. The other {{ unchecked }} weren't checked this time, and problems found here usually repeat on them.
+    {% else %}
+      This check-up looked at every one of them.
+    {% endif %}
+  </p>
+
+  <div class="pages-layout mt-6">
+    <div class="card min-w-0">
+      <ol class="page-list" aria-label="Pages on your website">
+        {% for url, checked in pages|first_items:30 %}
+          <li class="page-list__item">
+            {% if checked %}
+              {% include "partials/icon.html" with name="pass" css="size-4 text-healthy" %}
+            {% else %}
+              {% include "partials/icon.html" with name="file" css="size-4 text-muted" %}
+            {% endif %}
+            <span class="min-w-0 flex-1 font-mono text-xs break-all" title="{{ url }}">{{ url|url_path }}</span>
+            <span class="page-list__badge {% if checked %}page-list__badge--checked{% endif %}">{% if checked %}Checked{% else %}Not checked yet{% endif %}</span>
+          </li>
+        {% endfor %}
+      </ol>
+      {% if total > 30 %}
+        {% if pdf %}
+          <p class="mt-3 text-sm text-muted">and {{ total|add:"-30" }} more pages.</p>
+        {% else %}
+          <details class="mt-3">
+            <summary class="cursor-pointer text-sm font-semibold text-primary">Show all {{ total }} pages</summary>
+            <ol class="page-list mt-2" start="31">
+              {% for url, checked in pages|slice:"30:" %}
+                <li class="page-list__item">
+                  {% include "partials/icon.html" with name="file" css="size-4 text-muted" %}
+                  <span class="min-w-0 flex-1 font-mono text-xs break-all" title="{{ url }}">{{ url|url_path }}</span>
+                  <span class="page-list__badge {% if checked %}page-list__badge--checked{% endif %}">{% if checked %}Checked{% else %}Not checked yet{% endif %}</span>
+                </li>
+              {% endfor %}
+            </ol>
+          </details>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    {% if unchecked %}
+      <aside class="proposal" aria-labelledby="proposal-title">
+        <p class="eyebrow">Proposal</p>
+        <h3 id="proposal-title" class="mt-2 text-2xl font-bold">{{ brand.full_audit.heading }}</h3>
+        <p class="mt-1 font-semibold">All {{ total }} pages, not just {{ report.pages|length }}.</p>
+        <p class="mt-3 text-sm">{{ brand.full_audit.text }}</p>
+        {% if brand.full_audit.includes %}
+          <ul class="mt-4 space-y-2 text-sm">
+            {% for item in brand.full_audit.includes %}
+              <li class="flex gap-2">{% include "partials/icon.html" with name="pass" css="size-5 shrink-0" %}<span>{{ item }}</span></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        <a class="btn-primary mt-6" href="{{ brand.full_audit_url }}" rel="noopener" target="_blank">
+          {{ brand.full_audit.button_label }} {% include "partials/icon.html" with name="arrow" css="size-4" %}
+        </a>
+      </aside>
+    {% endif %}
+  </div>
+</section>
+{% endwith %}

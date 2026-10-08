@@ -178,6 +178,7 @@ async def _run(
         started_at=started_at,
         finished_at=datetime.now(UTC),
         pages=[page.final_url for page in result.pages],
+        discovered_pages=result.discovered or [page.final_url for page in result.pages],
         categories=categories,
         health_score=overall,
         health_band=band_for(overall),

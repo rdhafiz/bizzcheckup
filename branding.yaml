@@ -80,6 +80,22 @@ call_to_action:
   button_label: Book a free review call
   button_url: https://wa.me/8801717863320?text=Hi%20Ridwan%2C%20I%20got%20my%20BizzCheckup%20report%20and%20would%20like%20a%20free%20review%20call.
 
+# --- Full website check-up: offered under "Pages we found" in the report -------
+full_audit:
+  heading: Check every page of your website
+  text: >
+    This free check-up looked closely at a sample of your pages. Problems found
+    here usually repeat across the rest of the site. A full check-up runs every
+    check on every page and turns the results into one clear, page-by-page plan.
+  includes:
+    - Every check on every page, not just a sample
+    - A page-by-page fix list you can hand to any developer
+    - Ready-made meta tags, link previews and schema for each page
+    - Broken links and images found across the whole site
+    - Phone and tablet review of each page layout
+  button_label: Ask for a full website check-up
+  button_url: https://wa.me/8801717863320?text=Hi%20Ridwan%2C%20I%20got%20my%20BizzCheckup%20report%20and%20would%20like%20a%20full%20check-up%20of%20every%20page.
+
 # --- Legal pages (privacy, terms, cookies, acceptable use, disclaimer) -------
 legal:
   operator: Ridwanul Hafiz        # who runs the service and is responsible for it
