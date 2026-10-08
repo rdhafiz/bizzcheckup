@@ -169,7 +169,10 @@ once:
 | Motion on (37 blocks + 31 heading words) | 0.8% | ~12–15% |
 | Long tasks (> 50ms) | none | none |
 
-On a slow phone, fewer animated elements (or no blur on small screens) is the lever.
+**No blur under 768px.** Phones have the least power to spare and blur is the most expensive
+part of a reveal, so small screens get the same fade, rise and word-by-word timing without
+it. (One `@media (max-width: 767.98px)` rule sets `filter: none` on both the blocks and the
+heading words.) If a slow phone still struggles, fewer animated elements is the next lever.
 
 ## How the parallax works
 

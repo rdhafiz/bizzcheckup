@@ -10,6 +10,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - **Blurry reveal** (inspired by bizzacquire.com): section headings reveal word by word, each
   word rising and sharpening out of a blur; all other reveals sharpen from a soft blur too.
   Without JavaScript or with reduced motion, headings stay plain text.
+  No blur on screens narrower than 768px (same reveal, without the blur).
 - **Smooth scrolling** for links within a page (section links, "Start a check-up",
   "Back to top", the report's jump bar), with a little room above the target. Instant for
   visitors who prefer reduced motion.
