@@ -57,6 +57,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - Messages (for example "rate limit reached") are shown at the top of any page.
 
 ### Fixed
+- PDFs could fail when the consultant's photo website was slow: Chromium waited for it
+  until the 30-second limit. The photo is now fetched by our code with a 5-second limit,
+  and the PDF is made without it if needed.
 - Following a link into a section (the hero, "What we examine", the benefits section, the
   footer) scrolled that section's content inside itself, shifting it by up to 198px. Those
   sections now use `overflow: clip`.
