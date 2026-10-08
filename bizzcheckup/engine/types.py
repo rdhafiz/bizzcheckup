@@ -220,6 +220,41 @@ class Cookie(BaseModel):
     third_party: bool
 
 
+class DeviceView(BaseModel):
+    """The homepage on a phone or tablet: does it fit, and can people tap and read it?"""
+
+    name: str  # "mobile" | "tablet"
+    width: int  # screen width in CSS pixels
+    height: int
+    layout_width: int  # the width the page was laid out at (980 = desktop page shrunk)
+    scroll_width: int  # the page's width: wider than its layout means sideways scrolling
+    overflowing: list[str] = Field(default_factory=list)  # elements sticking out
+    tap_targets: int = 0  # links and buttons on the first load
+    small_tap_targets: int = 0  # smaller than 24 x 24 pixels
+    small_tap_examples: list[str] = Field(default_factory=list)
+    text_chars: int = 0  # visible text, in characters
+    small_text_chars: int = 0  # ... of which smaller than 12 px
+    screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
+
+    @property
+    def zoomed_out(self) -> bool:
+        """The desktop page shown shrunk (no mobile layout), so everything is tiny."""
+        return self.layout_width > self.width + 2
+
+    @property
+    def fits(self) -> bool:
+        """No sideways scrolling (a pixel or two is rounding)."""
+        return self.scroll_width <= self.layout_width + 2
+
+    @property
+    def small_text_share(self) -> float:
+        return self.small_text_chars / self.text_chars if self.text_chars else 0.0
+
+    @property
+    def label(self) -> str:
+        return "phone" if self.name == "mobile" else self.name
+
+
 class RenderResult(BaseModel):
     """What a real browser (Chromium via Playwright) saw on the homepage."""
 
@@ -232,6 +267,11 @@ class RenderResult(BaseModel):
     axe_violations: list[AxeRule] = Field(default_factory=list)
     axe_passes: list[str] = Field(default_factory=list)  # ids of rules that passed
     blocked_requests: list[str] = Field(default_factory=list)  # stopped by the SSRF guard
+    devices: list[DeviceView] = Field(default_factory=list)  # the phone and tablet views
+
+    def device(self, name: str) -> "DeviceView | None":
+        return next((view for view in self.devices if view.name == name), None)
+
     # The picture for the report cover. exclude=True keeps it out of the JSON.
     screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
 

@@ -203,6 +203,9 @@ def report_images(ctx: AuditContext) -> dict[str, ReportImage]:
         images["link_preview"] = ReportImage(
             content_type=ctx.probes.og_image_type, data=ctx.probes.og_image
         )
+    for view in ctx.render.devices if ctx.render else []:
+        if view.screenshot_jpeg:
+            images[view.name] = ReportImage(content_type="image/jpeg", data=view.screenshot_jpeg)
     return images
 
 

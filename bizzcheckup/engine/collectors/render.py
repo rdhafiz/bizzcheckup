@@ -2,7 +2,8 @@
 
 Collects what only a browser can see: the page after JavaScript runs, a
 screenshot, JavaScript errors, cookies, library versions and an axe-core
-accessibility scan.
+accessibility scan. Then it opens the page again as a phone and as a tablet to
+see whether it fits, and whether it can be tapped and read there.
 
 Safety: the browser could be tricked into visiting internal addresses just
 like our fetcher, so EVERY browser request goes through `_SafeRouter`:
@@ -11,22 +12,29 @@ like our fetcher, so EVERY browser request goes through `_SafeRouter`:
 - WebSockets and service workers, which bypass request interception, are blocked
 """
 
+import asyncio
 import contextlib
 import logging
 from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin, urlsplit
 
-from playwright.async_api import ConsoleMessage, Route, WebSocketRoute, async_playwright
+from playwright.async_api import (
+    Browser,
+    ConsoleMessage,
+    Route,
+    WebSocketRoute,
+    async_playwright,
+)
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page as BrowserPage
 
-from ..config import EngineConfig
+from ..config import DEVICES, EngineConfig
 from ..context import RENDER, AuditContext
 from ..fetcher import REDIRECT_CODES, Fetcher
 from ..firewall import blocked_message, checkpoint_provider
 from ..netguard import BlockedURLError, NetGuard
-from ..types import AxeRule, Cookie, RenderResult
+from ..types import AxeRule, Cookie, DeviceView, RenderResult
 from ..urls import same_site
 
 logger = logging.getLogger(__name__)
@@ -168,6 +176,10 @@ async def collect_render(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
             libraries: dict[str, str] = await page.evaluate(LIBRARIES_JS)
             axe = await _run_axe(page)
             cookies = await context.cookies()
+            await context.close()
+            views = await asyncio.gather(
+                *(_view_on_device(browser, router, url, config, name) for name in DEVICES)
+            )
         finally:
             await browser.close()
 
@@ -190,6 +202,7 @@ async def collect_render(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
         axe_passes=[str(p) for p in axe.get("passes", [])],
         blocked_requests=router.blocked,
         screenshot_jpeg=screenshot,
+        devices=[view for view in views if view is not None],
     )
     ctx.capabilities.add(RENDER)
 
@@ -227,3 +240,127 @@ async def _run_axe(page: BrowserPage) -> dict[str, Any]:
 def _caused_by_us(message: str) -> bool:
     """Errors from requests our safety router blocked aren't the site's fault."""
     return "ERR_BLOCKED_BY_CLIENT" in message
+
+
+# --- phones and tablets -------------------------------------------------------------------
+
+# Measures, inside the page, what makes a site hard to use on a small screen:
+# - the layout width: without a viewport tag, phones lay the page out 980 px wide
+#   and shrink it, so everything is tiny
+# - sideways scrolling (the page is wider than the screen) and what sticks out
+# - links and buttons too small to tap (WCAG 2.5.8: at least 24 x 24 CSS pixels);
+#   links inside a sentence are exempt, like in WCAG
+# - text smaller than 12 px
+MEASURE_JS = """() => {
+  const MAX_EXAMPLES = 8;
+  const doc = document.documentElement;
+  const width = doc.clientWidth;
+  const scrollWidth = Math.max(doc.scrollWidth, document.body ? document.body.scrollWidth : 0);
+
+  const describe = (el) => {
+    let text = el.tagName.toLowerCase();
+    if (el.id) text += "#" + el.id;
+    const classes = (el.getAttribute("class") || "").trim().split(/ +/).filter(Boolean);
+    if (classes.length) text += "." + classes.slice(0, 2).join(".");
+    const label = (el.getAttribute("aria-label") || el.textContent || "")
+      .trim().replace(/ +/g, " ");
+    return label ? text + ' "' + label.slice(0, 40) + '"' : text;
+  };
+  const visible = (el, box) => {
+    if (box.width === 0 || box.height === 0) return false;
+    const style = getComputedStyle(el);
+    return style.visibility !== "hidden" && style.display !== "none" && style.opacity !== "0";
+  };
+
+  const overflowing = [];
+  if (scrollWidth > width + 2) {
+    for (const el of document.body.querySelectorAll("*")) {
+      const box = el.getBoundingClientRect();
+      if (box.right > width + 2 && visible(el, box) && getComputedStyle(el).position !== "fixed") {
+        // keep the outermost culprit only: skip children of an element already listed
+        if (!overflowing.some((parent) => parent.contains(el))) overflowing.push(el);
+        if (overflowing.length >= MAX_EXAMPLES) break;
+      }
+    }
+  }
+
+  const selector = 'a[href], button, input:not([type="hidden"]), select, textarea, [role="button"]';
+  let targets = 0;
+  const small = [];
+  for (const el of document.querySelectorAll(selector)) {
+    const box = el.getBoundingClientRect();
+    if (!visible(el, box)) continue;
+    const parent = el.parentElement;
+    const inSentence = el.tagName === "A" && getComputedStyle(el).display === "inline"
+      && parent && ["P", "LI", "TD", "SPAN", "LABEL"].includes(parent.tagName)
+      && (parent.textContent || "").trim().length > (el.textContent || "").trim().length + 20;
+    if (inSentence) continue;
+    targets += 1;
+    if (box.width < 24 || box.height < 24) small.push(el);
+  }
+
+  let textChars = 0;
+  let smallTextChars = 0;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const length = node.textContent.trim().length;
+    const el = node.parentElement;
+    if (!length || !el) continue;
+    const box = el.getBoundingClientRect();
+    if (!visible(el, box)) continue;
+    textChars += length;
+    if (parseFloat(getComputedStyle(el).fontSize) < 12) smallTextChars += length;
+  }
+
+  return {
+    layout_width: width,
+    scroll_width: scrollWidth,
+    overflowing: overflowing.map(describe),
+    tap_targets: targets,
+    small_tap_targets: small.length,
+    small_tap_examples: small.slice(0, MAX_EXAMPLES).map(describe),
+    text_chars: textChars,
+    small_text_chars: smallTextChars,
+  };
+}"""
+
+
+async def _view_on_device(
+    browser: Browser,
+    router: _SafeRouter,
+    url: str,
+    config: EngineConfig,
+    name: str,
+) -> DeviceView | None:
+    """Open the homepage like a phone or tablet would. None if it couldn't be done."""
+    device = DEVICES[name]
+    context = await browser.new_context(
+        user_agent=device["user_agent"],
+        viewport={"width": device["width"], "height": device["height"]},
+        is_mobile=True,
+        has_touch=True,
+        service_workers="block",
+    )
+    try:
+        await context.route("**/*", router.handle)
+        await context.route_web_socket("**/*", _refuse_websocket)
+        page = await context.new_page()
+        await page.goto(url, wait_until="load", timeout=config.render_timeout * 1000)
+        await _wait_until_quiet(page)
+        if checkpoint_provider(200, {}, await page.content()) is not None:
+            return None
+        measured: dict[str, Any] = await page.evaluate(MEASURE_JS)
+        screenshot = await page.screenshot(type="jpeg", quality=70)
+    except PlaywrightError as error:
+        logger.info("Couldn't open %s as a %s: %s", url, name, error)
+        return None
+    finally:
+        await context.close()
+    return DeviceView(
+        name=name,
+        width=device["width"],
+        height=device["height"],
+        screenshot_jpeg=screenshot,
+        **measured,
+    )

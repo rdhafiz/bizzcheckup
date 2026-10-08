@@ -1,5 +1,7 @@
 """Engine limits and options. Django settings fill these in (see checkups app)."""
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 # Who we are, for site owners reading their logs.
@@ -13,6 +15,24 @@ USER_AGENT = (
     f"Chrome/141.0.0.0 Safari/537.36 {BOT_IDENTITY}"
 )
 ROBOTS_AGENT_NAME = "BizzCheckup"  # the name robots.txt rules refer to
+
+
+# How we open the homepage on a phone and a tablet (sizes in CSS pixels: a common
+# Android phone and a common tablet held upright). Our identity stays at the end.
+DEVICES: dict[str, dict[str, Any]] = {
+    "mobile": {
+        "width": 390,
+        "height": 844,
+        "user_agent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like "
+        f"Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 {BOT_IDENTITY}",
+    },
+    "tablet": {
+        "width": 820,
+        "height": 1180,
+        "user_agent": "Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit/537.36 (KHTML, like "
+        f"Gecko) Chrome/141.0.0.0 Safari/537.36 {BOT_IDENTITY}",
+    },
+}
 
 
 # AI crawlers checked in robots.txt. "search" bots fetch pages to answer questions

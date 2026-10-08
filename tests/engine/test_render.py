@@ -38,6 +38,17 @@ PAGE = """<!doctype html>
   <script>undefinedFunction();</script>
 </body></html>
 """
+# A page that breaks on phones: too wide, tiny buttons, tiny text.
+CRAMPED = """<!doctype html>
+<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0">
+  <div class="wide banner" style="width:600px">Our big banner</div>
+  <button style="width:16px;height:16px;padding:0" aria-label="Close"></button>
+  <a href="/cart" style="display:block;width:100px;height:44px">Cart</a>
+  <p style="font-size:10px">Small print that is hard to read on a phone.</p>
+  <p>Read <a href="/terms">our terms</a> before you order anything from our shop today.</p>
+</body></html>
+"""
 CHECKPOINT = """<!doctype html><title>Vercel Security Checkpoint</title>
 <p>We're verifying your browser</p>"""
 
@@ -54,7 +65,12 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def do_GET(self) -> None:  # the method name is required by http.server
-        if self.path == "/checkpoint":
+        if self.path == "/cramped":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(CRAMPED.encode())
+        elif self.path == "/checkpoint":
             self.send_response(429)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
@@ -140,6 +156,15 @@ async def test_render_collects_browser_data_safely(server_port: int) -> None:
     assert "http://169.254.169.254/latest/meta-data/" in render.blocked_requests
     assert "http://10.0.0.1/admin" in render.blocked_requests
 
+    # The phone and tablet views. This page has no viewport tag, so phones show the
+    # desktop page shrunk: laid out 980 px wide on a 390 px screen.
+    mobile, tablet = render.devices
+    assert (mobile.name, mobile.width, mobile.layout_width) == ("mobile", 390, 980)
+    assert mobile.zoomed_out
+    assert tablet.name == "tablet"
+    assert all(d.fits and d.screenshot_jpeg for d in render.devices)
+    assert mobile.text_chars > 0
+
     # axe-core ran: the first image has no alt text
     assert "image-alt" in {v.id for v in render.axe_violations}
     assert render.axe_passes
@@ -172,3 +197,28 @@ async def test_firewall_checkpoint_is_not_reported_as_the_website(
     assert not ctx.has(RENDER)  # browser checks will be skipped, not fed the checkpoint
     assert ctx.render is None  # no checkpoint screenshot in the report
     assert "security firewall (Vercel)" in ctx.unavailable[RENDER]
+
+
+async def test_phone_view_measures_what_makes_a_page_hard_to_use(server_port: int) -> None:
+    url = f"http://127.0.0.1:{server_port}/cramped"
+    ctx = make_context(make_page("", url=url))
+    config = EngineConfig(render_timeout=20)
+    try:
+        await collect_render(ctx, Fetcher(config, guard=LocalTestGuard(server_port)), config)
+    except Exception as error:
+        if "Executable doesn't exist" in str(error):
+            pytest.skip("Chromium isn't installed: python -m playwright install chromium")
+        raise
+    assert ctx.render is not None
+    mobile = ctx.render.device("mobile")
+    assert mobile is not None
+    assert mobile.layout_width == 390  # it has a viewport tag: a real phone layout
+    assert not mobile.zoomed_out
+    assert not mobile.fits  # the 600 px banner makes the page scroll sideways
+    assert mobile.overflowing == ['div.wide.banner "Our big banner"']
+    assert mobile.tap_targets == 2  # the link inside a sentence doesn't count
+    assert mobile.small_tap_examples == ['button "Close"']
+    assert 0 < mobile.small_text_chars < mobile.text_chars
+    tablet = ctx.render.device("tablet")
+    assert tablet is not None
+    assert tablet.fits  # 600 px fits on an 820 px tablet
