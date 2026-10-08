@@ -32,15 +32,7 @@
       <p class="verdict mt-5">{{ view.verdict }}</p>
     </div>
     <div class="overview__shot">
-      {% if checkup.screenshot %}
-        <img class="w-full rounded-2xl border border-line" src="{% url 'checkups:screenshot' checkup.pk %}"
-             alt="Screenshot of the {{ checkup.domain }} homepage" width="1280" height="800">
-      {% else %}
-        <div class="flex aspect-[16/10] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line p-6 text-center text-muted">
-          <p class="font-semibold">No screenshot available</p>
-          {% if report.browser_note %}<p class="max-w-md text-sm">{{ report.browser_note }}</p>{% endif %}
-        </div>
-      {% endif %}
+      {% include "reports/_devices.html" %}
     </div>
   </div>
 

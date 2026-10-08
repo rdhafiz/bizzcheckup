@@ -1079,7 +1079,45 @@
     @apply grid items-stretch gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)];
   }
   .overview__shot {
-    @apply self-center;
+    @apply min-w-0 self-center;
+  }
+
+  /* The homepage on each device: tabs on the web page, all views in the PDF. */
+  .devices__tabs {
+    @apply mb-3 inline-flex gap-1 rounded-xl border border-line bg-card p-1;
+  }
+  .devices__tab {
+    @apply inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm
+      font-semibold text-muted;
+  }
+  .devices__tab[aria-selected="true"] {
+    color: var(--on-brand);
+    background: var(--brand);
+  }
+  .devices__tab:hover:not([aria-selected="true"]) {
+    @apply text-ink;
+  }
+  .devices__panels {
+    @apply space-y-4;
+  }
+  @media screen {
+    .device.is-hidden {
+      display: none; /* a tab that isn't selected; on paper every view shows */
+    }
+  }
+  .device__stage {
+    /* the same shape as the desktop screenshot, so switching tabs doesn't move the page */
+    @apply flex aspect-[16/10] items-center justify-center rounded-2xl border border-line
+      bg-paper p-3;
+  }
+  .device__frame {
+    @apply h-full w-auto rounded-xl border-4 border-ink object-cover object-top shadow-lg;
+  }
+  .device__frame--phone {
+    @apply rounded-2xl border-[6px];
+  }
+  .device__caption {
+    @apply mt-2 text-center text-xs text-muted;
   }
   .verdict {
     @apply text-center text-lg leading-snug font-semibold text-balance;
@@ -1409,6 +1447,14 @@
   }
   .issue:has(.snippet) {
     break-inside: auto; /* long code may continue on the next page */
+  }
+  .devices__panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .device--desktop {
+    grid-column: 1 / -1;
   }
   .snippet__code {
     max-height: none;

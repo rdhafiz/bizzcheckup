@@ -1,0 +1,58 @@
+{% comment %}
+  The homepage on a computer, a tablet and a phone. On the web page it's a set of tabs
+  (static/js/report.js); without JavaScript, and in the PDF, all views are shown.
+{% endcomment %}
+{% with has_tablet=view.has_tablet has_phone=view.has_phone %}
+<div class="devices" data-devices>
+  {% if not pdf and has_tablet or not pdf and has_phone %}
+    <div class="devices__tabs no-print" role="tablist" aria-label="How your homepage looks on each device" hidden data-device-tabs>
+      <button type="button" role="tab" id="tab-desktop" aria-controls="panel-desktop" aria-selected="true" class="devices__tab">
+        {% include "partials/icon.html" with name="monitor" css="size-4" %} Desktop
+      </button>
+      {% if has_tablet %}
+        <button type="button" role="tab" id="tab-tablet" aria-controls="panel-tablet" aria-selected="false" tabindex="-1" class="devices__tab">
+          {% include "partials/icon.html" with name="tablet" css="size-4" %} Tablet
+        </button>
+      {% endif %}
+      {% if has_phone %}
+        <button type="button" role="tab" id="tab-mobile" aria-controls="panel-mobile" aria-selected="false" tabindex="-1" class="devices__tab">
+          {% include "partials/icon.html" with name="phone" css="size-4" %} Phone
+        </button>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="devices__panels">
+    <figure id="panel-desktop" class="device device--desktop" role="tabpanel" aria-labelledby="tab-desktop">
+      {% if checkup.screenshot %}
+        <img class="w-full rounded-2xl border border-line" src="{% url 'checkups:screenshot' checkup.pk %}"
+             alt="Screenshot of the {{ checkup.domain }} homepage on a computer" width="1280" height="800">
+      {% else %}
+        <div class="flex aspect-[16/10] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line p-6 text-center text-muted">
+          <p class="font-semibold">No screenshot available</p>
+          {% if report.browser_note %}<p class="max-w-md text-sm">{{ report.browser_note }}</p>{% endif %}
+        </div>
+      {% endif %}
+      {% if has_tablet or has_phone %}<figcaption class="device__caption">Computer · 1280 px wide</figcaption>{% endif %}
+    </figure>
+    {% if has_tablet %}
+      <figure id="panel-tablet" class="device device--small" role="tabpanel" aria-labelledby="tab-tablet">
+        <div class="device__stage">
+          <img class="device__frame device__frame--tablet" src="{% url 'checkups:image' checkup.pk 'tablet' %}"
+               alt="Screenshot of the {{ checkup.domain }} homepage on a tablet" width="820" height="1180" loading="lazy">
+        </div>
+        <figcaption class="device__caption">Tablet · 820 px wide</figcaption>
+      </figure>
+    {% endif %}
+    {% if has_phone %}
+      <figure id="panel-mobile" class="device device--small" role="tabpanel" aria-labelledby="tab-mobile">
+        <div class="device__stage">
+          <img class="device__frame device__frame--phone" src="{% url 'checkups:image' checkup.pk 'mobile' %}"
+               alt="Screenshot of the {{ checkup.domain }} homepage on a phone" width="390" height="844" loading="lazy">
+        </div>
+        <figcaption class="device__caption">Phone · 390 px wide</figcaption>
+      </figure>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}

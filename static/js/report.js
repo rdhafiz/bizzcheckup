@@ -1,9 +1,48 @@
-// Report page: "Copy share link", the treatment-plan checklist and "Copy" on code blocks.
+// Report page: "Copy share link", the treatment-plan checklist, "Copy" on code blocks
+// and the device screenshot tabs.
 document.addEventListener("DOMContentLoaded", function () {
   setUpCopyLink();
   setUpPlanChecklist();
   setUpCopyCode();
+  setUpDeviceTabs();
 });
+
+// Desktop / Tablet / Phone screenshots as tabs. Without JavaScript all three stay
+// visible, so nothing is lost; with it, one shows at a time.
+// Keyboard: Left/Right move between tabs, Home/End jump to the first/last.
+function setUpDeviceTabs() {
+  var list = document.querySelector("[data-device-tabs]");
+  if (!list) return;
+  var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+
+  function select(tab, focus) {
+    tabs.forEach(function (other) {
+      var selected = other === tab;
+      other.setAttribute("aria-selected", selected ? "true" : "false");
+      other.tabIndex = selected ? 0 : -1;
+      var panel = document.getElementById(other.getAttribute("aria-controls"));
+      if (panel) panel.classList.toggle("is-hidden", !selected);
+    });
+    if (focus) tab.focus();
+  }
+
+  tabs.forEach(function (tab, index) {
+    tab.addEventListener("click", function () { select(tab, false); });
+    tab.addEventListener("keydown", function (event) {
+      var next = null;
+      if (event.key === "ArrowRight") next = tabs[(index + 1) % tabs.length];
+      else if (event.key === "ArrowLeft") next = tabs[(index - 1 + tabs.length) % tabs.length];
+      else if (event.key === "Home") next = tabs[0];
+      else if (event.key === "End") next = tabs[tabs.length - 1];
+      if (next) {
+        event.preventDefault();
+        select(next, true);
+      }
+    });
+  });
+  list.hidden = false;
+  select(tabs[0], false);
+}
 
 // "Copy" on a suggested fix (e.g. a page's JSON-LD): copies the code exactly as shown.
 function setUpCopyCode() {

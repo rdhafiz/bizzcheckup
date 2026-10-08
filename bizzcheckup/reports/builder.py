@@ -129,6 +129,15 @@ class ReportView:
             return f"Your website works, but {problems} holding your business back."
         return f"Your website works, but {total} issues are holding your business back."
 
+    # --- device screenshots -------------------------------------------------------------
+    @property
+    def has_tablet(self) -> bool:
+        return "tablet" in self.image_kinds
+
+    @property
+    def has_phone(self) -> bool:
+        return "mobile" in self.image_kinds
+
     # --- "Pages we found" ------------------------------------------------------------
     @property
     def all_pages(self) -> list[tuple[str, bool]]:

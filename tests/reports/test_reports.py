@@ -234,6 +234,26 @@ def test_no_proposal_when_every_page_was_checked(client: Client, finished: Check
     assert 'id="proposal-title"' not in html
 
 
+def test_report_shows_the_homepage_on_each_device(client: Client, db: None) -> None:
+    jpeg = ReportImage(content_type="image/jpeg", data=b"jpeg")
+    report = make_report().model_copy(update={"images": {"mobile": jpeg, "tablet": jpeg}})
+    checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
+    services.save_report(checkup, report)
+    services.mark_done(checkup)
+    html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
+    assert 'role="tablist"' in html
+    for kind in ["mobile", "tablet"]:
+        assert reverse("checkups:image", args=[checkup.pk, kind]) in html
+    assert "Phone · 390 px wide" in html
+
+
+def test_no_device_tabs_without_phone_and_tablet_pictures(
+    client: Client, finished: Checkup
+) -> None:
+    html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
+    assert 'role="tablist"' not in html
+
+
 def test_report_contact_links_come_from_branding(client: Client, finished: Checkup) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
     branding = load_branding()
