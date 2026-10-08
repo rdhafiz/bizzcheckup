@@ -163,6 +163,36 @@ gap at any scroll position.
 Parallax is **off below 768 px wide** (little room to move, weakest devices) and with reduced
 motion. Moving things only with `transform` keeps it on the graphics card: no layout, no repaint.
 
+## Smooth scrolling to #links
+
+Links to a place on the same page (`#start`, the footer's "What we examine", "Back to top",
+the report's jump bar) glide there instead of jumping. It's one CSS rule:
+
+```css
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+```
+
+This is the browser's own smooth scrolling: no script takes over the wheel, keys or touch.
+Visitors who asked for reduced motion keep the instant jump. Every element with an `id` gets
+`scroll-margin-top: 2rem`, so a heading lands with a little room above it (report sections
+use 6rem, for their sticky bar).
+
+Two details made it land exactly right:
+
+1. **Reveal the target before the scroll starts.** The browser works out where to scroll
+   at the moment of the click. A hidden target sits 32px off (or zoomed out), so the scroll
+   aimed at that spot and landed off once the element settled. `motion.js` listens for
+   clicks on same-page links (in the *capture* phase, before the browser acts) and shows the
+   target instantly first. It also "pins" the target as shown until it arrives, so it isn't
+   reset while still off screen during the glide.
+2. **`overflow: clip`, not `overflow: hidden`.** A box with `overflow: hidden` hides what
+   sticks out, but script and link navigation can still *scroll inside it*. Our sections
+   clip their decorations and parallax photos, so following a link into one scrolled its
+   content inside the box: the hero shifted 198px, "What we examine" 92px. `overflow: clip`
+   clips the same way but can't be scrolled at all. Tests check both rules.
+
 ## Performance notes
 
 Measured in Microsoft Edge with graphics acceleration, scrolling the whole homepage:

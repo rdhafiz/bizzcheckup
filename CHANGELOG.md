@@ -7,6 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **Smooth scrolling** for links within a page (section links, "Start a check-up",
+  "Back to top", the report's jump bar), with a little room above the target. Instant for
+  visitors who prefer reduced motion.
 - **"How it works" rebuilt**: one screen tall, with an intro, key facts and a five-step
   timeline (enter your address, we visit like a customer, the checks run live, your Health
   Report, fix and check again), each step with a description and fact chips. Page and check
@@ -52,6 +55,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - Messages (for example "rate limit reached") are shown at the top of any page.
 
 ### Fixed
+- Following a link into a section (the hero, "What we examine", the benefits section, the
+  footer) scrolled that section's content inside itself, shifting it by up to 198px. Those
+  sections now use `overflow: clip`.
 - The benefits photo's desktop crop was overridden by a leftover duplicate CSS rule.
 - Sites behind Vercel's bot protection (and similar) answered "HTTP 429" with a challenge
   page. The User-Agent is now a browser identity with `BizzCheckup/0.1
