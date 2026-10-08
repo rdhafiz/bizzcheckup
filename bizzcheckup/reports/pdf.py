@@ -2,8 +2,8 @@
 
 The PDF uses the same report sections as the web page. Chromium gets NO network
 access: every request is answered from our own files (CSS, fonts), the
-check-up's screenshot from the database, or the branding photo. Everything
-else is refused.
+check-up's screenshot from the database, or the branding photo (which we fetch
+ourselves, with a short time limit). Everything else is refused.
 """
 
 import contextlib
@@ -12,6 +12,7 @@ from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import httpx
 from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.staticfiles import finders
@@ -25,6 +26,9 @@ from bizzcheckup.checkups.models import Checkup
 from .builder import build_report
 
 ORIGIN = "http://report.local"  # a made-up address; nothing ever leaves the browser
+# The consultant's photo lives on another website. If that site is slow, the PDF must not
+# wait for it: after this many seconds the PDF is made without the photo.
+PHOTO_TIMEOUT_SECONDS = 5.0
 Resolver = Callable[[str], tuple[bytes, str] | None]  # path -> (body, content type)
 
 FOOTER_TEMPLATE = """
@@ -57,6 +61,19 @@ def static_file(path: str) -> tuple[bytes, str] | None:
     return None
 
 
+async def fetch_photo(url: str) -> tuple[bytes, str] | None:
+    """Download an allowed outside image (the branding photo), or None if slow or broken."""
+    try:
+        async with httpx.AsyncClient(
+            timeout=PHOTO_TIMEOUT_SECONDS, follow_redirects=True
+        ) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+    except httpx.HTTPError:
+        return None
+    return response.content, response.headers.get("content-type", "application/octet-stream")
+
+
 async def html_to_pdf(
     html: str, resolve: Resolver, *, allowed_urls: set[str], footer_note: str
 ) -> bytes:
@@ -66,7 +83,13 @@ async def html_to_pdf(
             await route.fulfill(body=html, content_type="text/html; charset=utf-8")
             return
         if url in allowed_urls:  # e.g. the consultant's photo from branding.yaml
-            await route.continue_()
+            # Fetched here, with a time limit, rather than by the browser: a slow photo
+            # host used to hold up the whole PDF until it timed out.
+            photo = await fetch_photo(url)
+            if photo is not None:
+                await route.fulfill(body=photo[0], content_type=photo[1])
+            else:
+                await route.abort("timedout")
             return
         if url.startswith(ORIGIN):
             found = resolve(urlsplit(url).path)

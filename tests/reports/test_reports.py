@@ -3,7 +3,10 @@
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
 import pytest
+import respx
+from asgiref.sync import async_to_sync
 from django.core import checks
 from django.test import Client
 from django.urls import reverse
@@ -236,3 +239,24 @@ def test_report_json_round_trip(finished: Checkup) -> None:
     """What's stored in raw_results reads back into the same engine report."""
     report = AuditReport.model_validate(finished.raw_results)
     assert report.health_score == 66
+
+
+# --- the branding photo in PDFs ------------------------------------------------------------
+
+
+PHOTO = "https://photos.test/me.png"
+
+
+def test_pdf_photo_is_fetched() -> None:
+    with respx.mock() as router:
+        router.get(PHOTO).respond(200, content=b"png-bytes", headers={"content-type": "image/png"})
+        assert async_to_sync(pdf_module.fetch_photo)(PHOTO) == (b"png-bytes", "image/png")
+
+
+def test_slow_or_broken_photo_never_holds_up_the_pdf() -> None:
+    with respx.mock() as router:
+        router.get(PHOTO).mock(side_effect=httpx.ReadTimeout("too slow"))
+        assert async_to_sync(pdf_module.fetch_photo)(PHOTO) is None
+    with respx.mock() as router:
+        router.get(PHOTO).respond(404)
+        assert async_to_sync(pdf_module.fetch_photo)(PHOTO) is None
