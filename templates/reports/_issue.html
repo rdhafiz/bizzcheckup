@@ -37,7 +37,7 @@
     {% endif %}
     {% if finding.snippets %}
       <div class="issue__part sm:col-span-2">
-        <h4 class="issue__heading">{% include "partials/icon.html" with name="fix" css="size-4" %} Ready to use: copy, fill in the REPLACE values, paste</h4>
+        <h4 class="issue__heading">{% include "partials/icon.html" with name="fix" css="size-4" %} {% if finding.snippets.0.language == "text" %}Page by page{% else %}Ready to use: copy, fill in any REPLACE values, paste{% endif %}</h4>
         <div class="mt-2 space-y-2">
           {% for snippet in finding.snippets %}
             <details class="snippet" {% if pdf %}open{% endif %}>

@@ -1,4 +1,4 @@
-"""Rules every check must follow (acceptance checklist), tested across all 45 checks."""
+"""Rules every check must follow (acceptance checklist), tested across all the checks."""
 
 import pytest
 
@@ -66,8 +66,8 @@ def sick_site() -> AuditContext:
     return ctx
 
 
-def test_there_are_45_checks_across_five_categories() -> None:
-    assert len(CHECKS) == 45
+def test_check_count_across_five_categories() -> None:
+    assert len(CHECKS) == 49
     assert len({check.category for check in CHECKS}) == 5
 
 

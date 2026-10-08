@@ -46,7 +46,7 @@ VITAL_SIGNS = [
 
 @lru_cache(maxsize=1)
 def check_count() -> int:
-    """How many checks the engine runs (45 today). Counted once, then remembered."""
+    """How many checks the engine runs. Counted once, then remembered."""
     return len(load_builtin_checks().all())
 
 
