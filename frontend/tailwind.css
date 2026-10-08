@@ -458,7 +458,6 @@
     color: var(--mint);
   }
   .hero__spark--title { @apply -top-10 right-[6%] size-12; color: var(--mint); }
-  .hero__spark--cta { @apply top-0 -right-12 size-10; color: var(--mint); }
 
   /* Frosted-glass perk cards with a solid round icon. */
   .hero__perks {
@@ -479,29 +478,6 @@
     box-shadow: 0 8px 22px -8px var(--tone-solid);
   }
 
-  /* Bright mint call to action: large bold text (20px) keeps white text readable. */
-  .btn-mint {
-    @apply inline-flex min-h-16 items-center gap-4 rounded-full py-2 pr-2 pl-8 text-xl font-bold
-      text-white no-underline transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5
-      hover:no-underline;
-    background: linear-gradient(90deg, #0b8a72, #0fa585);
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.18),
-      0 16px 40px -12px rgb(16 185 129 / 0.65);
-  }
-  .btn-mint:hover {
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.25),
-      0 20px 48px -12px rgb(16 185 129 / 0.8);
-  }
-  .btn-mint__arrow {
-    @apply inline-flex size-12 items-center justify-center rounded-full bg-white transition-transform
-      duration-200;
-    color: #0f6e66;
-  }
-  .btn-mint:hover .btn-mint__arrow {
-    @apply translate-x-1;
-  }
 
   /* Inputs with a leading icon. */
   .input-icon {
