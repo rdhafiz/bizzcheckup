@@ -1,8 +1,39 @@
-// Report page: "Copy share link" and the treatment-plan checklist.
+// Report page: "Copy share link", the treatment-plan checklist and "Copy" on code blocks.
 document.addEventListener("DOMContentLoaded", function () {
   setUpCopyLink();
   setUpPlanChecklist();
+  setUpCopyCode();
 });
+
+// "Copy" on a suggested fix (e.g. a page's JSON-LD): copies the code exactly as shown.
+function setUpCopyCode() {
+  document.addEventListener("click", function (event) {
+    var button = event.target.closest && event.target.closest("[data-copy-code]");
+    if (!button) return;
+    var code = button.parentElement.querySelector("code");
+    if (!code) return;
+    var text = code.textContent;
+
+    function done(label) {
+      button.textContent = label;
+      setTimeout(function () { button.textContent = "Copy"; }, 2000);
+    }
+    function selectIt() {  // fallback: select the code so Ctrl+C works
+      var range = document.createRange();
+      range.selectNodeContents(code);
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      done("Selected: press Ctrl+C");
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { done("Copied"); }, selectIt);
+    } else {
+      selectIt();
+    }
+  });
+}
 
 function setUpCopyLink() {
   var button = document.querySelector("[data-copy-link]");

@@ -178,6 +178,13 @@ def test_report_page_helps_find_issues_and_solutions(client: Client, finished: C
     assert 'data-plan-key="qseo.title-1"' in html
 
 
+def test_report_shows_suggested_fixes_with_a_copy_button(client: Client, finished: Checkup) -> None:
+    html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
+    assert "Homepage: a title" in html
+    assert "&lt;title&gt;Shop | Fresh cakes&lt;/title&gt;" in html  # shown as code, escaped
+    assert "data-copy-code" in html
+
+
 def test_report_contact_links_come_from_branding(client: Client, finished: Checkup) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
     branding = load_branding()

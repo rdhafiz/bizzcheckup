@@ -1243,6 +1243,34 @@
   .issue__part--fix p {
     @apply text-ink;
   }
+  /* A ready-to-use fix (e.g. JSON-LD) under a finding: open it, copy it. */
+  .snippet {
+    @apply rounded-xl border border-line bg-card;
+  }
+  .snippet__title {
+    @apply flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2
+      text-xs font-semibold text-ink;
+  }
+  .snippet__title::-webkit-details-marker {
+    display: none;
+  }
+  .snippet__body {
+    @apply relative border-t border-line;
+  }
+  .snippet__code {
+    @apply max-h-96 overflow-auto rounded-b-xl p-4 pt-14 font-mono text-xs leading-relaxed;
+    color: #e5edf0;
+    background: #0e1b1e;
+    white-space: pre;
+  }
+  .snippet__copy {
+    @apply absolute top-2 right-2 inline-flex min-h-9 items-center rounded-lg px-3 text-xs font-bold;
+    color: var(--on-brand);
+    background: var(--brand);
+  }
+  .snippet__copy:hover {
+    background: var(--brand-hover);
+  }
   .issue__heading {
     @apply flex items-center gap-1.5 text-sm font-semibold text-ink;
   }
@@ -1331,6 +1359,16 @@
   .stat,
   .card {
     break-inside: avoid;
+  }
+  .issue:has(.snippet) {
+    break-inside: auto; /* long code may continue on the next page */
+  }
+  .snippet__code {
+    max-height: none;
+    overflow: visible;
+    padding-top: 1rem; /* no Copy button on paper */
+    white-space: pre-wrap;
+    word-break: break-all;
   }
   .report-section,
   #details {

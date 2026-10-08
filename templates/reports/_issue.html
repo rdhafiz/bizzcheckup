@@ -35,5 +35,24 @@
         </ul>
       </div>
     {% endif %}
+    {% if finding.snippets %}
+      <div class="issue__part sm:col-span-2">
+        <h4 class="issue__heading">{% include "partials/icon.html" with name="fix" css="size-4" %} Ready to use: copy, fill in the REPLACE values, paste</h4>
+        <div class="mt-2 space-y-2">
+          {% for snippet in finding.snippets %}
+            <details class="snippet" {% if pdf %}open{% endif %}>
+              <summary class="snippet__title">
+                <span class="min-w-0 break-words">{{ snippet.title }}</span>
+                <span class="issue__chevron no-print">{% include "partials/icon.html" with name="chevron" css="size-4" %}</span>
+              </summary>
+              <div class="snippet__body">
+                {% if not pdf %}<button type="button" class="snippet__copy" data-copy-code aria-live="polite">Copy</button>{% endif %}
+                <pre class="snippet__code"><code>{{ snippet.code }}</code></pre>
+              </div>
+            </details>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
   </div>
 </details>
