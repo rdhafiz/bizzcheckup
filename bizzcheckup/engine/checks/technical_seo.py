@@ -12,7 +12,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from selectolax.lexbor import LexborHTMLParser, LexborNode
 
-from ..context import AuditContext
+from ..context import PROBES, AuditContext
 from ..crawler import extract_links
 from ..types import Category, Finding, Level, Page, Severity, Snippet
 from ..urls import same_origin
@@ -25,6 +25,7 @@ from ._helpers import (
     title_text,
 )
 from .base import Check
+from .seo import where_to_fix
 
 MAX_LISTED = 20  # rows shown in one page-by-page breakdown
 EM_DASH = chr(0x2014)
@@ -606,3 +607,99 @@ class MetaTags(Check):
             lines.append(f'  <meta name="robots" content="{attr(robots)}">')
         lines.append("</head>")
         return "\n".join(lines)
+
+
+# --- links to other websites and images ---------------------------------------------------
+
+# Answers that mean "this site doesn't let robots check" rather than "broken":
+# 401/403 (members only or bot protection), 429 (too many requests), 999 (LinkedIn).
+CANT_VERIFY = {401, 403, 429, 999}
+
+
+def is_broken(code: int) -> bool:
+    return code not in CANT_VERIFY and (code == 0 or code >= 400)
+
+
+class BrokenExternalLinks(Check):
+    """Links from the site to other websites that lead nowhere."""
+
+    id = "seo.broken_external_links"
+    category = Category.SEO
+    title = "Links to other websites"
+    weight = 3
+    requires = frozenset({PROBES})
+
+    WHY = (
+        "Links to other websites that no longer work (a closed partner, a moved article, an "
+        "old social profile) send visitors to an error page and make your site look out of "
+        "date."
+    )
+    FIX = (
+        "Update each link below to the right address, or remove it. Social media links "
+        "often break when a page is renamed, so open your own profiles and copy their "
+        "current address."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        statuses = ctx.probes.external_status
+        if not statuses:
+            return []
+        broken = sorted(url for url, code in statuses.items() if is_broken(code))
+        self.partial = share_score(len(statuses), len(broken))
+        if not broken:
+            return [
+                self.passed(
+                    f"All {len(statuses)} links to other websites we checked work.", self.WHY
+                )
+            ]
+        return [
+            self.finding(
+                Severity.WARN,
+                f"{len(broken)} of the {len(statuses)} links to other websites we checked are "
+                "broken.",
+                self.WHY,
+                self.FIX,
+                impact=Level.LOW,
+                urls=broken,
+                snippets=[where_to_fix(broken, statuses, ctx.probes.external_sources)],
+            )
+        ]
+
+
+class BrokenImages(Check):
+    """Pictures that don't load and show as an empty box or a broken-image icon."""
+
+    id = "seo.broken_images"
+    category = Category.SEO
+    title = "Broken images"
+    weight = 4
+    requires = frozenset({PROBES})
+
+    WHY = (
+        "A picture that doesn't load leaves an empty box or a broken icon on the page. "
+        "Visitors notice straight away, and a product without its photo rarely sells."
+    )
+    FIX = (
+        "Upload each missing image again and update the page to its new address, or remove "
+        "the image. The list below shows which page uses each one."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        statuses = ctx.probes.image_status
+        if not statuses:
+            return []
+        broken = sorted(url for url, code in statuses.items() if is_broken(code))
+        self.partial = share_score(len(statuses), len(broken))
+        if not broken:
+            return [self.passed(f"All {len(statuses)} images we checked load.", self.WHY)]
+        return [
+            self.finding(
+                Severity.FAIL,
+                f"{len(broken)} of the {len(statuses)} images we checked don't load.",
+                self.WHY,
+                self.FIX,
+                impact=Level.MEDIUM,
+                urls=broken,
+                snippets=[where_to_fix(broken, statuses, ctx.probes.image_sources)],
+            )
+        ]

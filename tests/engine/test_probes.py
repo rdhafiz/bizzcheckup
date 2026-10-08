@@ -31,6 +31,7 @@ async def test_probes_record_link_statuses_and_http_redirect(
     router.head("https://shop.test/about").respond(200)
     router.head("https://shop.test/gone").respond(404)
     router.head("https://shop.test/flaky").mock(side_effect=httpx.ConnectError("down"))
+    router.head("https://other.test/").respond(404)
     robots = RobotsInfo(
         url="https://shop.test/robots.txt", exists=True, text="User-agent: *\nDisallow: /private/\n"
     )
@@ -47,7 +48,9 @@ async def test_probes_record_link_statuses_and_http_redirect(
         "https://shop.test/gone": 404,
         "https://shop.test/flaky": 0,  # unreachable
     }
-    assert "https://other.test/" not in ctx.probes.link_status  # other sites aren't checked
+    assert "https://other.test/" not in ctx.probes.link_status  # other sites: checked apart
+    assert ctx.probes.external_status == {"https://other.test/": 404}
+    assert ctx.probes.external_sources == {"https://other.test/": ["https://shop.test/"]}
     assert "https://shop.test/private/x" not in ctx.probes.link_status  # robots.txt says no
     assert ctx.probes.link_sources["https://shop.test/gone"] == ["https://shop.test/"]
 
@@ -164,3 +167,37 @@ def test_sniff_image() -> None:
     assert sniff_image(b"GIF89a...") == "image/gif"
     assert sniff_image(b"RIFF\x00\x00\x00\x00WEBPVP8") == "image/webp"
     assert sniff_image(b"<html>") == ""
+
+
+async def test_images_are_checked_wherever_they_are(fetcher: Fetcher, router: respx.Router) -> None:
+    home = make_page('<img src="/a.jpg"><img src="https://other.test/b.png"><img src="/a.jpg">')
+    router.head("https://shop.test/a.jpg").respond(200)
+    router.head("https://other.test/b.png").respond(404)
+    router.head("http://shop.test/").respond(301, headers={"Location": "https://shop.test/"})
+    router.head("https://shop.test/").respond(200)
+    mock_agent_and_llms_routes(router)
+    ctx = make_context(home)
+
+    await collect_probes(ctx, fetcher, EngineConfig())
+
+    assert ctx.probes.image_status == {
+        "https://shop.test/a.jpg": 200,
+        "https://other.test/b.png": 404,
+    }
+    assert ctx.probes.image_sources["https://other.test/b.png"] == ["https://shop.test/"]
+
+
+async def test_slow_outside_sites_are_left_out(fetcher: Fetcher, router: respx.Router) -> None:
+    import asyncio
+
+    from bizzcheckup.engine.collectors.probes import check_all
+
+    async def slow(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(5)
+        return httpx.Response(200)
+
+    router.head("https://other.test/fast").respond(404)
+    router.head("https://other.test/slow").mock(side_effect=slow)
+    config = EngineConfig(outside_budget=0.2)
+    urls = ["https://other.test/slow", "https://other.test/fast"]
+    assert await check_all(fetcher, urls, config) == {"https://other.test/fast": 404}

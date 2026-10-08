@@ -45,6 +45,10 @@ class EngineConfig(BaseModel):
     max_redirects: int = 5
     max_page_bytes: int = 5 * 1024 * 1024  # 5 MB
     max_link_checks: int = 50  # internal links whose status we check
+    max_external_checks: int = 30  # links to other websites whose status we check
+    max_image_checks: int = 40  # images whose status we check
+    external_timeout: float = 8.0  # seconds per request to another website
+    outside_budget: float = 30.0  # seconds for all link/image status checks together
     render_timeout: float = 45.0  # seconds for the browser to load the homepage
     viewport_width: int = 1280
     viewport_height: int = 800

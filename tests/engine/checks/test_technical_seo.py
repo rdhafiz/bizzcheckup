@@ -4,7 +4,7 @@ import pytest
 
 from bizzcheckup.engine.checks import technical_seo as tech
 from bizzcheckup.engine.checks.base import Check
-from bizzcheckup.engine.context import AuditContext
+from bizzcheckup.engine.context import PROBES, AuditContext
 from bizzcheckup.engine.types import Finding, Severity
 
 from ..factories import fixture_html, make_context, make_page
@@ -210,3 +210,48 @@ def test_meta_refresh_warns() -> None:
     findings = run(tech.MetaTags, html)
     assert [f.severity for f in findings] == [Severity.WARN]
     assert "meta refresh" in findings[0].message
+
+
+# --- links to other websites and images ------------------------------------------------------
+
+
+def probed(**statuses: dict[str, object]) -> AuditContext:
+    ctx = make_context(make_page(fixture_html("healthy")), capabilities={PROBES})
+    for name, value in statuses.items():
+        setattr(ctx.probes, name, value)
+    return ctx
+
+
+def test_external_links_blocked_by_bot_protection_are_not_broken() -> None:
+    ctx = probed(
+        external_status={
+            "https://partner.test/": 200,
+            "https://linkedin.com/in/x": 999,  # LinkedIn refuses robots
+            "https://gone.test/": 404,
+            "https://dead.test/": 0,
+        },
+        external_sources={"https://gone.test/": [HOME]},
+    )
+    [finding] = tech.BrokenExternalLinks().run(ctx)
+    assert finding.severity is Severity.WARN
+    assert finding.affected_urls == ["https://dead.test/", "https://gone.test/"]
+    code = finding.snippets[0].code
+    assert (
+        "https://gone.test/\n    answer: error 404\n    found on:\n      https://shop.test/" in code
+    )
+    assert "answer: can't be reached" in code
+
+
+def test_broken_images_fail() -> None:
+    ctx = probed(image_status={f"{HOME}a.jpg": 200, f"{HOME}b.jpg": 404})
+    [finding] = tech.BrokenImages().run(ctx)
+    assert finding.severity is Severity.FAIL
+    assert finding.affected_urls == [f"{HOME}b.jpg"]
+
+
+def test_nothing_probed_is_not_applicable() -> None:
+    assert tech.BrokenExternalLinks().run(probed()) == []
+    assert tech.BrokenImages().run(probed()) == []
+    assert [
+        f.severity for f in tech.BrokenImages().run(probed(image_status={f"{HOME}a": 200}))
+    ] == [Severity.PASS]

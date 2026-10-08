@@ -131,16 +131,16 @@ class Fetcher:
 
         raise FetchError(f"Too many redirects (more than {self.config.max_redirects}).")
 
-    async def status(self, url: str) -> int:
+    async def status(self, url: str, *, timeout: float | None = None, polite: bool = True) -> int:
         """HTTP status of `url` after redirects, or 0 if it can't be reached.
 
         Tries a cheap HEAD request first; some servers refuse HEAD, so it falls
         back to GET for those.
         """
         try:
-            page = await self.get(url, method="HEAD")
+            page = await self.get(url, method="HEAD", timeout=timeout, polite=polite)
             if page.status_code in (403, 405, 501):
-                page = await self.get(url)
+                page = await self.get(url, timeout=timeout, polite=polite)
         except (FetchError, BlockedURLError):
             return 0
         return page.status_code

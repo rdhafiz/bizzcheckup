@@ -639,6 +639,30 @@ class PageSchema(Check):
         ]
 
 
+def where_to_fix(
+    broken: list[str], statuses: dict[str, int], sources: dict[str, list[str]]
+) -> Snippet:
+    """A breakdown of broken addresses: what each one answered, and the pages using it."""
+    rows = []
+    for url in broken[:MAX_SNIPPETS]:
+        code = statuses.get(url, 0)
+        lines = [url, f"    answer: {"can't be reached" if code == 0 else f'error {code}'}"]
+        pages = sources.get(url, [])
+        if pages:
+            lines.append("    found on:")
+            lines.extend(f"      {page}" for page in pages[:5])
+            if len(pages) > 5:
+                lines.append(f"      ... and {len(pages) - 5} more pages")
+        rows.append("\n".join(lines))
+    if len(broken) > MAX_SNIPPETS:
+        rows.append(f"... and {len(broken) - MAX_SNIPPETS} more")
+    return Snippet(
+        title=f"{len(broken)} broken {schema.EM_DASH} and the pages to fix them on",
+        code="\n\n".join(rows),
+        language="text",
+    )
+
+
 class BrokenLinks(Check):
     id = "seo.broken_links"
     category = Category.SEO
@@ -662,6 +686,7 @@ class BrokenLinks(Check):
 
         on = sorted({p for url in broken for p in ctx.probes.link_sources.get(url, [])})
         where = f" They appear on {len(on)} page(s)." if on else ""
+        breakdown = where_to_fix(broken, statuses, ctx.probes.link_sources)
         return [
             self.finding(
                 Severity.FAIL,
@@ -673,6 +698,7 @@ class BrokenLinks(Check):
                 effort=Level.LOW if len(broken) <= 5 else Level.MEDIUM,
                 impact=Level.MEDIUM,
                 urls=broken,
+                snippets=[breakdown],
             )
         ]
 

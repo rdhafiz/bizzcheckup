@@ -182,6 +182,11 @@ class ProbeResults(BaseModel):
     # Internal link -> HTTP status (0 = unreachable), and the pages it appears on.
     link_status: dict[str, int] = Field(default_factory=dict)
     link_sources: dict[str, list[str]] = Field(default_factory=dict)
+    # The same for links to other websites, and for images (any website).
+    external_status: dict[str, int] = Field(default_factory=dict)
+    external_sources: dict[str, list[str]] = Field(default_factory=dict)
+    image_status: dict[str, int] = Field(default_factory=dict)
+    image_sources: dict[str, list[str]] = Field(default_factory=dict)
     # /llms.txt: a plain-text guide to your site written for AI assistants.
     llms_txt_status: int = 0
     llms_txt_text: str = ""  # first few KB, only when it really is a text file

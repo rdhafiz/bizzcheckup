@@ -2,6 +2,7 @@
 
 - http:// version of the homepage: does it redirect to https://?
 - status of internal links found on the crawled pages (broken links)
+- status of links to other websites, and of images
 - /llms.txt
 - the homepage requested as an AI agent and as a normal browser, to spot
   firewalls or CDNs that turn AI assistants away
@@ -19,12 +20,16 @@ from ..fetcher import Fetcher, FetchError
 from ..firewall import checkpoint_provider
 from ..netguard import BlockedURLError
 from ..types import AgentProbe
-from ..urls import same_origin
+from ..urls import absolute, domain, same_origin, same_site
 
 
 async def collect_probes(ctx: AuditContext, fetcher: Fetcher, config: EngineConfig) -> None:
     await probe_http_version(ctx, fetcher)
-    await probe_internal_links(ctx, fetcher, config.max_link_checks)
+    await asyncio.gather(
+        probe_internal_links(ctx, fetcher, config.max_link_checks),
+        probe_external_links(ctx, fetcher, config),
+        probe_images(ctx, fetcher, config),
+    )
     await probe_llms_txt(ctx, fetcher)
     await probe_og_image(ctx, fetcher)
     ctx.probes.as_ai_agent, ctx.probes.as_browser = await asyncio.gather(
@@ -108,6 +113,65 @@ async def probe_http_version(ctx: AuditContext, fetcher: Fetcher) -> None:
         ctx.probes.http_error = str(error)
         return
     ctx.probes.http_final_url = page.final_url
+
+
+OUTSIDE_AT_ONCE = 4  # requests to other websites at the same time
+
+
+async def check_all(fetcher: Fetcher, urls: list[str], config: EngineConfig) -> dict[str, int]:
+    """Statuses of URLs that may be on other websites (a few at a time, short timeout).
+
+    Slow websites must not hold up the check-up: whatever hasn't answered within
+    `outside_budget` seconds is left out (not counted as broken).
+    """
+    gate = asyncio.Semaphore(OUTSIDE_AT_ONCE)
+
+    async def one(url: str) -> tuple[str, int]:
+        async with gate:
+            return url, await fetcher.status(url, timeout=config.external_timeout, polite=False)
+
+    if not urls:
+        return {}
+    tasks = [asyncio.create_task(one(url)) for url in urls]
+    done, pending = await asyncio.wait(tasks, timeout=config.outside_budget)
+    for task in pending:
+        task.cancel()
+    results = dict(task.result() for task in done)
+    return {url: results[url] for url in urls if url in results}  # keep page order
+
+
+async def probe_external_links(ctx: AuditContext, fetcher: Fetcher, config: EngineConfig) -> None:
+    """Check links from the crawled pages to other websites."""
+    base = ctx.homepage.final_url
+    sources: dict[str, list[str]] = {}
+    for page in ctx.html_pages:
+        for link in extract_links(page):
+            link = link.split("#")[0]
+            if not same_site(domain(link), domain(base)):
+                pages = sources.setdefault(link, [])
+                if page.final_url not in pages:
+                    pages.append(page.final_url)
+    ctx.probes.external_status = await check_all(
+        fetcher, list(sources)[: config.max_external_checks], config
+    )
+    ctx.probes.external_sources = sources
+
+
+async def probe_images(ctx: AuditContext, fetcher: Fetcher, config: EngineConfig) -> None:
+    """Check that the images on the crawled pages load."""
+    sources: dict[str, list[str]] = {}
+    for page in ctx.html_pages:
+        for img in ctx.tree(page).css("img"):
+            src = img.attributes.get("src") or ""
+            url = absolute(page.final_url, src)
+            if url:
+                pages = sources.setdefault(url, [])
+                if page.final_url not in pages:
+                    pages.append(page.final_url)
+    ctx.probes.image_status = await check_all(
+        fetcher, list(sources)[: config.max_image_checks], config
+    )
+    ctx.probes.image_sources = sources
 
 
 async def probe_internal_links(ctx: AuditContext, fetcher: Fetcher, limit: int) -> None:
