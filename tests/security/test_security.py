@@ -244,6 +244,26 @@ def test_forwarded_for_header_is_ignored_unless_trusted(rf, settings) -> None:  
     assert security.client_ip(request) == "1.2.3.4"
 
 
+def test_client_ip_header_wins_when_set(rf, settings) -> None:  # type: ignore[no-untyped-def]
+    # Cloudflare appends the real address to a faked X-Forwarded-For.
+    request = rf.get(
+        "/",
+        REMOTE_ADDR="172.29.0.1",
+        HTTP_X_FORWARDED_FOR="1.2.3.4, 198.51.100.7",
+        HTTP_CF_CONNECTING_IP="198.51.100.7",
+    )
+    settings.TRUST_X_FORWARDED_FOR = True
+    assert security.client_ip(request) == "1.2.3.4"
+    settings.CLIENT_IP_HEADER = "CF-Connecting-IP"
+    assert security.client_ip(request) == "198.51.100.7"
+
+
+def test_client_ip_header_missing_falls_back(rf, settings) -> None:  # type: ignore[no-untyped-def]
+    settings.CLIENT_IP_HEADER = "CF-Connecting-IP"
+    request = rf.get("/", REMOTE_ADDR="10.0.0.1")
+    assert security.client_ip(request) == "10.0.0.1"
+
+
 # --- headers, CSRF, production settings ---------------------------------------------------------
 
 

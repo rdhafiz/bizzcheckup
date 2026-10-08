@@ -93,6 +93,11 @@ IPv4 addresses.
 `TRUST_X_FORWARDED_FOR=True`, because without a proxy in front, visitors could fake that
 header and dodge the rate limit.
 
+Behind Cloudflare, set `CLIENT_IP_HEADER=CF-Connecting-IP` instead. Cloudflare **adds**
+the real address to an `X-Forwarded-For` the visitor sent, so its first entry can still
+be faked, but it always **overwrites** `CF-Connecting-IP`. Only use it when every request
+reaches Django through Cloudflare (for example a tunnel to a port bound to `127.0.0.1`).
+
 ## 8. Headers, CSRF, DEBUG
 
 `core/security.py::SecurityHeadersMiddleware` adds to every response:
@@ -126,4 +131,5 @@ to inject its indicator `<style>` (`<meta name="htmx-config">` in `base.html`).
 | `CHECKUP_REUSE_HOURS` | 24 | Reuse a finished report this long |
 | `IP_HASH_SALT` | the secret key | Secret for hashing IPs. Set your own in production. |
 | `TRUST_X_FORWARDED_FOR` | False | True only behind a proxy you control |
+| `CLIENT_IP_HEADER` | empty | `CF-Connecting-IP` behind Cloudflare (wins over X-Forwarded-For) |
 | `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | empty | Turn on Cloudflare Turnstile |

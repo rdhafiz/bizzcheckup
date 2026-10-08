@@ -47,6 +47,7 @@ what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variab
 | `CHECKUP_REUSE_HOURS` | no | `24` | Reuse a finished report of the same URL this long |
 | `IP_HASH_SALT` | prod: yes | the secret key | Secret used to hash visitor IPs |
 | `TRUST_X_FORWARDED_FOR` | no | `False` | Read the client IP from the proxy header |
+| `CLIENT_IP_HEADER` | no | empty | A header the proxy always sets to the visitor's IP, e.g. `CF-Connecting-IP` behind Cloudflare |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | no | empty | Cloudflare Turnstile on the form |
 | `CHECKUP_RUNNER` | no | `immediate` | `immediate`: run in the web app right away (no Redis). `celery`: use the queue and worker. |
 | `CHECKUP_MAX_CONCURRENT` | no | `3` | Check-ups running at the same time per web process (`immediate` mode) |

@@ -169,6 +169,9 @@ CHECKUP_REUSE_HOURS = env.int("CHECKUP_REUSE_HOURS", default=24)
 IP_HASH_SALT = env("IP_HASH_SALT", default=SECRET_KEY)
 # Only turn on behind a reverse proxy that sets X-Forwarded-For itself.
 TRUST_X_FORWARDED_FOR = env.bool("TRUST_X_FORWARDED_FOR", default=False)
+# A header holding the visitor's IP that the proxy in front always sets itself, e.g.
+# "CF-Connecting-IP" behind Cloudflare. Wins over X-Forwarded-For. Empty = not used.
+CLIENT_IP_HEADER = env("CLIENT_IP_HEADER", default="")
 # Cloudflare Turnstile "are you human?" check. Off unless both keys are set.
 TURNSTILE_SITE_KEY = env("TURNSTILE_SITE_KEY", default="")
 TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")

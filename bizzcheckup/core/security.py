@@ -25,7 +25,16 @@ def client_ip(request: HttpRequest) -> str:
     Behind a reverse proxy (nginx, a load balancer) REMOTE_ADDR is the proxy, so the
     first address in X-Forwarded-For is used, but only when TRUST_X_FORWARDED_FOR is
     on, because visitors can fake that header when there is no proxy.
+
+    Behind Cloudflare, even the first X-Forwarded-For entry can be faked (Cloudflare
+    adds to the header a visitor sent). CLIENT_IP_HEADER="CF-Connecting-IP" reads the
+    header Cloudflare always overwrites instead, so it wins when it's set.
     """
+    if settings.CLIENT_IP_HEADER:
+        meta_key = "HTTP_" + settings.CLIENT_IP_HEADER.upper().replace("-", "_")
+        header_ip = str(request.META.get(meta_key, "")).strip()
+        if header_ip:
+            return header_ip
     if settings.TRUST_X_FORWARDED_FOR:
         forwarded = str(request.META.get("HTTP_X_FORWARDED_FOR", ""))
         if forwarded:
