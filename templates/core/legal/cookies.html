@@ -1,0 +1,60 @@
+{% extends "core/legal/_layout.html" %}
+
+{% block legal_title %}Cookie policy{% endblock %}
+{% block description %}The cookies and browser storage {{ product_name }} uses, and why.{% endblock %}
+{% block heading %}Cookie policy{% endblock %}
+{% block lead %}{{ product_name }} uses only what it needs to work. No analytics, no trackers, no advertising.{% endblock %}
+
+{% block body %}
+  <div class="legal-summary">
+    <p class="legal-summary__title">In short</p>
+    <ul>
+      <li>One security cookie protects the check-up form.</li>
+      <li>Your theme and checklist ticks stay in your own browser.</li>
+      <li>Nothing is used to follow you around the web.</li>
+    </ul>
+  </div>
+
+  <h2>What a cookie is</h2>
+  <p>
+    A cookie is a small piece of text a website asks your browser to keep and send back on the
+    next visit. "Local storage" is similar, but it never leaves your browser.
+  </p>
+
+  <h2>Cookies we set</h2>
+  <div class="legal-table">
+    <table>
+      <thead><tr><th scope="col">Name</th><th scope="col">Why</th><th scope="col">How long</th></tr></thead>
+      <tbody>
+        <tr><td><code>csrftoken</code></td><td>Security: proves the check-up form was sent from this website, not by someone else (protection against "cross-site request forgery").</td><td>1 year</td></tr>
+        <tr><td><code>messages</code></td><td>Carries a one-time notice to the next page, for example "you've reached the limit for now".</td><td>Until the notice is shown</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Both are essential: without them the form can't be sent safely. They hold no personal details.</p>
+
+  <h2>Stored only in your browser</h2>
+  <div class="legal-table">
+    <table>
+      <thead><tr><th scope="col">Name</th><th scope="col">Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>bizzcheckup-theme</code></td><td>Remembers whether you chose light or dark mode.</td></tr>
+        <tr><td><code>bizzcheckup-plan-…</code></td><td>Remembers which steps you ticked in a report's treatment plan.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>We never receive these values. Clearing your browser's site data removes them.</p>
+
+  <h2>Other services</h2>
+  <p>
+    {% if turnstile %}When you start a check-up, Cloudflare Turnstile runs a short check in your
+    browser to tell people from bots. It works under Cloudflare's own privacy policy.
+    {% endif %}We don't use Google Analytics, advertising networks or social media trackers.
+  </p>
+
+  <h2>Your choices</h2>
+  <p>
+    You can block or delete cookies in your browser settings. If you block the security cookie,
+    the check-up form won't work. Everything else works without storage.
+  </p>
+{% endblock %}

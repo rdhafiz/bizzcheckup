@@ -1,0 +1,55 @@
+{% extends "core/legal/_layout.html" %}
+
+{% block legal_title %}Acceptable use policy{% endblock %}
+{% block description %}What you may and may not do with {{ product_name }}.{% endblock %}
+{% block heading %}Acceptable use policy{% endblock %}
+{% block lead %}{{ product_name }} is for checking websites you care about, politely. This page says what that means.{% endblock %}
+
+{% block body %}
+  <div class="legal-summary">
+    <p class="legal-summary__title">In short</p>
+    <ul>
+      <li>Check your own websites, or ones you have permission to check.</li>
+      <li>Don't use {{ product_name }} to attack, overload or copy anyone's website.</li>
+      <li>Website owners can ask us to stop checking their site.</li>
+    </ul>
+  </div>
+
+  <h2>You may</h2>
+  <ul>
+    <li>Check websites you own, run or manage.</li>
+    <li>Check a website with its owner's permission, for example as their agency or developer.</li>
+    <li>Share your reports with your team, clients or anyone who can help.</li>
+  </ul>
+
+  <h2>You may not</h2>
+  <ul>
+    <li>Use {{ product_name }} to attack, test the security of, or overload a website without its owner's permission.</li>
+    <li>Get around our limits ({{ rate_limit }} check-ups an hour per visitor), our bot protection, or
+      the blocking of private and internal network addresses.</li>
+    <li>Start check-ups with scripts or automated tools.</li>
+    <li>Copy, resell or rebrand the service or its reports as your own product.</li>
+    <li>Present a report as an official certificate, audit or legal proof of compliance.</li>
+  </ul>
+
+  <h2>How we visit websites</h2>
+  <p>
+    {{ product_name }} reads up to {{ max_pages }} public pages, like a visitor would. It never logs in,
+    fills in forms or reads private areas. When it looks for more pages to check, it follows the
+    website's <code>robots.txt</code> rules. Our visits identify themselves with
+    <code>BizzCheckup</code> in the browser name (User-Agent), so site owners can see who visited.
+  </p>
+
+  <h2>If you own a website</h2>
+  <p>
+    If you don't want your website checked, email
+    <a href="mailto:{{ branding.email }}">{{ branding.email }}</a> with its address and we'll stop
+    checking it.
+  </p>
+
+  <h2>If this policy is broken</h2>
+  <p>
+    We may stop a check-up, block access or delete reports, without notice. Serious abuse may be
+    reported to the people affected or to the authorities.
+  </p>
+{% endblock %}

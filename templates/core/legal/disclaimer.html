@@ -1,0 +1,53 @@
+{% extends "core/legal/_layout.html" %}
+
+{% block legal_title %}Disclaimer{% endblock %}
+{% block description %}What a {{ product_name }} report is, and what it isn't.{% endblock %}
+{% block heading %}Disclaimer{% endblock %}
+{% block lead %}A {{ product_name }} report is a helpful first look at your website. Here's what it can and can't tell you.{% endblock %}
+
+{% block body %}
+  <div class="legal-summary">
+    <p class="legal-summary__title">In short</p>
+    <ul>
+      <li>Scores are automated estimates and can change from one check to the next.</li>
+      <li>A report is not a security audit or a legal certificate.</li>
+      <li>For important decisions, ask a professional.</li>
+    </ul>
+  </div>
+
+  <h2>Automated estimates</h2>
+  <p>
+    Reports are made by software, in about a minute, from up to {{ max_pages }} public pages. Scores
+    can differ between checks because of network speed, the time of day, caching, or a firewall
+    that treats automated visitors differently. Speed results come from Google PageSpeed Insights.
+  </p>
+
+  <h2>What a report is not</h2>
+  <ul>
+    <li><strong>Not a security audit.</strong> The security checks look at what any visitor can see.
+      They are not a penetration test, and a good score doesn't mean a site is safe.</li>
+    <li><strong>Not proof of legal compliance.</strong> The accessibility checks find common problems,
+      but automated tools can't confirm that a site meets WCAG or any accessibility law.</li>
+    <li><strong>Not a promise of rankings or sales.</strong> Following the advice can improve
+      visibility, but no one can guarantee Google rankings, AI recommendations or customers.</li>
+  </ul>
+
+  <h2>Advice, not instructions</h2>
+  <p>
+    The fixes in a report are general advice. Before changing your website, make a backup and,
+    for anything important, ask a qualified developer. We are not responsible for changes made
+    based on a report.
+  </p>
+
+  <h2>The offer in each report</h2>
+  <p>
+    Reports end with an offer of paid help from {{ branding.name }}. The check-up is the same whether
+    you accept it or not.
+  </p>
+
+  <h2>Names and trademarks</h2>
+  <p>
+    Google, PageSpeed Insights, ChatGPT{% if turnstile %}, Cloudflare{% endif %} and other names
+    belong to their owners. {{ product_name }} is not affiliated with or endorsed by them.
+  </p>
+{% endblock %}

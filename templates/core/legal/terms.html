@@ -1,0 +1,93 @@
+{% extends "core/legal/_layout.html" %}
+
+{% block legal_title %}Terms of service{% endblock %}
+{% block description %}The rules for using {{ product_name }}, the free website check-up.{% endblock %}
+{% block heading %}Terms of service{% endblock %}
+{% block lead %}The rules for using {{ product_name }}. By starting a check-up you agree to them.{% endblock %}
+
+{% block body %}
+  <div class="legal-summary">
+    <p class="legal-summary__title">In short</p>
+    <ul>
+      <li>The check-up is free, and you may only check websites you're allowed to.</li>
+      <li>Reports are automated advice, not a guarantee or a certificate.</li>
+      <li>These terms follow the law of {{ branding.legal.country }}.</li>
+    </ul>
+  </div>
+
+  <h2>1. Who we are</h2>
+  <p>
+    {{ product_name }} is run by {{ branding.legal.operator }} ("we", "us"). You can contact us at
+    <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>.
+  </p>
+
+  <h2>2. The service</h2>
+  <p>
+    {{ product_name }} looks at up to {{ max_pages }} public pages of a website and produces a
+    health report and a PDF. It is free. We may change, pause or stop the service, or any part
+    of it, at any time.
+  </p>
+
+  <h2>3. Using it fairly</h2>
+  <ul>
+    <li>Only check websites you own or have permission to check. The
+      <a href="{% url 'core:acceptable_use' %}">acceptable use policy</a> explains what that means.</li>
+    <li>Each visitor can start up to {{ rate_limit }} check-ups an hour. If a website was checked in
+      the last {{ reuse_hours }} hours, you may be shown that report instead of a new one.</li>
+    <li>Don't try to get around these limits or our protection against bots.</li>
+  </ul>
+  <p>We may refuse or stop a check-up, or block access, if these terms are broken.</p>
+
+  <h2>4. Your report</h2>
+  <p>
+    Each report has a private, hard-to-guess link. Anyone you share that link with can open it.
+    You may share and use your report freely. We keep reports as described in the
+    <a href="{% url 'core:privacy' %}">privacy policy</a>, and delete them when you ask.
+  </p>
+
+  <h2>5. No guarantees</h2>
+  <p>
+    Reports are produced automatically and are provided "as is". They can be incomplete or wrong,
+    for example when a website blocks automated visitors. Please read the
+    <a href="{% url 'core:disclaimer' %}">disclaimer</a> before acting on a report.
+  </p>
+
+  <h2>6. Limits of our liability</h2>
+  <p>
+    As far as the law allows, we are not responsible for any loss or damage that comes from using
+    the service or relying on a report, including lost profit, business or data. Nothing in these
+    terms limits liability that cannot be limited by law.
+  </p>
+
+  <h2>7. Other services</h2>
+  <p>
+    The check-up uses Google PageSpeed Insights{% if turnstile %} and Cloudflare Turnstile{% endif %}.
+    Reports may link to other websites. We don't control those services and are not responsible
+    for them.
+  </p>
+
+  <h2>8. The software and the name</h2>
+  <p>
+    The {{ product_name }} software is open source under the MIT licence. The {{ product_name }}
+    name and logo, and the consultant's details in reports, belong to {{ branding.legal.operator }}.
+  </p>
+
+  <h2>9. Professional services</h2>
+  <p>
+    Reports include an offer of paid help from {{ branding.name }}. It is optional. Any paid work is
+    agreed separately and is not part of these terms.
+  </p>
+
+  <h2>10. Changes to these terms</h2>
+  <p>
+    We may update these terms. The date at the top shows the latest version. Using the service
+    after a change means you accept the new terms.
+  </p>
+
+  <h2>11. Law and disputes</h2>
+  <p>
+    These terms are governed by the laws of {{ branding.legal.country }}, and the courts of
+    {{ branding.legal.country }} decide any dispute. Please contact us first: most problems are
+    solved with an email.
+  </p>
+{% endblock %}

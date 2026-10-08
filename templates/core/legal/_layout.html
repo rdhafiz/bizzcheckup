@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% comment %}
+  Shared layout of the legal pages: a header band with the title and the date, a side menu
+  with every legal page, and the text. Each page fills the blocks below.
+{% endcomment %}
+
+{% block header_container %}container-wide{% endblock %}
+
+{% block title %}{% block legal_title %}{% endblock %} — {{ product_name }}{% endblock %}
+
+{% block content %}
+  <header class="legal-hero">
+    <div class="container-wide">
+      <p class="eyebrow-dash">Legal</p>
+      <h1 class="mt-3 text-4xl font-bold sm:text-5xl">{% block heading %}{% endblock %}</h1>
+      <p class="mt-4 max-w-2xl text-lg text-muted">{% block lead %}{% endblock %}</p>
+      <p class="mt-6 text-sm text-muted">
+        Last updated <time datetime="{{ branding.legal.updated|date:'Y-m-d' }}">{{ branding.legal.updated|date:"j F Y" }}</time>
+        · Run by {{ branding.legal.operator }}
+      </p>
+    </div>
+  </header>
+
+  <div class="container-wide grid gap-10 py-12 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-16 lg:py-16">
+    <nav class="legal-nav" aria-label="Legal pages">
+      <p class="text-xs font-semibold tracking-[0.18em] text-muted uppercase">Policies</p>
+      <ul class="mt-3 space-y-1">
+        {% for name, label in legal_pages %}
+          <li>
+            <a href="{% url 'core:'|add:name %}" {% if name == page %}aria-current="page"{% endif %}>{{ label }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="legal-nav__help">
+        <p class="font-semibold text-ink">Questions?</p>
+        <p class="mt-1">Email <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>.</p>
+      </div>
+    </nav>
+
+    <article class="prose-page legal-body">
+      {% block body %}{% endblock %}
+    </article>
+  </div>
+{% endblock %}

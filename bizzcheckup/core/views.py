@@ -3,7 +3,6 @@ from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from bizzcheckup.checkups.forms import CheckupForm
-from bizzcheckup.reports.branding import load_branding
 
 # The five vital signs on the homepage. `icon` is a name from templates/partials/icon.html,
 # `tone` one of the accent colours in frontend/tailwind.css (tone-green, tone-blue, ...).
@@ -46,15 +45,28 @@ def home(request: HttpRequest) -> HttpResponse:
     return render(request, "core/home.html", {"form": CheckupForm(), "vital_signs": VITAL_SIGNS})
 
 
-def privacy(request: HttpRequest) -> HttpResponse:
-    """What we collect, why, and who sees it."""
+# The legal pages: (URL name, menu label). Each has a template in templates/core/legal/.
+LEGAL_PAGES = [
+    ("privacy", "Privacy policy"),
+    ("terms", "Terms of service"),
+    ("cookies", "Cookie policy"),
+    ("acceptable_use", "Acceptable use"),
+    ("disclaimer", "Disclaimer"),
+]
+
+
+def legal_page(request: HttpRequest, page: str) -> HttpResponse:
+    """One legal page. The numbers in the text come from the settings, so they never go stale."""
     return render(
         request,
-        "core/privacy.html",
+        f"core/legal/{page}.html",
         {
-            "branding": load_branding(),
+            "page": page,
+            "legal_pages": LEGAL_PAGES,
             "turnstile": bool(settings.TURNSTILE_SITE_KEY and settings.TURNSTILE_SECRET_KEY),
             "reuse_hours": settings.CHECKUP_REUSE_HOURS,
+            "rate_limit": settings.CHECKUP_RATE_LIMIT_PER_HOUR,
+            "max_pages": settings.CHECKUP_MAX_PAGES,
         },
     )
 
