@@ -19,8 +19,8 @@
 
   var root = document.documentElement;
   var ENTER_RATIO = 0.15; // reveal when 15% is visible...
-  var STAGGER_MS = 80; // ...siblings 80ms apart...
-  var STAGGER_CAP_MS = 400; // ...but never more than 400ms in total
+  var STAGGER_MS = 110; // ...siblings 110ms apart...
+  var STAGGER_CAP_MS = 550; // ...but never more than 550ms in total
   var WATCHDOG_MS = 2000;
   var MAX_STRENGTH = 0.3; // more than this reads as a glitch, not depth
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");

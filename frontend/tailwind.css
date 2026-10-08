@@ -1160,8 +1160,10 @@ html.motion-ready [data-reveal] {
      they reverse smoothly if the visitor scrolls back mid-way. Longhands, so the delay
      can't be reset by a shorthand. Ease-out: fast start, slow settle. */
   transition-property: opacity, transform;
-  transition-duration: 750ms;
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-duration: 1100ms;
+  /* A gentle ease-out (easeOutCubic): starts briskly but glides evenly into place, instead
+     of doing most of the movement in the first few frames. Never ease-in. */
+  transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
   transition-delay: var(--reveal-delay, 0ms); /* the stagger, set by motion.js */
   /* Give each one its own GPU layer up front. Otherwise the browser creates (and paints)
      the layer the moment the entrance starts, in the middle of a scroll frame; with soft
@@ -1175,10 +1177,10 @@ html.motion-ready [data-reveal="scale"] {
 html.motion-ready :is([data-reveal=""], [data-reveal="rise"])[data-from="above"]:not(.is-revealed) {
   transform: translate3d(0, -32px, 0);
 }
-/* The hero is the first thing on screen: a quicker entrance, so the page looks
-   loaded sooner. */
+/* The hero is the first thing on screen: a slightly quicker entrance than the rest,
+   so the page looks loaded sooner. */
 html.motion-ready .hero-full [data-reveal] {
-  transition-duration: 550ms;
+  transition-duration: 900ms;
 }
 /* Sideways entrances only on wide screens: an element pushed sideways still takes up
    space, and on a phone that would make the page scroll horizontally. */
