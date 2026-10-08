@@ -21,6 +21,11 @@ def shrink_percent(view: DeviceView) -> int:
     return round(100 * view.width / view.layout_width) if view.layout_width else 100
 
 
+def article(number: int) -> str:
+    """ "a" or "an" before a number said aloud: a 390, an 820, an 11."""
+    return "an" if str(number).startswith(("8", "11", "18")) else "a"
+
+
 def examples(title: str, items: list[str]) -> list[Snippet]:
     if not items:
         return []
@@ -83,7 +88,9 @@ class MobileLayout(Check):
                 )
         if findings:
             return findings
-        sizes = " and ".join(f"a {view.width} px {view.label}" for view in views)
+        sizes = " and ".join(
+            f"{article(view.width)} {view.width} px {view.label}" for view in views
+        )
         return [self.passed(f"Your homepage fits {sizes} without sideways scrolling.", self.WHY)]
 
 

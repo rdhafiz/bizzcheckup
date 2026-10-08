@@ -92,3 +92,8 @@ def test_tap_targets(small: int, severity: Severity) -> None:
 def test_text_size(small_chars: int, severity: Severity) -> None:
     [finding] = run(mobile.MobileTextSize, view(small_text_chars=small_chars))
     assert finding.severity is severity
+
+
+def test_pass_message_reads_naturally() -> None:
+    [finding] = run(mobile.MobileLayout, view(), view("tablet"))
+    assert "fits a 390 px phone and an 820 px tablet" in finding.message
