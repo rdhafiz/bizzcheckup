@@ -69,7 +69,7 @@ bizzcheckup/
 │   ├── wsgi.py / asgi.py     Entry points for web servers (gunicorn)
 ├── templates/                HTML templates (VIEW layer)
 │   ├── base.html             Page skeleton every page extends: header, footer, theme
-│   ├── partials/             Small reusable pieces: logo, icons, score ring, footer
+│   ├── partials/             Small reusable pieces: logo, icons, illustrations, score ring, footer
 │   ├── core/                 home (landing page + form), styleguide, legal/ (privacy, terms, cookies, ...)
 │   ├── checkups/             progress.html, _progress_data.html (HTMX data), _recheck_form.html, failed.html
 │   └── reports/              report.html (web), report_pdf.html (PDF), _sections.html (shared), ...

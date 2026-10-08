@@ -13,7 +13,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - **"How it works" rebuilt**: one screen tall, with an intro, key facts and a five-step
   timeline (enter your address, we visit like a customer, the checks run live, your Health
   Report, fix and check again), each step with a description and fact chips. Page and check
-  counts come from the settings and the engine.
+  counts come from the settings and the engine. Redesigned with soft colour blobs, tinted fact cards,
+  a step illustration in each tinted card, glossy step numbers on a dotted line, and a
+  laptop illustration (all SVG, following dark mode).
 - **Scroll reveal and parallax** on the homepage (`static/js/motion.js`, no library):
   every section (the hero included) and the footer columns fade in as they scroll into view,
   every time, in both directions: rising when scrolling down, coming down from above when
