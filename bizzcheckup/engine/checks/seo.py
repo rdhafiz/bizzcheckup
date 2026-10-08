@@ -1,10 +1,10 @@
 """SEO checks: can Google find, understand and show your website?"""
 
-import json
 from collections import defaultdict
 
+from .. import schema
 from ..context import PROBES, AuditContext
-from ..types import Category, Finding, Level, Severity
+from ..types import Category, Finding, Level, Severity, Snippet
 from ..urls import domain, origin
 from ._helpers import links_with_rel, meta_content, meta_property, on_pages, share_score, title_text
 from .base import Check
@@ -465,74 +465,116 @@ class SocialTags(Check):
         return [self.passed("Your homepage has complete social media preview tags.", self.WHY)]
 
 
-class StructuredData(Check):
-    id = "seo.structured_data"
+class PageSchema(Check):
+    """Does every page carry the right, complete structured data? Suggests it when not."""
+
+    id = "seo.page_schema"
     category = Category.SEO
-    title = "Structured data"
+    title = "Page schema"
     weight = 4
 
     WHY = (
-        "Structured data (JSON-LD) describes your business in a format Google understands: "
-        "opening hours, reviews, prices. It can earn you richer search results with stars or "
-        "prices."
+        "Structured data (schema.org JSON-LD) tells Google and AI assistants exactly what each "
+        "page is: your business and its contact details, an article and its author, a product "
+        "and its price. It earns richer search results (stars, prices, FAQs, breadcrumbs) and "
+        "makes AI answers quote your real details."
+    )
+    FIX = (
+        "Below is a complete JSON-LD block for each page. Paste it into that page's <head> (or "
+        "ask your developer, or use your website builder's SEO settings), replace every "
+        '"REPLACE: ..." value with your real details, then test the page with '
+        "Google's Rich Results Test: https://search.google.com/test/rich-results"
     )
 
     def run(self, ctx: AuditContext) -> list[Finding]:
-        invalid, incomplete = [], []
-        types: set[str] = set()
-        for page in ctx.html_pages:
-            for node in ctx.tree(page).css('script[type="application/ld+json"]'):
-                try:
-                    data = json.loads(node.text())
-                except ValueError:
-                    invalid.append(page.final_url)
-                    continue
-                items = data if isinstance(data, list) else data.get("@graph", [data])
-                for item in items:
-                    if isinstance(item, dict) and item.get("@type"):
-                        found = item["@type"]
-                        types.update(found if isinstance(found, list) else [str(found)])
-                    else:
-                        incomplete.append(page.final_url)
+        home_url = ctx.homepage.final_url
+        site = schema.site_facts(home_url, ctx.tree(ctx.homepage))
+        results = [
+            schema.analyse(page.final_url, ctx.tree(page), homepage_url=home_url, site=site)
+            for page in ctx.html_pages
+        ]
+        broken = [r for r in results if r.status == "broken"]
+        lacking = [r for r in results if r.status in ("missing", "incomplete")]
+        richer = [r for r in results if r.status == "could be richer"]
+        findings: list[Finding] = []
 
-        if invalid:
-            return [
+        if broken:
+            findings.append(
                 self.finding(
                     Severity.FAIL,
-                    f"The structured data on {len(set(invalid))} page(s) is broken, so "
-                    "Google ignores it.",
+                    on_pages(
+                        len(broken),
+                        len(results),
+                        "has broken structured data (invalid JSON), so Google ignores it.",
+                        "have broken structured data (invalid JSON), so Google ignores it.",
+                    ),
                     self.WHY,
-                    "Fix the JSON syntax (a missing comma or quote is typical). Test it with "
-                    "Google's Rich Results Test: https://search.google.com/test/rich-results",
+                    "Fix the JSON syntax (a missing comma or quote is typical), or replace it with "
+                    "the complete block below. " + self.FIX,
                     effort=Level.LOW,
                     impact=Level.MEDIUM,
-                    urls=sorted(set(invalid)),
+                    urls=[r.url for r in broken],
+                    snippets=self.snippets(broken),
                 )
-            ]
-        if incomplete:
-            return [
+            )
+        if lacking:
+            home_lacking = any(r.kind == "home" for r in lacking)
+            findings.append(
                 self.finding(
                     Severity.WARN,
-                    "Some structured data doesn't say what it describes (no @type).",
+                    on_pages(
+                        len(lacking),
+                        len(results),
+                        "is missing the structured data it should have, or has it incomplete.",
+                        "are missing the structured data they should have, or have it incomplete.",
+                    ),
                     self.WHY,
-                    'Give every JSON-LD item a "@type", e.g. "LocalBusiness" or "Product".',
-                    impact=Level.LOW,
-                    urls=sorted(set(incomplete)),
+                    self.FIX,
+                    effort=Level.LOW,
+                    impact=Level.MEDIUM if home_lacking else Level.LOW,
+                    urls=[r.url for r in lacking],
+                    snippets=self.snippets(lacking),
                 )
-            ]
-        if not types:
-            return [
+            )
+        if richer:
+            findings.append(
                 self.finding(
                     Severity.INFO,
-                    "Your website has no structured data yet.",
+                    on_pages(
+                        len(richer),
+                        len(results),
+                        "has valid structured data that could be richer.",
+                        "have valid structured data that could be richer.",
+                    ),
                     self.WHY,
-                    'Add a JSON-LD block describing your business, e.g. "@type": "LocalBusiness" '
-                    "with your name, address, phone and opening hours.",
-                    effort=Level.MEDIUM,
-                    impact=Level.MEDIUM,
+                    "Optional extras Google can use. " + self.FIX,
+                    effort=Level.LOW,
+                    impact=Level.LOW,
+                    urls=[r.url for r in richer],
+                    snippets=self.snippets(richer),
                 )
-            ]
-        return [self.passed(f"Valid structured data found ({', '.join(sorted(types))}).", self.WHY)]
+            )
+        if findings:
+            return findings
+        types = sorted({t for r in results for t in r.found})
+        return [
+            self.passed(
+                f"Every page has complete structured data ({', '.join(types)}).",
+                self.WHY,
+                urls=[r.url for r in results],
+            )
+        ]
+
+    @staticmethod
+    def snippets(results: list[schema.PageSchema]) -> list[Snippet]:
+        return [
+            Snippet(
+                title=f"{r.kind_label} {schema.MIDDLE_DOT} {r.url} {schema.EM_DASH} {r.summary()}",
+                code=r.suggestion,
+            )
+            for r in results
+            if r.suggestion
+        ]
 
 
 class BrokenLinks(Check):

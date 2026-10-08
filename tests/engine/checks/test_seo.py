@@ -52,7 +52,7 @@ SEO_CHECKS: list[type[Check]] = [
     seo.Sitemap,
     seo.Indexable,
     seo.SocialTags,
-    seo.StructuredData,
+    seo.PageSchema,
     seo.BrokenLinks,
 ]
 
@@ -73,7 +73,7 @@ def test_healthy_page_passes(check: type[Check]) -> None:
         (seo.Sitemap, [Severity.WARN]),
         (seo.Indexable, [Severity.FAIL]),
         (seo.SocialTags, [Severity.WARN]),
-        (seo.StructuredData, [Severity.FAIL]),
+        (seo.PageSchema, [Severity.FAIL]),
         (seo.BrokenLinks, [Severity.FAIL]),
     ],
     ids=lambda value: getattr(value, "id", ""),
@@ -174,20 +174,86 @@ def test_partial_social_tags_lists_whats_missing() -> None:
 @pytest.mark.parametrize(
     ("json_ld", "expected"),
     [
-        (json.dumps({"@context": "https://schema.org", "@type": "Bakery"}), Severity.PASS),
-        (json.dumps({"@graph": [{"@type": "Organization"}, {"@type": "WebSite"}]}), Severity.PASS),
-        (json.dumps([{"@type": "Product"}]), Severity.PASS),
-        (json.dumps({"@context": "https://schema.org"}), Severity.WARN),  # no @type
-        ('{"@type": "Bakery",}', Severity.FAIL),  # trailing comma = invalid JSON
+        # Complete: a local business with its details, and the website.
+        (
+            json.dumps(
+                {
+                    "@context": "https://schema.org",
+                    "@graph": [
+                        {
+                            "@type": "Bakery",
+                            "name": "Sweet Moments",
+                            "url": HOME,
+                            "image": f"{HOME}cake.jpg",
+                            "telephone": "+880 1700 000000",
+                            "address": {"@type": "PostalAddress", "addressLocality": "Dhaka"},
+                            "openingHoursSpecification": [{"opens": "08:00", "closes": "20:00"}],
+                        },
+                        {"@type": "WebSite", "name": "Sweet Moments", "url": HOME},
+                    ],
+                }
+            ),
+            [Severity.PASS],
+        ),
+        # Valid but thin: no WebSite, and the bakery lacks its required address.
+        (json.dumps({"@context": "https://schema.org", "@type": "Bakery"}), [Severity.WARN]),
+        # No @type: as good as nothing.
+        (json.dumps({"@context": "https://schema.org"}), [Severity.WARN]),
+        # Trailing comma: invalid JSON, so search engines ignore it.
+        ('{"@type": "Bakery",}', [Severity.FAIL]),
     ],
 )
-def test_structured_data_variants(json_ld: str, expected: Severity) -> None:
+def test_page_schema_variants(json_ld: str, expected: list[Severity]) -> None:
     html = page_with_head(f'<script type="application/ld+json">{json_ld}</script>')
-    assert severities(seo.StructuredData, make_context(make_page(html))) == [expected]
+    assert severities(seo.PageSchema, make_context(make_page(html))) == expected
 
 
-def test_no_structured_data_is_info_only() -> None:
-    assert severities(seo.StructuredData, make_context()) == [Severity.INFO]
+def test_no_structured_data_gets_a_complete_suggestion() -> None:
+    [finding] = seo.PageSchema().run(make_context())
+    assert finding.severity is Severity.WARN
+    assert finding.impact.value == "medium"  # it's the homepage
+    [snippet] = finding.snippets
+    assert snippet.title.startswith("Homepage")
+    assert "missing Organization, WebSite" in snippet.title
+    body = json.loads(
+        snippet.code.removeprefix('<script type="application/ld+json">').removesuffix("</script>")
+    )
+    assert [item["@type"] for item in body["@graph"]] == ["Organization", "WebSite"]
+
+
+def test_every_page_gets_its_own_suggestion() -> None:
+    about = make_page(
+        "<html><head><title>About us | Shop</title></head></html>", url=f"{HOME}about"
+    )
+    post = make_page(
+        '<html><head><title>Cake care | Shop</title><meta property="og:type" content="article">'
+        "</head></html>",
+        url=f"{HOME}blog/cake-care",
+    )
+    ctx = make_context(make_page(fixture_html("healthy")), about, post)
+    [finding] = seo.PageSchema().run(ctx)
+    assert finding.severity is Severity.WARN
+    assert finding.impact.value == "low"  # the homepage itself is fine
+    assert finding.affected_urls == [f"{HOME}about", f"{HOME}blog/cake-care"]
+    titles = [s.title for s in finding.snippets]
+    assert titles[0].startswith("About page")
+    assert "missing AboutPage" in titles[0]
+    assert titles[1].startswith("Article")
+    assert "missing Article, BreadcrumbList" in titles[1]
+
+
+def test_valid_schema_missing_only_optional_extras_is_info() -> None:
+    org = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {"@type": "Organization", "name": "Shop", "url": HOME},
+            {"@type": "WebSite", "name": "Shop", "url": HOME},
+        ],
+    }
+    html = page_with_head(f'<script type="application/ld+json">{json.dumps(org)}</script>')
+    [finding] = seo.PageSchema().run(make_context(make_page(html)))
+    assert finding.severity is Severity.INFO
+    assert "could add logo, sameAs, contactPoint" in finding.snippets[0].title
 
 
 def test_broken_links_not_applicable_without_links() -> None:

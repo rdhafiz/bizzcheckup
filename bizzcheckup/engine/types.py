@@ -68,6 +68,16 @@ BAND_LABELS: dict[Band, str] = {
 }
 
 
+class Snippet(BaseModel):
+    """Ready-to-use code that fixes a finding, e.g. the JSON-LD schema a page should have."""
+
+    model_config = ConfigDict(frozen=True)
+
+    title: str = Field(min_length=1)  # what it is for, e.g. "About page · https://... (missing)"
+    code: str = Field(min_length=1)
+    language: str = "html"
+
+
 class Finding(BaseModel):
     """One result of one check: something wrong, or something healthy."""
 
@@ -82,6 +92,7 @@ class Finding(BaseModel):
     effort: Level
     impact: Level
     affected_urls: list[str] = Field(default_factory=list)
+    snippets: list[Snippet] = Field(default_factory=list)  # optional ready-made fixes
 
 
 class Page(BaseModel):

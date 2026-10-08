@@ -16,10 +16,21 @@
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Bakery",
-      "name": "Sweet Moments",
-      "telephone": "+880 1700 000000",
-      "address": {"@type": "PostalAddress", "addressLocality": "Dhaka"}
+      "@graph": [
+        {
+          "@type": "Bakery",
+          "name": "Sweet Moments",
+          "url": "https://shop.test/",
+          "image": "https://shop.test/cake.jpg",
+          "telephone": "+880 1700 000000",
+          "address": {"@type": "PostalAddress", "addressLocality": "Dhaka"},
+          "openingHoursSpecification": [
+            {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Saturday"],
+             "opens": "08:00", "closes": "20:00"}
+          ]
+        },
+        {"@type": "WebSite", "name": "Sweet Moments", "url": "https://shop.test/"}
+      ]
     }
   </script>
 </head>

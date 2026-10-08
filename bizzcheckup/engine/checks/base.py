@@ -23,7 +23,7 @@ from typing import Any, ClassVar
 from ..context import AuditContext
 from ..registry import default_registry
 from ..scoring import severity_score
-from ..types import Category, Finding, Level, Severity
+from ..types import Category, Finding, Level, Severity, Snippet
 
 
 class Check(ABC):
@@ -69,6 +69,7 @@ class Check(ABC):
         effort: Level = Level.LOW,
         impact: Level = Level.MEDIUM,
         urls: Iterable[str] = (),
+        snippets: Iterable[Snippet] = (),
     ) -> Finding:
         return Finding(
             check_id=self.id,
@@ -80,6 +81,7 @@ class Check(ABC):
             effort=effort,
             impact=impact,
             affected_urls=list(urls),
+            snippets=list(snippets),
         )
 
     def passed(self, message: str, why_it_matters: str, urls: Iterable[str] = ()) -> Finding:
