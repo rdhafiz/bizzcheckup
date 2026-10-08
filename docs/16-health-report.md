@@ -22,6 +22,12 @@ Every finding shows its severity ("Needs treatment", "Worth fixing", "Good to kn
 **why it matters for your business**, **how to fix it**, and the affected URLs (the first
 5, then "and N more").
 
+When a check can write the fix itself (today: **Page schema**), the issue also shows
+**"Ready to use"** code blocks, one per page, each folded under its page and what's
+missing. A **Copy** button copies the code (`static/js/report.js`, `setUpCopyCode()`).
+If the browser blocks the clipboard, the code is selected instead and the button says
+"press Ctrl+C". In the PDF the blocks are open, the button is hidden and long lines wrap.
+
 ## The report's design, and why
 
 | Pattern | Where | Why |

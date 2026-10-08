@@ -32,7 +32,7 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 
 | File | What it does |
 |------|--------------|
-| `types.py` | Data models: `Category`, `Severity`, `Level`, `Band`, `Finding`, `Page`, `RobotsInfo`, `SitemapInfo`, `CrawlResult`, `CheckResult`, `CategoryScore`, `AuditReport` |
+| `types.py` | Data models: `Category`, `Severity`, `Level`, `Band`, `Finding`, `Snippet` (ready-made code that fixes a finding), `Page`, `RobotsInfo`, `SitemapInfo`, `CrawlResult`, `CheckResult`, `CategoryScore`, `AuditReport` |
 | `config.py` | `EngineConfig` (limits) and our User-Agent: a browser identity ending in `BizzCheckup/0.1 (+https://ridwanulhafiz.me)` (see below) |
 | `urls.py` | `normalize_url()`, `origin()`, `same_origin()`, `absolute()` |
 | `netguard.py` | SSRF protection |
@@ -41,6 +41,7 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 | `context.py` | `AuditContext`, which checks read from |
 | `collectors/probes.py` | Extra requests: internal link statuses, http→https redirect |
 | `checks/base.py` | The `Check` base class |
+| `schema.py` | Page schema rules: what kind of page it is, which schema it should have, and the full suggested JSON-LD (used by `seo.page_schema`) |
 | `checks/seo.py`, `checks/best_practices.py` | The checks: see [Checks reference](15-checks-reference.md) |
 | `registry.py` | The list of all checks |
 | `scoring.py` | The scoring formula |
@@ -249,6 +250,7 @@ in `checks/`, so every class gets defined.
 | Use `requires = frozenset({RENDER})` if you need the browser | The check is skipped cleanly when that data is missing |
 | Set `self.partial` in `run()` for partial credit | e.g. 18 of 20 images with alt text gives 0.9 (`share_score()` helps) |
 | Use `on_pages(count, total, has, have)` for messages | "Your homepage has…" or "2 of the 5 pages we checked have…" |
+| Pass `snippets=[Snippet(title=..., code=...)]` to `finding()` when you can write the fix for them | The report shows it as code with a Copy button (e.g. the page's JSON-LD) |
 
 A check that crashes is recorded as `error` and left out of the score. The audit
 carries on.

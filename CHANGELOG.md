@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 ## [Unreleased]
 
 ### Added
+- **Page schema check** (`seo.page_schema`, replaces `seo.structured_data`): works out
+  what kind each page is (homepage, about, contact, article, product, service, FAQ,
+  listing, other), checks its JSON-LD has the types and properties that kind needs, and
+  when something is missing suggests the **complete** schema for that page: the site's
+  own values kept, facts read from the page filled in, the rest marked `REPLACE:`.
+  The report shows each suggestion as code with a **Copy** button; findings store them
+  in the new `Finding.snippets` field.
 - **Blurry reveal** (inspired by bizzacquire.com): section headings reveal word by word, each
   word rising and sharpening out of a blur; all other reveals sharpen from a soft blur too.
   Without JavaScript or with reduced motion, headings stay plain text.

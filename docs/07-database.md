@@ -83,6 +83,7 @@ them ("every site failing `seo.title`").
 | `category`, `severity`, `effort`, `impact` | The same values as the engine enums (choices come from them) |
 | `message`, `why_it_matters`, `how_to_fix` | The three explanation texts |
 | `affected_urls` | JSON list of URLs |
+| `snippets` | JSON list of suggested fixes, each `{"title", "code", "language"}` (e.g. a page's JSON-LD). Added in migration `0003_finding_snippets` |
 
 ### `Lead`: a visitor who left their details
 

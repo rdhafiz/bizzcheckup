@@ -30,12 +30,43 @@ Severity meanings:
 | `seo.sitemap` | Sitemap | 4 | Sitemaps from robots.txt or `/sitemap.xml` | Found with pages (plus info if robots.txt doesn't mention it) | Missing or empty | — |
 | `seo.indexable` | Visible to Google | 9 | `noindex` in meta robots, meta googlebot or the `X-Robots-Tag` header | No noindex | — (other pages with noindex give **info**) | Homepage is noindex (high impact) |
 | `seo.social_tags` | Social media previews | 3 | `og:title`, `og:description`, `og:image`, `twitter:card` on the homepage | All four | Some or all missing | — |
-| `seo.structured_data` | Structured data | 4 | `<script type="application/ld+json">` on all pages | Valid, with `@type` | Item without `@type` | Invalid JSON. (None at all gives **info**.) |
+| `seo.page_schema` | Page schema | 4 | JSON-LD on every page, compared with what that **kind** of page should have (see below) | Every page has its expected types with their required properties (only optional extras missing gives **info**) | A type is missing, or a required property is missing (medium impact on the homepage, low elsewhere) | Invalid JSON (search engines ignore the whole block) |
 | `seo.broken_links` | Broken links | 6 | Status of internal links (needs PROBES) (partial) | All work | — | Any status ≥ 400 or unreachable |
 | `seo.duplicate_titles` | Unique page titles | 4 | Same title on several pages | All unique | Duplicates found | — |
 
 Not applicable (left out of the score): `seo.broken_links` when there are no internal
 links, and `seo.duplicate_titles` when only one page was crawled.
+
+### Page schema in detail (`bizzcheckup/engine/schema.py`)
+
+Schema (structured data, JSON-LD) tells Google and AI assistants *what* a page is: a
+business, an article, a product, an FAQ. The check works in three steps for **each page**:
+
+1. **What kind of page is this?** `classify()` looks at the address (`/blog/...`,
+   `/products/...`, `/contact`), `og:type`, product price tags and question headings.
+2. **What should it have?** Each kind has a list of expected types:
+
+   | Kind | Expected types |
+   |------|----------------|
+   | Homepage | `Organization` (or a more specific one, e.g. `Bakery`) + `WebSite` |
+   | About / Contact | `AboutPage` / `ContactPage` |
+   | Article (blog post) | `Article` (or `BlogPosting`, `NewsArticle`) + `BreadcrumbList` |
+   | Product | `Product` + `BreadcrumbList` |
+   | Service | `Service` + `BreadcrumbList` |
+   | FAQ | `FAQPage` |
+   | Listing (`/blog`, `/products`) | `CollectionPage` + `BreadcrumbList` |
+   | Any other page | `WebPage` + `BreadcrumbList` |
+
+   Each type has **required** properties (Google needs them, e.g. a product's `offers`
+   with `price` and `priceCurrency`) and **recommended** ones (nice extras, e.g. a logo).
+3. **The suggestion.** If something is missing, the check builds the **complete** JSON-LD
+   for that page: it keeps everything the site already has, fills in what it can read
+   from the page (name, title, description, image, phone, email, social links, FAQ
+   questions and answers, breadcrumbs from the address) and marks the rest
+   `"REPLACE: ..."`, so the owner knows exactly what to fill in.
+
+The suggestions travel on the finding as `snippets` (a `Snippet` has a `title` and the
+`code`), one per page, and the report shows each one with a **Copy** button.
 
 ## Best practices (`bizzcheckup/engine/checks/best_practices.py`)
 
