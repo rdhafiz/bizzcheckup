@@ -80,6 +80,7 @@ class Fetcher:
         headers: dict[str, str] | None = None,
         timeout: float | None = None,
         polite: bool = True,
+        keep_body: bool = False,
     ) -> Page:
         """Fetch `url`, following redirects safely. Raises BlockedURLError or FetchError.
 
@@ -87,6 +88,7 @@ class Fetcher:
         timeout overrides the per-request timeout (e.g. for slow APIs).
         polite=False skips the "max 2 requests at once" limit; only for requests that
         don't go to the audited site (e.g. Google's PageSpeed API).
+        keep_body=True also keeps the raw bytes in `Page.body` (for images).
         """
         if self._client is None:
             raise RuntimeError("Use Fetcher inside 'async with'.")
@@ -124,6 +126,7 @@ class Fetcher:
                 truncated=truncated,
                 elapsed_ms=round((time.perf_counter() - started) * 1000),
                 redirect_chain=chain,
+                body=body if keep_body else None,
             )
 
         raise FetchError(f"Too many redirects (more than {self.config.max_redirects}).")

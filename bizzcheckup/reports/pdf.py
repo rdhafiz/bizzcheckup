@@ -126,9 +126,16 @@ def render_pdf(checkup: Checkup) -> bytes:
     )
     screenshot_path = reverse("checkups:screenshot", args=[checkup.pk])
 
+    pictures = {
+        reverse("checkups:image", args=[checkup.pk, picture.kind]): picture
+        for picture in checkup.images.all()
+    }
+
     def resolve(path: str) -> tuple[bytes, str] | None:
         if path == screenshot_path and checkup.screenshot:
             return bytes(checkup.screenshot), "image/jpeg"
+        if path in pictures:
+            return bytes(pictures[path].data), pictures[path].content_type
         return static_file(path)
 
     allowed = {str(view.branding.photo_url)} if view.branding.photo_url else set()

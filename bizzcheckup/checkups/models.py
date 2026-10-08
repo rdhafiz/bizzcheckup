@@ -94,6 +94,31 @@ class Checkup(models.Model):
         return value
 
 
+class CheckupImage(models.Model):
+    """A picture that belongs to a report, other than the homepage screenshot."""
+
+    class Kind(models.TextChoices):
+        LINK_PREVIEW = "link_preview", "Link preview picture"
+        MOBILE = "mobile", "Phone screenshot"
+        TABLET = "tablet", "Tablet screenshot"
+
+    # Only real pictures are stored (checked from their first bytes, never SVG).
+    ALLOWED_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
+
+    checkup = models.ForeignKey(Checkup, on_delete=models.CASCADE, related_name="images")
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    content_type = models.CharField(max_length=20)
+    data = models.BinaryField(editable=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["checkup", "kind"], name="one_image_per_kind")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.checkup_id} {self.kind}"
+
+
 class Finding(models.Model):
     """One result of one check, copied from the report for searching and filtering."""
 

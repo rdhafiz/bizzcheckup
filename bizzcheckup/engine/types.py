@@ -107,6 +107,8 @@ class Page(BaseModel):
     truncated: bool = False  # True when the body was cut at the size limit
     elapsed_ms: int = 0
     redirect_chain: list[str] = Field(default_factory=list)
+    # The raw bytes, only when asked for (images); never saved in the report JSON.
+    body: bytes | None = Field(default=None, exclude=True, repr=False)
 
     @property
     def content_type(self) -> str:
@@ -186,6 +188,12 @@ class ProbeResults(BaseModel):
     # The same homepage requested as an AI agent and as a normal browser.
     as_ai_agent: AgentProbe | None = None
     as_browser: AgentProbe | None = None
+    # The homepage's link preview picture (og:image): does it load, and is it an image?
+    og_image_url: str = ""
+    og_image_status: int = 0  # 0 = not checked or unreachable
+    og_image_type: str = ""  # e.g. "image/jpeg", from the file's first bytes ("" = not an image)
+    og_image_too_big: bool = False
+    og_image: bytes | None = Field(default=None, exclude=True, repr=False)
 
 
 class AxeRule(BaseModel):
@@ -280,6 +288,24 @@ class CategoryScore(BaseModel):
     note: str = ""
 
 
+class LinkPreview(BaseModel):
+    """How the homepage looks when its link is shared (Facebook, WhatsApp, LinkedIn, X)."""
+
+    url: str
+    domain: str
+    title: str = ""
+    description: str = ""
+    image_url: str = ""
+    image_ok: bool = False  # the picture loaded and really is an image
+
+
+class ReportImage(BaseModel):
+    """A picture that belongs to the report, e.g. a phone screenshot."""
+
+    content_type: str  # image/jpeg, image/png, image/gif or image/webp
+    data: bytes = Field(repr=False)
+
+
 class AuditReport(BaseModel):
     """Everything the engine produces for one check-up. Saved as JSON."""
 
@@ -294,8 +320,11 @@ class AuditReport(BaseModel):
     results: list[CheckResult]
     notes: list[str] = Field(default_factory=list)
     browser_note: str = ""  # why the browser couldn't see the site (e.g. a firewall)
+    link_preview: LinkPreview | None = None
     # Homepage screenshot (JPEG). Saved as a file by the web app, not in the JSON.
     screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
+    # More pictures by name ("link_preview", "mobile", "tablet"), saved by the web app.
+    images: dict[str, ReportImage] = Field(default_factory=dict, exclude=True, repr=False)
 
     @property
     def findings(self) -> list[Finding]:

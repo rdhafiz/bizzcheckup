@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from bizzcheckup.checkups import services, tasks
 from bizzcheckup.checkups.models import Checkup
-from bizzcheckup.engine.types import AuditReport
+from bizzcheckup.engine.types import AuditReport, ReportImage
 
 pytestmark = pytest.mark.django_db
 
@@ -102,6 +102,31 @@ def test_saved_findings_keep_their_suggested_fixes(report: AuditReport) -> None:
             "language": "html",
         }
     ]
+
+
+JPEG = bytes([0xFF, 0xD8, 0xFF, 0xE0]) + b"jpeg"
+
+
+def test_report_pictures_are_saved_and_served(client: Client, report: AuditReport) -> None:
+    report = report.model_copy(
+        update={
+            "images": {
+                "link_preview": ReportImage(content_type="image/jpeg", data=JPEG),
+                "mobile": ReportImage(content_type="image/svg+xml", data=b"<svg/>"),  # refused
+                "anything": ReportImage(content_type="image/png", data=b"x"),  # unknown kind
+            }
+        }
+    )
+    checkup = make_checkup()
+    services.save_report(checkup, report)
+    assert list(checkup.images.values_list("kind", flat=True)) == ["link_preview"]
+
+    response = client.get(reverse("checkups:image", args=[checkup.pk, "link_preview"]))
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/jpeg"
+    assert response.content == JPEG
+    for kind in ["mobile", "anything"]:
+        assert client.get(reverse("checkups:image", args=[checkup.pk, kind])).status_code == 404
 
 
 def test_failed_checkup_shows_friendly_error(client: Client) -> None:

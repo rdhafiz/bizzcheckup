@@ -283,3 +283,46 @@ def test_duplicate_titles() -> None:
 
 def test_duplicate_titles_not_applicable_for_single_page() -> None:
     assert seo.DuplicateTitles().run(make_context()) == []
+
+
+def test_link_preview_reviews_every_page_with_a_ready_block() -> None:
+    other = make_page("<html><head><title>About | Shop</title></head></html>", url=f"{HOME}about")
+    [finding] = seo.SocialTags().run(make_context(make_page(fixture_html("healthy")), other))
+    assert finding.severity is Severity.WARN
+    assert finding.impact.value == "low"  # the homepage is fine
+    assert finding.affected_urls == [f"{HOME}about"]
+    [snippet] = finding.snippets
+    assert '<meta property="og:title" content="About | Shop">' in snippet.code
+
+
+def test_relative_preview_image_is_a_problem() -> None:
+    html = fixture_html("healthy").replace(
+        'content="https://shop.test/og.jpg"', 'content="/og.jpg"'
+    )
+    [finding] = seo.SocialTags().run(make_context(make_page(html)))
+    assert "og:image is not a full address" in finding.message
+
+
+@pytest.mark.parametrize(
+    ("status", "kind", "too_big", "expected"),
+    [
+        (200, "image/jpeg", False, ""),
+        (404, "", False, "is missing (error 404)"),
+        (0, "", False, "can't be reached"),
+        (200, "", False, "isn't a JPG, PNG, GIF or WebP picture"),
+        (200, "image/png", True, "is larger than 5 MB"),
+    ],
+)
+def test_broken_preview_picture(status: int, kind: str, too_big: bool, expected: str) -> None:
+    ctx = make_context(make_page(fixture_html("healthy")), capabilities={PROBES})
+    ctx.probes.og_image_url = f"{HOME}og.jpg"
+    ctx.probes.og_image_status = status
+    ctx.probes.og_image_type = kind
+    ctx.probes.og_image_too_big = too_big
+    findings = seo.SocialTags().run(ctx)
+    if expected:
+        assert findings[0].message == (
+            f"Your homepage's preview picture {expected}, so shared links show no image."
+        )
+    else:
+        assert [f.severity for f in findings] == [Severity.PASS]

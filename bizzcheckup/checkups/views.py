@@ -13,7 +13,7 @@ from bizzcheckup.engine.netguard import BlockedURLError
 
 from . import protection, services
 from .forms import CheckupForm
-from .models import Checkup, Lead
+from .models import Checkup, CheckupImage, Lead
 from .progress import steps_for
 
 BOT_ERROR = "We couldn't start your check-up. Please reload the page and try again."
@@ -149,6 +149,19 @@ def screenshot(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
         raise Http404
     response = HttpResponse(bytes(checkup.screenshot), content_type="image/jpeg")
     response["Cache-Control"] = "public, max-age=86400, immutable"  # it never changes
+    return response
+
+
+@require_GET
+def image(request: HttpRequest, checkup_id: UUID, kind: str) -> HttpResponse:
+    """A report picture: the link preview picture, or the phone or tablet screenshot."""
+    if kind not in CheckupImage.Kind.values:
+        raise Http404
+    picture = get_object_or_404(CheckupImage, checkup_id=checkup_id, kind=kind)
+    if picture.content_type not in CheckupImage.ALLOWED_TYPES:
+        raise Http404
+    response = HttpResponse(bytes(picture.data), content_type=picture.content_type)
+    response["Cache-Control"] = "public, max-age=86400, immutable"
     return response
 
 

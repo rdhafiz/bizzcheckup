@@ -16,7 +16,7 @@ from bizzcheckup.engine.netguard import NetGuard
 from bizzcheckup.engine.types import AuditReport, Category
 from bizzcheckup.engine.urls import domain, normalize_url
 
-from .models import Checkup, Finding, Lead
+from .models import Checkup, CheckupImage, Finding, Lead
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +135,15 @@ def save_report(checkup: Checkup, report: AuditReport) -> None:
         checkup.progress = 94
         checkup.current_step = "Preparing your PDF"
         checkup.save()
+
+        checkup.images.all().delete()
+        CheckupImage.objects.bulk_create(
+            CheckupImage(
+                checkup=checkup, kind=kind, content_type=image.content_type, data=image.data
+            )
+            for kind, image in report.images.items()
+            if kind in CheckupImage.Kind.values and image.content_type in CheckupImage.ALLOWED_TYPES
+        )
 
         checkup.findings.all().delete()
         Finding.objects.bulk_create(

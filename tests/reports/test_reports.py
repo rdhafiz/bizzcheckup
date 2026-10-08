@@ -14,7 +14,14 @@ from pydantic import ValidationError
 
 from bizzcheckup.checkups import services
 from bizzcheckup.checkups.models import Checkup
-from bizzcheckup.engine.types import AuditReport, Category, Level, Severity
+from bizzcheckup.engine.types import (
+    AuditReport,
+    Category,
+    Level,
+    LinkPreview,
+    ReportImage,
+    Severity,
+)
 from bizzcheckup.reports import pdf as pdf_module
 from bizzcheckup.reports.apps import check_branding_file
 from bizzcheckup.reports.branding import load_branding, read_branding
@@ -183,6 +190,28 @@ def test_report_shows_suggested_fixes_with_a_copy_button(client: Client, finishe
     assert "Homepage: a title" in html
     assert "&lt;title&gt;Shop | Fresh cakes&lt;/title&gt;" in html  # shown as code, escaped
     assert "data-copy-code" in html
+
+
+def test_report_shows_how_the_homepage_looks_when_shared(client: Client, db: None) -> None:
+    report = make_report().model_copy(
+        update={
+            "link_preview": LinkPreview(
+                url="https://shop.test/",
+                domain="shop.test",
+                title="Fresh cakes",
+                description="Baked daily.",
+            ),
+            "images": {"link_preview": ReportImage(content_type="image/png", data=b"png")},
+        }
+    )
+    checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
+    services.save_report(checkup, report)
+    services.mark_done(checkup)
+    html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
+    assert "How your homepage looks when someone shares it" in html
+    assert reverse("checkups:image", args=[checkup.pk, "link_preview"]) in html
+    assert "Fresh cakes" in html
+    assert "SHOP.TEST" in html
 
 
 def test_report_contact_links_come_from_branding(client: Client, finished: Checkup) -> None:

@@ -14,6 +14,7 @@ from itertools import groupby
 
 import httpx
 
+from . import preview
 from .checks.base import Check
 from .collectors import DEFAULT_COLLECTORS, Collector
 from .config import EngineConfig
@@ -23,7 +24,7 @@ from .fetcher import Fetcher, FetchError
 from .netguard import BlockedURLError, NetGuard
 from .registry import Registry, load_builtin_checks
 from .scoring import band_for, health_score, score_categories
-from .types import AuditReport, CheckResult, CheckStatus
+from .types import AuditReport, CheckResult, CheckStatus, LinkPreview, ReportImage
 
 logger = logging.getLogger(__name__)
 
@@ -183,8 +184,25 @@ async def _run(
         results=results,
         notes=notes,
         browser_note=ctx.unavailable.get(RENDER, ""),
+        link_preview=link_preview(ctx),
         screenshot_jpeg=ctx.render.screenshot_jpeg if ctx.render else None,
+        images=report_images(ctx),
     )
+
+
+def link_preview(ctx: AuditContext) -> LinkPreview:
+    """How the homepage looks when shared, for the preview card in the report."""
+    summary = preview.summary(ctx.homepage.final_url, ctx.tree(ctx.homepage))
+    return summary.model_copy(update={"image_ok": ctx.probes.og_image is not None})
+
+
+def report_images(ctx: AuditContext) -> dict[str, ReportImage]:
+    images: dict[str, ReportImage] = {}
+    if ctx.probes.og_image is not None:
+        images["link_preview"] = ReportImage(
+            content_type=ctx.probes.og_image_type, data=ctx.probes.og_image
+        )
+    return images
 
 
 def run_check(check_class: type[Check], ctx: AuditContext) -> CheckResult:

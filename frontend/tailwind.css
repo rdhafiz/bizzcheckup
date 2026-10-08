@@ -1243,6 +1243,33 @@
   .issue__part--fix p {
     @apply text-ink;
   }
+  /* Link preview: the card a social network shows for a shared link. */
+  .share {
+    @apply max-w-md;
+  }
+  .share-card {
+    @apply overflow-hidden rounded-xl border border-line bg-card;
+  }
+  .share-card__image {
+    @apply block aspect-[1200/630] w-full object-cover;
+  }
+  .share-card__image--empty {
+    @apply flex flex-col items-center justify-center gap-2 bg-paper p-4
+      text-center text-sm text-muted;
+  }
+  .share-card__text {
+    @apply border-t border-line px-4 py-3;
+  }
+  .share-card__domain {
+    @apply text-xs tracking-wide text-muted;
+  }
+  .share-card__title {
+    @apply mt-1 line-clamp-2 font-bold break-words;
+  }
+  .share-card__description {
+    @apply mt-1 line-clamp-2 text-sm text-muted break-words;
+  }
+
   /* A ready-to-use fix (e.g. JSON-LD) under a finding: open it, copy it. */
   .snippet {
     @apply rounded-xl border border-line bg-card;

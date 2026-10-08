@@ -5,11 +5,13 @@
 - /llms.txt
 - the homepage requested as an AI agent and as a normal browser, to spot
   firewalls or CDNs that turn AI assistants away
+- the homepage's link preview picture (og:image): does it load?
 """
 
 import asyncio
 from urllib.parse import urlsplit, urlunsplit
 
+from .. import preview
 from ..config import AI_AGENT_USER_AGENT, BROWSER_USER_AGENT, ROBOTS_AGENT_NAME, EngineConfig
 from ..context import PROBES, AuditContext
 from ..crawler import extract_links
@@ -24,6 +26,7 @@ async def collect_probes(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
     await probe_http_version(ctx, fetcher)
     await probe_internal_links(ctx, fetcher, config.max_link_checks)
     await probe_llms_txt(ctx, fetcher)
+    await probe_og_image(ctx, fetcher)
     ctx.probes.as_ai_agent, ctx.probes.as_browser = await asyncio.gather(
         probe_as(fetcher, ctx.homepage.final_url, AI_AGENT_USER_AGENT),
         probe_as(fetcher, ctx.homepage.final_url, BROWSER_USER_AGENT),
@@ -32,6 +35,43 @@ async def collect_probes(ctx: AuditContext, fetcher: Fetcher, config: EngineConf
 
 
 LLMS_TXT_KEEP = 4000  # characters kept for the report
+OG_IMAGE_MAX_BYTES = 5 * 1024 * 1024  # bigger previews are skipped by most platforms
+
+
+def sniff_image(data: bytes) -> str:
+    """The image type from the file's first bytes ("" if it isn't a picture we can show).
+
+    The server's Content-Type header can't be trusted for this; SVG is left out on
+    purpose because it can carry scripts.
+    """
+    if data.startswith(bytes([0xFF, 0xD8, 0xFF])):
+        return "image/jpeg"
+    if data.startswith(bytes([0x89]) + b"PNG" + bytes([0x0D, 0x0A, 0x1A, 0x0A])):
+        return "image/png"
+    if data.startswith((b"GIF87a", b"GIF89a")):
+        return "image/gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return ""
+
+
+async def probe_og_image(ctx: AuditContext, fetcher: Fetcher) -> None:
+    home = ctx.homepage
+    url = preview.image_url(home.final_url, preview.read_tags(ctx.tree(home)))
+    if not url:
+        return
+    ctx.probes.og_image_url = url
+    try:
+        page = await fetcher.get(url, keep_body=True)
+    except (FetchError, BlockedURLError):
+        return
+    ctx.probes.og_image_status = page.status_code
+    if not page.ok or page.body is None:
+        return
+    ctx.probes.og_image_type = sniff_image(page.body)
+    ctx.probes.og_image_too_big = page.truncated or len(page.body) > OG_IMAGE_MAX_BYTES
+    if ctx.probes.og_image_type and not ctx.probes.og_image_too_big:
+        ctx.probes.og_image = page.body
 
 
 async def probe_llms_txt(ctx: AuditContext, fetcher: Fetcher) -> None:

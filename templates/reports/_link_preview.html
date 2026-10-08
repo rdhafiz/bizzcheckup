@@ -1,0 +1,25 @@
+{% comment %}
+  How the homepage looks when its link is shared. Needs `card` (engine LinkPreview),
+  `view` and `checkup`. The picture is served from our own site: the engine downloaded
+  and checked it, so visitors' browsers never contact the audited site.
+{% endcomment %}
+<figure class="share mt-6">
+  <figcaption class="text-sm font-semibold">How your homepage looks when someone shares it</figcaption>
+  <div class="share-card mt-3">
+    {% if "link_preview" in view.image_kinds %}
+      <img class="share-card__image" src="{% url 'checkups:image' checkup.pk 'link_preview' %}"
+           alt="The preview picture of {{ card.domain }}" width="1200" height="630" loading="lazy">
+    {% else %}
+      <div class="share-card__image share-card__image--empty">
+        {% include "partials/icon.html" with name="image" css="size-8" %}
+        <span>{% if card.image_url %}The preview picture couldn't be loaded{% else %}No preview picture{% endif %}</span>
+      </div>
+    {% endif %}
+    <div class="share-card__text">
+      <p class="share-card__domain">{{ card.domain|upper }}</p>
+      <p class="share-card__title">{{ card.title|default:"(no title)" }}</p>
+      {% if card.description %}<p class="share-card__description">{{ card.description }}</p>{% endif %}
+    </div>
+  </div>
+  <p class="mt-2 text-xs text-muted">Facebook, WhatsApp and LinkedIn show something close to this.</p>
+</figure>

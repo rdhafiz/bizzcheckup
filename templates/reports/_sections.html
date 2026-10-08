@@ -169,6 +169,10 @@
       <p class="card mt-6 text-muted">{{ sign.score.note|default:"This vital sign wasn't checked." }}</p>
     {% endif %}
 
+    {% if sign.category.value == "seo" and report.link_preview %}
+      {% include "reports/_link_preview.html" with card=report.link_preview %}
+    {% endif %}
+
     {% if sign.problems %}
       <h3 class="mt-8 text-lg font-bold">What needs attention <span class="font-normal text-muted">({{ sign.problems|length }})</span></h3>
       {% if not pdf %}<p class="mt-1 text-sm text-muted">Select an issue to see why it matters and how to fix it.</p>{% endif %}

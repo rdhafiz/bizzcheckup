@@ -2,15 +2,16 @@
 
 from collections import defaultdict
 
-from .. import schema
+from .. import preview, schema
 from ..context import PROBES, AuditContext
 from ..types import Category, Finding, Level, Severity, Snippet
 from ..urls import domain, origin
-from ._helpers import links_with_rel, meta_content, meta_property, on_pages, share_score, title_text
+from ._helpers import links_with_rel, meta_content, on_pages, share_score, title_text
 from .base import Check
 
 TITLE_MIN, TITLE_MAX = 10, 60
 DESCRIPTION_MIN, DESCRIPTION_MAX = 50, 160
+MAX_SNIPPETS = 20  # pages shown with a ready-made fix
 
 
 class Title(Check):
@@ -420,49 +421,110 @@ class Indexable(Check):
 
 
 class SocialTags(Check):
-    id = "seo.social_tags"
+    """Link previews on every page: the picture, title and text shown when it's shared."""
+
+    id = "seo.social_tags"  # kept from the first version so old reports still match
     category = Category.SEO
-    title = "Social media previews"
-    weight = 3
+    title = "Link previews"
+    weight = 4
 
     WHY = (
         "When someone shares your website on Facebook, WhatsApp, LinkedIn or X, these tags "
-        "decide the picture, title and text in the preview. Attractive previews get more clicks."
+        "decide the picture, title and text in the preview. A big picture and a clear title "
+        "get far more clicks than a plain grey link."
     )
-    OPEN_GRAPH = ("og:title", "og:description", "og:image")
+    FIX = (
+        "Below is the complete set of preview tags for each page, with what the page already "
+        'has kept. Paste it inside <head> (or fill in your website builder\'s "social sharing" '
+        f'settings), replace every "REPLACE: ..." value, and use a {preview.IMAGE_SIZE_HINT} '
+        "picture. Then check the result with a link preview tester such as "
+        "https://www.opengraph.xyz"
+    )
 
     def run(self, ctx: AuditContext) -> list[Finding]:
-        tree = ctx.tree(ctx.homepage)
-        missing = [tag for tag in self.OPEN_GRAPH if not meta_property(tree, tag)]
-        if not meta_content(tree, "twitter:card"):
-            missing.append("twitter:card")
+        home = ctx.homepage.final_url
+        site = schema.site_facts(home, ctx.tree(ctx.homepage))
+        lacking: dict[str, list[str]] = {}
+        snippets: list[Snippet] = []
+        for page in ctx.html_pages:
+            tree = ctx.tree(page)
+            tags = preview.read_tags(tree)
+            problems = tags.missing()
+            if tags.image_is_relative:
+                problems.append("og:image is not a full address")
+            if not problems:
+                continue
+            lacking[page.final_url] = problems
+            is_article = schema.classify(page.final_url, tree, homepage_url=home) == "article"
+            snippets.append(
+                Snippet(
+                    title=f"{page.final_url} {schema.EM_DASH} {', '.join(problems)}",
+                    code=preview.suggestion(
+                        page.final_url, tags, site_name=site.name, is_article=is_article
+                    ),
+                )
+            )
 
-        if len(missing) == len(self.OPEN_GRAPH) + 1:
-            return [
+        total = len(ctx.html_pages)
+        self.partial = share_score(total, 0, len(lacking))
+        findings: list[Finding] = []
+        home_missing = lacking.get(home, [])
+        if len(home_missing) == len(preview.REQUIRED):
+            message = "Your homepage has no link preview tags, so shared links look plain."
+        elif total == 1 and home_missing:
+            message = (
+                f"Your homepage's link preview is incomplete (missing: {', '.join(home_missing)})."
+            )
+        else:
+            message = on_pages(
+                len(lacking),
+                total,
+                "has an incomplete link preview.",
+                "have incomplete link previews.",
+            )
+        if lacking:
+            findings.append(
                 self.finding(
                     Severity.WARN,
-                    "Your homepage has no social media preview tags, so shared links look plain.",
+                    message,
                     self.WHY,
-                    'Add Open Graph tags (<meta property="og:title">, "og:description", '
-                    '"og:image") and <meta name="twitter:card" content="summary_large_image">.',
+                    self.FIX,
+                    impact=Level.MEDIUM if home in lacking else Level.LOW,
+                    urls=list(lacking),
+                    snippets=snippets[:MAX_SNIPPETS],
+                )
+            )
+        broken = self.broken_image(ctx)
+        if broken:
+            findings.append(
+                self.finding(
+                    Severity.WARN,
+                    f"Your homepage's preview picture {broken}, so shared links show no image.",
+                    self.WHY,
+                    f"Upload a JPG or PNG picture of {preview.IMAGE_SIZE_HINT} (under 5 MB), "
+                    "check that its address opens in a browser, and put that full address in "
+                    "the og:image tag.",
                     impact=Level.MEDIUM,
-                    urls=[ctx.homepage.final_url],
+                    urls=[ctx.probes.og_image_url],
                 )
-            ]
-        if missing:
-            return [
-                self.finding(
-                    Severity.WARN,
-                    "Your homepage's social media preview is incomplete "
-                    f"(missing: {', '.join(missing)}).",
-                    self.WHY,
-                    "Add the missing tags so every platform shows a picture, title and "
-                    "description.",
-                    impact=Level.LOW,
-                    urls=[ctx.homepage.final_url],
-                )
-            ]
-        return [self.passed("Your homepage has complete social media preview tags.", self.WHY)]
+            )
+        return findings or [self.passed("Every page has a complete link preview.", self.WHY)]
+
+    @staticmethod
+    def broken_image(ctx: AuditContext) -> str:
+        """Why the homepage's preview picture can't be shown ("" if it's fine or unknown)."""
+        probes = ctx.probes
+        if not ctx.has(PROBES) or not probes.og_image_url:
+            return ""
+        if probes.og_image_status == 0:
+            return "can't be reached"
+        if probes.og_image_status >= 400:
+            return f"is missing (error {probes.og_image_status})"
+        if not probes.og_image_type:
+            return "isn't a JPG, PNG, GIF or WebP picture"
+        if probes.og_image_too_big:
+            return "is larger than 5 MB"
+        return ""
 
 
 class PageSchema(Check):

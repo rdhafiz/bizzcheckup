@@ -116,3 +116,51 @@ async def test_html_llms_txt_soft_404_is_ignored(fetcher: Fetcher, router: respx
 
     assert ctx.probes.llms_txt_status == 200
     assert ctx.probes.llms_txt_text == ""
+
+
+JPEG = bytes([0xFF, 0xD8, 0xFF, 0xE0]) + b"rest-of-a-jpeg"
+
+
+async def test_preview_picture_is_downloaded_and_checked(
+    fetcher: Fetcher, router: respx.Router
+) -> None:
+    home = make_page('<head><meta property="og:image" content="/og.jpg"></head>')
+    router.get("https://shop.test/og.jpg").respond(200, content=JPEG)
+    router.head("http://shop.test/").respond(301, headers={"Location": "https://shop.test/"})
+    router.head("https://shop.test/").respond(200)
+    mock_agent_and_llms_routes(router)
+    ctx = make_context(home)
+
+    await collect_probes(ctx, fetcher, EngineConfig())
+
+    assert ctx.probes.og_image_url == "https://shop.test/og.jpg"  # resolved to a full address
+    assert ctx.probes.og_image_status == 200
+    assert ctx.probes.og_image_type == "image/jpeg"
+    assert ctx.probes.og_image == JPEG
+
+
+async def test_preview_that_isnt_a_picture_is_not_kept(
+    fetcher: Fetcher, router: respx.Router
+) -> None:
+    home = make_page('<head><meta property="og:image" content="https://shop.test/og.svg"></head>')
+    router.get("https://shop.test/og.svg").respond(200, content=b"<svg onload='x()'></svg>")
+    router.head("http://shop.test/").respond(301, headers={"Location": "https://shop.test/"})
+    router.head("https://shop.test/").respond(200)
+    mock_agent_and_llms_routes(router)
+    ctx = make_context(home)
+
+    await collect_probes(ctx, fetcher, EngineConfig())
+
+    assert ctx.probes.og_image_status == 200
+    assert ctx.probes.og_image_type == ""
+    assert ctx.probes.og_image is None
+
+
+def test_sniff_image() -> None:
+    from bizzcheckup.engine.collectors.probes import sniff_image
+
+    assert sniff_image(JPEG) == "image/jpeg"
+    assert sniff_image(bytes([0x89]) + b"PNG" + bytes([0x0D, 0x0A, 0x1A, 0x0A])) == "image/png"
+    assert sniff_image(b"GIF89a...") == "image/gif"
+    assert sniff_image(b"RIFF\x00\x00\x00\x00WEBPVP8") == "image/webp"
+    assert sniff_image(b"<html>") == ""

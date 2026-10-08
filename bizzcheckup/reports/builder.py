@@ -94,6 +94,7 @@ class ReportView:
     recommendations: list[Recommendation]
     extra_services: list[Service] = field(default_factory=list)
     qr_svg: str = ""
+    image_kinds: set[str] = field(default_factory=set)  # pictures saved, e.g. {"mobile"}
 
     @property
     def band(self) -> Band | None:
@@ -151,6 +152,7 @@ def build_report(checkup: Checkup) -> ReportView:
         recommendations=recommendations,
         extra_services=extra,
         qr_svg=qr_code_svg(str(branding.qr_target)) if branding.qr_target else "",
+        image_kinds=set(checkup.images.values_list("kind", flat=True)),
     )
 
 
