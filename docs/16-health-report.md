@@ -47,7 +47,9 @@ The overview shows the homepage on a **computer, a tablet and a phone** as tabs
 and End). Without JavaScript all three are shown one under the other, and the PDF
 shows the computer view with the tablet and phone side by side underneath. The tablet
 and phone pictures sit in a box the same shape as the desktop one, so switching tabs
-doesn't move the page. The tabs only appear when those pictures exist.
+doesn't move the page. The tabs only appear when those pictures exist. Hidden views
+use the browser's own `hidden` attribute, so the tabs work even if an old stylesheet is
+cached; when printing, `beforeprint` shows all three and `afterprint` restores the tab.
 
 ### Link preview card (`templates/reports/_link_preview.html`)
 

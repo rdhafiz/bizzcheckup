@@ -10,21 +10,37 @@ document.addEventListener("DOMContentLoaded", function () {
 // Desktop / Tablet / Phone screenshots as tabs. Without JavaScript all three stay
 // visible, so nothing is lost; with it, one shows at a time.
 // Keyboard: Left/Right move between tabs, Home/End jump to the first/last.
+// Panels are hidden with the `hidden` attribute, which every browser understands on its
+// own (no stylesheet needed). When printing, all views are shown, then hidden again.
 function setUpDeviceTabs() {
   var list = document.querySelector("[data-device-tabs]");
   if (!list) return;
   var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+  var current = tabs[0];
+
+  function panelOf(tab) {
+    return document.getElementById(tab.getAttribute("aria-controls"));
+  }
 
   function select(tab, focus) {
+    current = tab;
     tabs.forEach(function (other) {
       var selected = other === tab;
       other.setAttribute("aria-selected", selected ? "true" : "false");
       other.tabIndex = selected ? 0 : -1;
-      var panel = document.getElementById(other.getAttribute("aria-controls"));
-      if (panel) panel.classList.toggle("is-hidden", !selected);
+      var panel = panelOf(other);
+      if (panel) panel.hidden = !selected;
     });
     if (focus) tab.focus();
   }
+
+  window.addEventListener("beforeprint", function () {
+    tabs.forEach(function (tab) {
+      var panel = panelOf(tab);
+      if (panel) panel.hidden = false;
+    });
+  });
+  window.addEventListener("afterprint", function () { select(current, false); });
 
   tabs.forEach(function (tab, index) {
     tab.addEventListener("click", function () { select(tab, false); });
