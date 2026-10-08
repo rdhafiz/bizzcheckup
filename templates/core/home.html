@@ -91,7 +91,7 @@
             <input type="checkbox" name="consent" id="id_consent" required
                    {% if form.consent.value %}checked{% endif %}
                    {% if form.consent.errors %}aria-invalid="true" aria-describedby="consent-error"{% endif %}
-                   class="mt-0.5 size-5 shrink-0 accent-[var(--primary)]">
+                   class="mt-0.5 size-5 shrink-0 accent-[var(--brand)]">
             <span>
               I agree to the <a href="{% url 'core:privacy' %}">privacy note</a>. If I leave my email,
               I'm happy to be contacted about my report.

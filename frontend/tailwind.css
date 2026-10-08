@@ -50,10 +50,13 @@
   --ink: #0e1b1e;            /* main text */
   --muted: #4a5a5e;          /* secondary text (6.8:1 on paper) */
   --line: #e2ded4;           /* borders, dividers */
-  --primary: #0f6e66;        /* clinical teal: brand, links, buttons */
-  --primary-hover: #0b5a53;
+  --brand: #31ac64;          /* the theme colour: buttons, logo, fills, glows */
+  --brand-hover: #2a9757;
+  --on-brand: #06200f;       /* text on brand (5.2:1); white would only reach 2.9:1 */
+  --primary: #1d8047;        /* the same green, deeper: links and green text (4.6:1 on paper) */
+  --primary-hover: #17683a;
   --on-primary: #ffffff;
-  --primary-soft: #e3f1ee;
+  --primary-soft: #e3f4ea;
   --urgent: #c62828;         /* 0-49   Needs urgent care */
   --urgent-soft: #fbe9e7;
   --attention: #b45309;      /* 50-89  Needs attention */
@@ -67,7 +70,7 @@
   --tone-violet: #7c3aed; --tone-violet-soft: #efe8fd;
   --tone-amber: #d97706;  --tone-amber-soft: #fdf1dc;
   --on-tone: #ffffff;
-  --mint: #34d8b4;
+  --mint: #7be0a4;          /* light green for text on the dark hero photo */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -78,10 +81,13 @@
     --ink: #e7efec;
     --muted: #9fb1b0;
     --line: #2b4045;
-    --primary: #3fbfb0;
-    --primary-hover: #66d1c4;
-    --on-primary: #062421;
-    --primary-soft: #12312f;
+    --brand: #31ac64;
+    --brand-hover: #3dbd72;
+    --on-brand: #06200f;
+    --primary: #5cc98a;
+    --primary-hover: #7dd7a3;
+    --on-primary: #06200f;
+    --primary-soft: #113020;
     --urgent: #f26b6b;
     --urgent-soft: #3a1a1a;
     --attention: #f5a524;
@@ -106,10 +112,13 @@
   --ink: #e7efec;
   --muted: #9fb1b0;
   --line: #2b4045;
-  --primary: #3fbfb0;
-  --primary-hover: #66d1c4;
-  --on-primary: #062421;
-  --primary-soft: #12312f;
+  --brand: #31ac64;
+  --brand-hover: #3dbd72;
+  --on-brand: #06200f;
+  --primary: #5cc98a;
+  --primary-hover: #7dd7a3;
+  --on-primary: #06200f;
+  --primary-soft: #113020;
   --urgent: #f26b6b;
   --urgent-soft: #3a1a1a;
   --attention: #f5a524;
@@ -140,6 +149,9 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-on-brand: var(--on-brand);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-on-primary: var(--on-primary);
@@ -200,7 +212,7 @@
     disabled:cursor-not-allowed disabled:opacity-60;
 }
 @utility btn-primary {
-  @apply btn bg-primary text-on-primary hover:bg-primary-hover;
+  @apply btn bg-brand text-on-brand hover:bg-brand-hover;
 }
 @utility btn-secondary {
   @apply btn border border-line bg-card text-ink hover:border-primary;
@@ -231,15 +243,15 @@
     border-radius: 9999px;
     overflow: hidden;
     background: var(--line);
-    color: var(--primary);
+    color: var(--brand);
   }
   .progress-bar::-webkit-progress-bar { background: var(--line); border-radius: 9999px; }
   .progress-bar::-webkit-progress-value {
-    background: var(--primary);
+    background: var(--brand);
     border-radius: 9999px;
     transition: width 700ms ease-out;
   }
-  .progress-bar::-moz-progress-bar { background: var(--primary); border-radius: 9999px; }
+  .progress-bar::-moz-progress-bar { background: var(--brand); border-radius: 9999px; }
 
   /* Moved off-screen (not display:none, which some bots detect and skip). */
   .honeypot {
@@ -278,10 +290,10 @@
     @apply block size-2 rounded-full bg-line;
   }
   .icon-active .ping {
-    @apply absolute size-3.5 animate-ping rounded-full bg-primary opacity-40;
+    @apply absolute size-3.5 animate-ping rounded-full bg-brand opacity-40;
   }
   .icon-active .dot {
-    @apply size-2.5 rounded-full bg-primary;
+    @apply size-2.5 rounded-full bg-brand;
   }
 
   .progress-success {
@@ -367,8 +379,8 @@
 /* --- Homepage (templates/core/home.html) ---------------------------------------- */
 
 @utility btn-pill {
-  @apply btn min-h-13 rounded-full bg-primary px-8 text-base text-on-primary
-    shadow-[0_12px_30px_-12px_rgb(15_110_102/0.7)] hover:bg-primary-hover;
+  @apply btn min-h-13 rounded-full bg-brand px-8 text-base text-on-brand
+    shadow-[0_12px_30px_-12px_rgb(49_172_100/0.7)] hover:bg-brand-hover;
 }
 
 @layer components {
@@ -378,7 +390,7 @@
   .tone-rose   { --tone: var(--tone-rose);   --tone-soft: var(--tone-rose-soft);   --tone-solid: #e5334f; }
   .tone-violet { --tone: var(--tone-violet); --tone-soft: var(--tone-violet-soft); --tone-solid: #7c3aed; }
   .tone-amber  { --tone: var(--tone-amber);  --tone-soft: var(--tone-amber-soft);  --tone-solid: #d97706; }
-  .tone-teal   { --tone: var(--primary);     --tone-soft: var(--primary-soft);     --tone-solid: #0f8f78; }
+  .tone-teal   { --tone: var(--primary);     --tone-soft: var(--primary-soft);     --tone-solid: #1d8047; }
 
   .tone-tile {
     @apply inline-flex size-11 shrink-0 items-center justify-center rounded-xl;
@@ -393,7 +405,7 @@
     @apply flex items-center gap-4 text-xs font-semibold tracking-[0.18em] text-primary uppercase;
   }
   .eyebrow-dash::before {
-    @apply h-0.5 w-6 rounded-full bg-primary;
+    @apply h-0.5 w-6 rounded-full bg-brand;
     content: "";
   }
 
@@ -430,8 +442,8 @@
     @apply inline-flex items-center gap-3 rounded-full py-1 pr-5 pl-1 text-sm font-bold tracking-[0.12em]
       text-ink uppercase backdrop-blur-md;
     background: rgb(255 255 255 / 0.06);
-    border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent);
-    box-shadow: 0 0 28px -8px var(--primary);
+    border: 1px solid color-mix(in srgb, var(--brand) 60%, transparent);
+    box-shadow: 0 0 28px -8px var(--brand);
   }
   .hero-pill__icon {
     @apply inline-flex size-9 items-center justify-center rounded-full;
@@ -448,7 +460,7 @@
   }
   @supports (background-clip: text) {
     .hero__highlight {
-      background: linear-gradient(90deg, var(--mint), var(--primary));
+      background: linear-gradient(90deg, var(--mint), var(--brand));
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -646,7 +658,7 @@
   /* Gradient text: the gradient is the background, clipped to the letters. */
   @supports (background-clip: text) {
     .benefits__growth {
-      background: linear-gradient(90deg, var(--primary) 30%, color-mix(in srgb, var(--primary) 55%, #5eead4));
+      background: linear-gradient(90deg, var(--primary) 30%, color-mix(in srgb, var(--primary) 45%, var(--brand)));
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -676,13 +688,14 @@
   /* The pill button's arrow in its own translucent circle; a soft glow below. */
   .btn-pill--glow {
     @apply pr-2 pl-8;
-    background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 75%, #0b3d38));
-    box-shadow: 0 18px 36px -14px color-mix(in srgb, var(--primary) 75%, transparent);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 82%, #fff), var(--brand));
+    box-shadow: 0 18px 36px -14px color-mix(in srgb, var(--brand) 80%, transparent);
   }
   .btn-pill__arrow {
-    @apply ml-3 inline-flex size-10 items-center justify-center rounded-full text-white
+    @apply ml-3 inline-flex size-10 items-center justify-center rounded-full
       transition-transform duration-200;
-    background: color-mix(in srgb, var(--mint) 75%, var(--primary));
+    color: var(--mint);
+    background: var(--on-brand);
     box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.3);
   }
   .btn-pill--glow:hover .btn-pill__arrow {
