@@ -84,3 +84,21 @@ def test_reveals_are_vertical_or_zoom_only() -> None:
     assert variants <= {"", "rise", "scale"}, variants
     assert '[data-reveal="left"]' not in CSS
     assert '[data-reveal="right"]' not in CSS
+
+
+def test_smooth_scrolling_respects_reduced_motion() -> None:
+    """#links glide, but only for visitors who haven't asked for reduced motion."""
+    block = CSS[CSS.index("@media (prefers-reduced-motion: no-preference)") :]
+    assert "scroll-behavior: smooth" in block[: block.index("}") + 1]
+    assert re.search(r"html\s*\{\s*scroll-behavior: smooth", CSS)
+    assert CSS.count("scroll-behavior: smooth") == 1  # never outside that guard
+
+
+@pytest.mark.parametrize(
+    "selector", [".hero-full {", ".signs {", ".benefits {", ".benefits__art {", ".site-footer {"]
+)
+def test_clipping_sections_cannot_be_scrolled_by_links(selector: str) -> None:
+    """overflow: hidden boxes can be scrolled by #links (the hero shifted 198px); clip can't."""
+    rule = CSS[CSS.index(selector) :]
+    rule = rule[: rule.index("}")]
+    assert "overflow: clip" in rule, selector

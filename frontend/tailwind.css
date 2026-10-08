@@ -425,6 +425,7 @@
   /* Hero: full screen. Background image, a dark backdrop for contrast, then two columns. */
   .hero-full {
     @apply relative isolate flex min-h-screen items-center overflow-hidden;
+    overflow: clip; /* see "overflow: clip" in the Motion notes below */
     min-height: 100dvh; /* phones: the visible height, without the browser bars */
     background-color: #0c1517; /* shown until the image has loaded */
   }
@@ -525,6 +526,7 @@
   /* Vital signs section: soft coloured shapes behind, dot grids, sparkle strokes. */
   .signs {
     @apply relative isolate overflow-hidden bg-card py-16 sm:py-24;
+    overflow: clip; /* see "overflow: clip" in the Motion notes below */
   }
   .signs::before,
   .signs::after {
@@ -567,6 +569,7 @@
   .sign-card {
     @apply relative isolate flex h-full flex-col overflow-hidden rounded-3xl p-6 text-ink no-underline
       transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:no-underline;
+    overflow: clip; /* see "overflow: clip" in the Motion notes below */
     border: 1px solid color-mix(in srgb, var(--tone) 12%, transparent);
     background: linear-gradient(165deg, var(--card) 35%, var(--tone-soft));
     box-shadow:
@@ -711,6 +714,7 @@
      soft mint background, and the text sits on the faded part. */
   .benefits {
     @apply relative isolate flex flex-col overflow-hidden;
+    overflow: clip; /* see "overflow: clip" in the Motion notes below */
     background: linear-gradient(160deg, var(--card) 35%, color-mix(in srgb, var(--primary-soft) 70%, var(--card)));
   }
   /* Wide screens: one full screen tall, text centred. The photo then crosses the screen
@@ -732,6 +736,7 @@
   }
   .benefits__art {
     @apply order-last aspect-[4/3] w-full overflow-hidden; /* clips the parallax photo */
+    overflow: clip; /* see "overflow: clip" in the Motion notes below */
     /* Phones and tablets: the photo sits below the text and fades in at its top edge. */
     mask-image: linear-gradient(to bottom, transparent, #000 25%);
   }
@@ -810,6 +815,7 @@
   /* Always dark (the .on-dark palette), with a soft green glow in the top corner. */
   .site-footer {
     @apply relative isolate overflow-hidden pt-16 pb-6 text-sm sm:pt-20;
+    overflow: clip; /* see "overflow: clip" in the Motion notes below */
     background:
       radial-gradient(40rem 20rem at 10% 0%, color-mix(in srgb, var(--brand) 18%, transparent), transparent 70%),
       #0a1412;
@@ -1284,6 +1290,12 @@ html.motion-boot [data-reveal]:not(.is-revealed) {
 html.motion-ready [data-reveal].reveal-instant {
   transition: none;
 }
+/* overflow: clip, not just hidden. A box with `overflow: hidden` can still be scrolled by
+   script and by #link navigation: following a link into it scrolled its content *inside*
+   the box (the hero shifted 198px, "What we examine" 92px). `clip` clips the same way
+   but can't be scrolled at all. (The build keeps only `clip`: every current browser has it;
+   only Safari older than 16, from 2022, would show the overflow.) */
+
 /* Belt and braces against sideways overflow from anything offset. `clip`, not `hidden`,
    so it doesn't create a scroll container (sticky bars keep working). */
 html.motion-ready main {
