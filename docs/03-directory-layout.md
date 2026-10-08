@@ -3,7 +3,7 @@
 ```
 bizzcheckup/
 ├── bizzcheckup/              Our Python package: all app code lives here
-│   ├── __init__.py           Package marker + __version__ ("0.1.0a0")
+│   ├── __init__.py           Package marker + __version__ ("0.2.0a0")
 │   ├── core/                 Django app: site-wide pages and helpers
 │   │   ├── apps.py           App configuration (name "bizzcheckup.core")
 │   │   ├── context_processors.py  Puts product_name/tagline into every template

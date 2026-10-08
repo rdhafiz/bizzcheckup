@@ -2,7 +2,7 @@
 
 [project]
 name = "bizzcheckup"
-version = "0.1.0a0"
+version = "0.2.0a0"
 description = "Check your business's online health"
 requires-python = ">=3.12"
 license = "MIT"

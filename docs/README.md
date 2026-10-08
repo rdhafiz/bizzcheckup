@@ -44,7 +44,7 @@ A business owner types in their website address. BizzCheckup gives them a
 The report ends with a **treatment plan** of what to fix first, and a proposal page
 offering the consultant's services. All of that content comes from `branding.yaml`.
 
-## Project status: v0.1.0-alpha released
+## Project status: v0.2.0-alpha released
 
 | Phase | What | Status |
 |-------|------|--------|
@@ -58,3 +58,4 @@ offering the consultant's services. All of that content comes from `branding.yam
 | 8 | Security & abuse protection | Done |
 | 9 | Landing page, lead capture, admin, privacy | Done |
 | 10 | Final docs, sample report, release tag | Done: **v0.1.0-alpha** |
+| 11 | Technical SEO, page schema, links and images, phone and tablet checks, all pages and proposal, dashboard report in the homepage theme | Done: **v0.2.0-alpha** |

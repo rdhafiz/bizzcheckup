@@ -6,164 +6,106 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
-### Removed
-- The tick boxes and the "issues fixed" progress bar in the report's issue list (and
-  the browser storage they used).
-
-### Changed
-- **"How … can help" is redesigned** with the homepage's vital-sign cards: each service in
-  its vital sign's colour and icon, with the score and a link to the issues it treats; the
-  rebuild service as a dark wide card; the call to action as a green banner.
-- **The report's contact section is redesigned** in the homepage's theme: a dark card with
-  the photo in a green ring, credential badges, a large tile with a coloured icon for
-  each way to get in touch, and a "Scan to visit" QR card. The QR code now fills its box
-  instead of leaving an empty strip.
-- **The report's opening band shows the website's own preview image** (its `og:image`)
-  behind the dark backdrop, or a demo picture in the brand colours when it has none.
-- **The report wears the homepage's theme**: a dark opening band with the hero photo,
-  parallax, the green badge, the domain in the green gradient with its swoosh and a
-  frosted score panel (the PDF's cover too); the header on the photo; soft colour blobs
-  behind the dashboard; homepage-style section titles; and the same word-by-word and
-  card reveal animations.
-
-### Fixed
-- The motion watchdog no longer switches animation off when a card only peeks in at
-  the bottom of the screen on load.
-
-- **The report is redesigned as a dashboard**: a sticky sidebar with the score,
-  the sections and the five vital signs (click one to see only its issues); the
-  diagnosis and counters beside the device screenshots; "Fix these first"; then **one
-  list of every issue** with filters by vital sign and severity, a tick box per issue and
-  a progress bar. Each issue now appears once (the separate action plan and per-vital-sign
-  lists are merged), so the page is about 40% shorter. Phones get the score and vital
-  signs in the overview; the PDF keeps every issue open.
-
-### Removed
-- The three summary sentences and the "We checked N pages" list under the report
-  overview. The pages checked are shown in **All pages**.
+## [0.2.0-alpha] - 2026-10-08
 
 ### Added
-- **Accessibility problems show where they are**: each element the scan flags comes
-  with a screenshot of the spot (outlined in red), what's wrong in words, its HTML and
-  CSS selector, and for colour contrast a sample of the text in its real colours with
-  the current and required ratio.
-- **Technical SEO checks**, page by page: heading outline review, image alt text and
-  file names, clean URLs (with a suggested clean address for each), and essential meta
-  tags (with a complete `<head>` block per page).
-- **Link previews on every page** (was the homepage only): a ready-made block of
-  Open Graph tags per page, the preview picture downloaded and checked, and a share
-  card in the report showing how the homepage looks on Facebook, WhatsApp or LinkedIn.
-- **Broken links to other websites and broken images**, each listed with the pages
-  they're on. Sites that refuse robots (LinkedIn's 999, 403, 429) aren't counted as broken.
-- **Phone and tablet checks**: the homepage is opened as a 390 px phone and an 820 px
-  tablet to check for a shrunken desktop page, sideways scrolling, links too small to
-  tap and tiny text. The report shows Desktop / Tablet / Phone screenshots as tabs.
+- **9 new checks (54 in total)**:
+  - **Technical SEO**, page by page: heading outline review, image alt text and file
+    names, clean URLs (with a suggested clean address for each) and essential meta tags
+    (with a complete `<head>` block per page).
+  - **Page schema** (`seo.page_schema`, replaces `seo.structured_data`): works out what
+    kind each page is (homepage, about, contact, article, product, service, FAQ, listing,
+    other), checks its JSON-LD has what that kind needs, and when something is missing
+    suggests the **complete** schema for the page: the site's own values kept, facts read
+    from the page filled in, the rest marked `REPLACE:`.
+  - **Broken links to other websites and broken images**, each listed with the pages
+    they're on. Sites that refuse robots (LinkedIn's 999, 403, 429) aren't counted as
+    broken, and slow sites can't hold up the check-up (a 30-second budget).
+  - **Phone and tablet checks**: the homepage is opened as a 390 px phone and an 820 px
+    tablet to check for a shrunken desktop page, sideways scrolling, links too small to
+    tap and tiny text.
+- **Link previews on every page** (was the homepage only), with a ready-made block of
+  Open Graph tags per page; the preview picture is downloaded and checked.
+- **Ready-to-use fixes in the report**: schema, meta tags and link preview tags as code
+  with a **Copy** button, one per page; page-by-page breakdowns for headings, images,
+  URLs and broken links.
+- **Accessibility problems show where they are**: each element the scan flags comes with
+  a screenshot of the spot (outlined in red), what's wrong in words, its HTML and CSS
+  selector, and for colour contrast a sample of the text in its real colours with the
+  current and required ratio.
 - **"We found N pages"**: every page address found (sitemap and links), which ones were
   checked, and a proposal to check the whole website (`full_audit` in `branding.yaml`).
-- New `CheckupImage` table for the report's extra pictures (migration `0004`).
-- **Page schema check** (`seo.page_schema`, replaces `seo.structured_data`): works out
-  what kind each page is (homepage, about, contact, article, product, service, FAQ,
-  listing, other), checks its JSON-LD has the types and properties that kind needs, and
-  when something is missing suggests the **complete** schema for that page: the site's
-  own values kept, facts read from the page filled in, the rest marked `REPLACE:`.
-  The report shows each suggestion as code with a **Copy** button; findings store them
-  in the new `Finding.snippets` field.
-- **Blurry reveal** (inspired by bizzacquire.com): section headings reveal word by word, each
-  word rising and sharpening out of a blur; all other reveals sharpen from a soft blur too.
-  Without JavaScript or with reduced motion, headings stay plain text.
-  No blur on screens narrower than 768px (same reveal, without the blur).
-  The hero badge reveals word by word too, icon first.
-- **Smooth scrolling** for links within a page (section links, "Start a check-up",
-  "Back to top", the report's jump bar), with a little room above the target. Instant for
-  visitors who prefer reduced motion.
-- **"How it works" rebuilt**: one screen tall, with an intro, key facts and a five-step
-  timeline (enter your address, we visit like a customer, the checks run live, your Health
-  Report, fix and check again), each step with a description and fact chips. Page and check
-  counts come from the settings and the engine. Redesigned with soft colour blobs, tinted fact cards,
-  a step illustration in each tinted card, glossy step numbers on a dotted line, and a
-  laptop illustration (all SVG, following dark mode).
-- **Scroll reveal and parallax** on the homepage (`static/js/motion.js`, no library):
-  every section (the hero included) and the footer columns fade in as they scroll into view,
-  every time, in both directions: rising when scrolling down, coming down from above when
-  scrolling back up (staggered, nearest first). The hero and benefits photos drift slower
-  than the page while the hero text moves against them. Entrances are slow and smooth
-  (1.1 s, gentle ease-out, 110 ms stagger); the "healthier website" section is one screen tall. Entrances are
-  only vertical (up or down) or a zoom, never from the side. Fails open (nothing hidden without the script),
-  off with reduced motion, parallax off below 768px, keyboard focus and #anchors show hidden
-  content at once, and a watchdog shows everything if reveals stall.
-- **`/llms.txt`**: a Markdown guide to BizzCheckup for AI assistants (llmstxt.org format):
-  what it does, the five vital signs, the limits, and links to the main and legal pages.
-  A test checks that BizzCheckup passes its own llms.txt and AI-crawler checks.
-- **`/robots.txt`** and **`/sitemap.xml`**: the sitemap lists the homepage and the legal
-  pages (with their "last updated" date); robots.txt points to it and keeps crawlers out
-  of the private reports (`/checkups/`), admin, health check and style guide.
-- **Site footer** on every page: brand and call to action, product links, legal links,
-  contact details with profile icons, copyright, version and "Back to top".
-- **Legal pages**: Terms of service, Cookie policy, Acceptable use policy and Disclaimer,
-  plus a restyled Privacy policy, all sharing one layout with a side menu. Operator,
-  country and "last updated" date come from the new `legal` section in `branding.yaml`;
-  limits in the text come from the settings.
-- **Theme colour #31ac64** (green) across the site: buttons, logo, favicon, links, progress
-  bars and highlights. Text on the green is white and bold; green text uses a deeper
-  shade so it stays readable.
-- **New homepage**: a full-screen hero ("Is your business website healthy?") on a
-  background image with a dark backdrop, the text on the left and the form on the right, colourful cards for the five vital signs, a
-  "How it works" strip with numbered steps, and a closing "More visibility. More trust.
-  More growth." section with an illustration. Works in dark mode and on phones.
-- Privacy link and version in the header.
-- **Redesigned report page**, easier to act on: a sticky bar with the score and jump
-  links; an overview with a score gauge, a one-sentence verdict, counters and the five
-  vital signs as bars against the "Healthy" line; the top risks as problem, cost and
-  solution cards; the treatment plan as a checklist saved in your browser; issues as rows
-  that open to show why they matter and how to fix them. The PDF uses the same layout.
-- **Check again now** button on reports and on the "couldn't finish" page: a fresh
-  check-up of the same site that skips report reuse but keeps every other protection
-  (an already-running check-up is reused, SSRF check, Turnstile, rate limit, capacity).
-- Reports show how old they are ("Checked just now", "Checked 2 hours, 18 minutes ago").
-- Messages (for example "rate limit reached") are shown at the top of any page.
-
-### Fixed
-- PDFs could fail when the consultant's photo website was slow: Chromium waited for it
-  until the 30-second limit. The photo is now fetched by our code with a 5-second limit,
-  and the PDF is made without it if needed.
-- Following a link into a section (the hero, "What we examine", the benefits section, the
-  footer) scrolled that section's content inside itself, shifting it by up to 198px. Those
-  sections now use `overflow: clip`.
-- The benefits photo's desktop crop was overridden by a leftover duplicate CSS rule.
-- Sites behind Vercel's bot protection (and similar) answered "HTTP 429" with a challenge
-  page. The User-Agent is now a browser identity with `BizzCheckup/0.1
-  (+https://ridwanulhafiz.me)` at the end (as Lighthouse does). If a firewall still blocks
-  the visit, the message says so, names the provider, and explains what to allow.
-- When a firewall shows the **browser** a "verifying your browser" checkpoint, its
-  screenshot and browser-based results are discarded instead of being reported as the
-  website. The cover and notes explain why (`engine/firewall.py`, shared by the crawler,
-  the browser and the AI-agent probe).
-- Sites behind CDNs that reject requests without browser `Accept` headers (for example
-  Hostinger's) failed with "HTTP 403". The fetcher now sends `Accept` and
-  `Accept-Language` like a browser, and still identifies itself as BizzCheckup.
-- Check-ups that never started because the job queue was down no longer count towards
-  the visitor's hourly limit.
-- Screenshots, PDFs and browser checks failed when the server couldn't find Chromium.
-  Chromium is now installed inside the project (`.playwright/`) and used automatically.
-- Reports said "no PageSpeed API key" even when a key existed but Google's test failed.
-  Skip messages now give the real reason.
-- In development, an old empty variable left in a terminal could hide the key in `.env`.
-  `.env` now wins in development (servers still prefer real environment variables).
-- Tests no longer read the developer's `.env`.
+- Desktop / Tablet / Phone screenshots as tabs, and a card showing how the homepage looks
+  when shared on Facebook, WhatsApp or LinkedIn.
+- New `Finding.snippets` field and `CheckupImage` table for the report's extra pictures
+  (migrations `0003`–`0005`).
+- **New homepage**: a full-screen hero on a photo with the check-up form, colourful cards
+  for the five vital signs, a one-screen "How it works" timeline with illustrations, and a
+  closing "More visibility. More trust. More growth." section. Works in dark mode and on
+  phones.
+- **Motion** (`static/js/motion.js`, no library): sections, cards and headings reveal as
+  they scroll into view in both directions (headings word by word, sharpening out of a
+  blur), with parallax on the hero photos and smooth scrolling for in-page links. It
+  fails open, respects reduced motion, has no blur or parallax on small screens, and a
+  watchdog shows everything if reveals stall.
+- **Site footer**, **legal pages** (terms, cookies, acceptable use, disclaimer and a
+  restyled privacy policy, from the new `legal` section in `branding.yaml`), and
+  **`/robots.txt`**, **`/sitemap.xml`** and **`/llms.txt`**.
+- **Check again now** on reports and on the "couldn't finish" page: a fresh check-up that
+  skips report reuse but keeps every other protection.
+- Reports show how old they are ("Checked 2 hours, 18 minutes ago"), and messages (for
+  example "rate limit reached") appear at the top of any page.
 
 ### Changed
-- The progress page animates smoothly from 0% to 100%: real progress while each data
-  source finishes, gentle creeping during slow steps, steps ticked off one by one, and a
-  "Your report is ready" animation before the report opens. The PDF is ready when the
-  report appears.
-- Check-ups now start **immediately** in the web app by default (`CHECKUP_RUNNER=immediate`),
-  with no Redis or worker needed, at most `CHECKUP_MAX_CONCURRENT` (3) at once. The Celery
-  queue stays available with `CHECKUP_RUNNER=celery`, which Docker Compose uses.
-- Check-ups interrupted by a server restart are marked as failed instead of showing
-  progress forever.
-- The development settings allow 50 check-ups per hour (production keeps 5).
-- SQLite waits up to 20 s for the database instead of failing with "database is locked".
-- Development log file `.run/bizzcheckup.log` with warnings, errors and tracebacks.
+- **The report is redesigned as a dashboard in the homepage's theme**:
+  - a dark opening band with the website's own preview image (or a demo picture) behind
+    it, the domain in the green gradient, the diagnosis, the actions and a frosted score
+    panel (the PDF's cover too);
+  - a sticky sidebar with the score, the sections and the five vital signs (click one to
+    see only its issues);
+  - "Fix these first", then **one list of every issue** that you can filter by vital
+    sign and severity. Each issue appears once, so the page is about 40% shorter;
+  - "How … can help" with the homepage's vital-sign cards, each linking to the issues
+    it treats, and a green call to action;
+  - a dark contact card with credential badges, a tile per way to get in touch, and a QR
+    code that now fills its box.
+- **Theme colour #31ac64** (green) across the site, with white bold text on it and a
+  deeper green for text.
+- The progress page animates smoothly to 100% and plays a "Your report is ready"
+  animation; the PDF is ready when the report appears.
+- Check-ups start **immediately** in the web app by default (`CHECKUP_RUNNER=immediate`,
+  at most `CHECKUP_MAX_CONCURRENT` at once); Celery stays available with
+  `CHECKUP_RUNNER=celery`, which Docker Compose uses. Check-ups interrupted by a restart
+  are marked as failed instead of showing progress forever.
+- Development: 50 check-ups per hour, SQLite waits up to 20 s instead of "database is
+  locked", and a log file at `.run/bizzcheckup.log`.
+
+### Fixed
+- Sites behind Vercel's bot protection (and similar) answered "HTTP 429". The User-Agent
+  is now a browser identity with `BizzCheckup/0.1 (+https://ridwanulhafiz.me)` at the end.
+  If a firewall still blocks the visit, the message names the provider and explains what
+  to allow.
+- When a firewall shows the browser a "verifying your browser" checkpoint, its screenshot
+  and browser results are discarded instead of being reported as the website.
+- Sites behind CDNs that reject requests without browser `Accept` headers (for example
+  Hostinger's) failed with "HTTP 403".
+- PDFs could fail when the consultant's photo website was slow; the photo is now fetched
+  with a 5-second limit.
+- Screenshots, PDFs and browser checks failed when the server couldn't find Chromium; it
+  is now installed inside the project (`.playwright/`) and used automatically.
+- Reports said "no PageSpeed API key" even when a key existed but Google's test failed.
+- Check-ups that never started because the job queue was down no longer count towards the
+  visitor's hourly limit.
+- Following a link into a section scrolled that section's content inside itself
+  (`overflow: clip` now).
+- In development, `.env` wins over an old empty variable left in a terminal; tests no
+  longer read the developer's `.env`.
+
+### Removed
+- The treatment-plan checklist (tick boxes and the "issues fixed" progress bar) and the
+  browser storage it used.
+- The summary sentences and the "We checked N pages" list under the report overview (the
+  pages checked are in **All pages**).
 
 ## [0.1.0-alpha] - 2026-10-07
 
@@ -251,5 +193,6 @@ First public release: the complete check-up flow from landing page to PDF.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).
 
-[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.1.0-alpha...HEAD
+[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.2.0-alpha...HEAD
+[0.2.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.2.0-alpha
 [0.1.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.1.0-alpha
