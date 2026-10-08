@@ -438,17 +438,17 @@
   }
 
   /* Hero text (on the photo). */
+  /* Solid theme-green badge with white text, no shadow. */
   .hero-pill {
     @apply inline-flex items-center gap-3 rounded-full py-1 pr-5 pl-1 text-sm font-bold tracking-[0.12em]
-      text-ink uppercase backdrop-blur-md;
-    background: rgb(255 255 255 / 0.06);
-    border: 1px solid color-mix(in srgb, var(--brand) 60%, transparent);
-    box-shadow: 0 0 28px -8px var(--brand);
+      uppercase;
+    color: var(--on-brand);
+    background: var(--brand);
   }
   .hero-pill__icon {
     @apply inline-flex size-9 items-center justify-center rounded-full;
-    color: var(--primary);
-    background: color-mix(in srgb, var(--primary) 18%, transparent);
+    color: var(--on-brand);
+    background: rgb(255 255 255 / 0.2);
   }
   .hero__title {
     @apply relative mt-6 text-[2.6rem] leading-[1.04] font-extrabold tracking-tight sm:text-6xl
