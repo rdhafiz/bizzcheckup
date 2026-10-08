@@ -416,12 +416,12 @@
     background-color: #0c1517; /* shown until the image has loaded */
   }
   /* The photo, as its own layer so it can drift slower than the page (parallax).
-     Scaled 1.24 = what motion.js computes for this section at rest (1 + 2 x 0.12),
+     Scaled 1.44 = what motion.js computes for this section at rest (1 + 2 x 0.22),
      so nothing jumps when the script starts. */
   .hero-full__photo {
     @apply absolute inset-0 -z-20 bg-cover bg-center;
     background-image: url("../img/hero-bg.webp");
-    transform: scale(1.24);
+    transform: scale(1.44);
   }
   .hero-full::before {
     @apply absolute inset-0 -z-10;
@@ -1162,6 +1162,15 @@ html.motion-ready [data-reveal] {
 html.motion-ready [data-reveal="scale"] {
   transform: scale(0.94);
 }
+/* Scrolling back up: content that left by the top waits above, and comes down. */
+html.motion-ready :is([data-reveal=""], [data-reveal="rise"])[data-from="above"]:not(.is-revealed) {
+  transform: translate3d(0, -32px, 0);
+}
+/* The hero is the first thing on screen: a quicker entrance, so the page looks
+   loaded sooner. */
+html.motion-ready .hero-full [data-reveal] {
+  transition-duration: 550ms;
+}
 /* Sideways entrances only on wide screens: an element pushed sideways still takes up
    space, and on a phone that would make the page scroll horizontally. */
 @media (min-width: 768px) {
@@ -1175,6 +1184,14 @@ html.motion-ready [data-reveal="scale"] {
 html.motion-ready [data-reveal].is-revealed {
   opacity: 1;
   transform: none;
+}
+/* Fail-safe for motion-boot.js, which hides content before motion.js has loaded: if
+   motion.js never takes over (it removes .motion-boot), show everything after 1.5 s. */
+html.motion-boot [data-reveal]:not(.is-revealed) {
+  animation: reveal-failsafe 1ms 1.5s both;
+}
+@keyframes reveal-failsafe {
+  to { opacity: 1; transform: none; }
 }
 /* Keyboard focus or an #anchor landed on it: show it at once. */
 html.motion-ready [data-reveal].reveal-instant {

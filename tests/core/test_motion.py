@@ -18,14 +18,33 @@ JS = (ROOT / "static" / "js" / "motion.js").read_text(encoding="utf-8")
 pytestmark = pytest.mark.django_db
 
 
+def top_level_parts(selector: str) -> list[str]:
+    """Split "a, b:is(c, d)" into ["a", "b:is(c, d)"]: commas inside brackets don't count."""
+    parts, depth, current = [], 0, ""
+    for char in selector:
+        depth += {"(": 1, ")": -1}.get(char, 0)
+        if char == "," and depth == 0:
+            parts.append(current)
+            current = ""
+        else:
+            current += char
+    return [*parts, current]
+
+
 def test_css_only_hides_content_once_the_script_has_armed_it() -> None:
-    """Fail open: no rule may hide [data-reveal] unless motion.js set .motion-ready."""
+    """Fail open: every [data-reveal] rule needs a flag a script set (.motion-ready/-boot)."""
     selectors = re.findall(r"([^{}]*\[data-reveal[^{}]*)\{", CSS)
     assert selectors  # the rules exist...
     for selector in selectors:
-        for part in selector.split(","):
+        for part in top_level_parts(selector):
             if "[data-reveal" in part:  # ...and every one of them is gated
-                assert "html.motion-ready" in part, part.strip()
+                assert "html.motion-ready" in part or "html.motion-boot" in part, part.strip()
+
+
+def test_boot_flags_have_a_css_fail_safe() -> None:
+    """motion-boot.js hides content before motion.js loads; CSS must undo that on its own."""
+    assert "html.motion-boot [data-reveal]:not(.is-revealed)" in CSS
+    assert "@keyframes reveal-failsafe" in CSS
 
 
 def test_script_never_writes_style_attributes() -> None:
@@ -34,16 +53,20 @@ def test_script_never_writes_style_attributes() -> None:
     assert "cssText" not in JS
 
 
-def test_homepage_marks_sections_but_not_the_hero(client: Client) -> None:
+def test_homepage_marks_every_section(client: Client) -> None:
     html = client.get(reverse("core:home")).content.decode()
 
+    assert "js/motion-boot.js" in html  # blocking, in <head>: no flash before the entrance
+    assert html.index("js/motion-boot.js") < html.index("</head>")
     assert "js/motion.js" in html
-    assert html.count("data-reveal") >= 15  # the sections below the hero, and the footer
     assert "data-reveal-group" in html
+    for section in ('class="hero-full"', 'class="signs"', 'class="how"', 'class="benefits"'):
+        start = html.index(section)
+        assert "data-reveal" in html[start : start + 4000], section
     hero = html[html.index('class="hero-full"') : html.index('class="signs"')]
-    # The first screen is never faded in: it would delay the page looking loaded.
-    assert "data-reveal" not in hero
-    assert 'data-parallax="0.12" data-parallax-fill' in hero  # the photo drifts instead
+    # Reveal on the hero's children, parallax on the wrapper: never both on one element.
+    assert '<div class="hero__text on-dark" data-parallax="-0.1" data-reveal-group>' in hero
+    assert 'data-parallax="0.22" data-parallax-fill' in hero
 
 
 @pytest.mark.parametrize("name", ["home", "terms", "privacy"])

@@ -14,43 +14,44 @@
   {# --- Hero: full screen, background image + dark backdrop, text left and form right --- #}
   <section class="hero-full" aria-labelledby="hero-title">
     {# The photo is its own layer so it can drift slower than the page (parallax). #}
-    <div class="hero-full__photo" data-parallax="0.12" data-parallax-fill aria-hidden="true"></div>
+    <div class="hero-full__photo" data-parallax="0.22" data-parallax-fill aria-hidden="true"></div>
     <div class="hero container-wide">
       {% comment %}
-        No entrance animation here: this is the first thing on screen (LCP). It only moves
-        slightly against the photo while scrolling, for depth.
+        The text cascades in (a quick entrance: this is the first thing on screen) and, while
+        scrolling, moves against the photo for depth. Reveal on the children, parallax on the
+        wrapper: one element can't do both, they would fight over `transform`.
       {% endcomment %}
-      <div class="hero__text on-dark" data-parallax="-0.05">
-        <p class="hero-pill">
+      <div class="hero__text on-dark" data-parallax="-0.1" data-reveal-group>
+        <p class="hero-pill" data-reveal>
           <span class="hero-pill__icon" aria-hidden="true"><svg class="size-5" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           Free website check-up
         </p>
-        <h1 id="hero-title" class="hero__title">
-          <svg data-parallax="-0.05" class="deco-spark hero__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 8 18M30 8 20 20M34 24l-12-1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+        <h1 id="hero-title" class="hero__title" data-reveal>
+          <svg data-parallax="-0.15" class="deco-spark hero__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 4 8 18M30 8 20 20M34 24l-12-1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
           <span class="sr-only">{{ product_name }}: </span>Is your business website
           <span class="hero__highlight">healthy<svg class="hero__swoosh" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14C50 5 120 3 196 9" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg></span>?
         </h1>
-        <p class="mt-7 max-w-xl text-lg text-muted sm:text-xl">
+        <p class="mt-7 max-w-xl text-lg text-muted sm:text-xl" data-reveal>
           In just a minute, we analyze your website and explain what's working, what's not,
           and how to improve it for better visibility, trust and growth.
         </p>
         <ul class="hero__perks">
-          <li class="perk-card tone-green">
+          <li class="perk-card tone-green" data-reveal>
             <span class="perk-card__icon">{% include "partials/icon.html" with name="bolt" css="size-6" %}</span>
             <span><strong>Free,</strong> no account</span>
           </li>
-          <li class="perk-card tone-blue">
+          <li class="perk-card tone-blue" data-reveal>
             <span class="perk-card__icon">{% include "partials/icon.html" with name="clock" css="size-6" %}</span>
             <span><strong>Report in</strong> about a minute</span>
           </li>
-          <li class="perk-card tone-rose">
+          <li class="perk-card tone-rose" data-reveal>
             <span class="perk-card__icon">{% include "partials/icon.html" with name="file" css="size-6" %}</span>
             <span><strong>PDF to keep</strong> or share</span>
           </li>
         </ul>
       </div>
 
-      <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" novalidate>
+      <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" data-reveal="right" novalidate>
         {% csrf_token %}
         <h2 class="text-2xl font-bold">Start your <span class="text-primary">check-up</span></h2>
         <label for="id_url" class="mt-1 block text-sm text-muted">Enter your website address to get a free report.</label>
@@ -131,8 +132,8 @@
     {# Decoration only: soft shapes, dot grids and sparkle strokes. #}
     <span class="dot-grid signs__dots--left" aria-hidden="true"></span>
     <span class="dot-grid signs__dots--right" aria-hidden="true"></span>
-    <svg data-parallax="-0.05" class="deco-spark signs__spark--left" viewBox="0 0 40 40" aria-hidden="true"><path d="M22 4l6 18M8 22l14 8M18 16l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-    <svg data-parallax="-0.05" class="deco-spark signs__spark--right" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 4 8 26M12 34l22-6M20 22l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg data-parallax="-0.15" class="deco-spark signs__spark--left" viewBox="0 0 40 40" aria-hidden="true"><path d="M22 4l6 18M8 22l14 8M18 16l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg data-parallax="-0.15" class="deco-spark signs__spark--right" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 4 8 26M12 34l22-6M20 22l1 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
 
     <div class="container-wide relative">
       <div class="grid items-center gap-6 lg:grid-cols-[1.3fr_1fr]" data-reveal-group>
@@ -202,11 +203,11 @@
   <section class="benefits" aria-labelledby="benefits-title">
     {# The photo fills the right side and fades into the background behind the text. #}
     <div class="benefits__art">
-      <img data-parallax="0.08" data-parallax-fill src="{% static 'img/healthier-website.webp' %}" alt="A BizzCheckup health report with a score of 92 on a laptop, a desktop screen and a phone, on a sunny office desk" width="1448" height="1086" loading="lazy" decoding="async">
+      <img data-parallax="0.14" data-parallax-fill src="{% static 'img/healthier-website.webp' %}" alt="A BizzCheckup health report with a score of 92 on a laptop, a desktop screen and a phone, on a sunny office desk" width="1448" height="1086" loading="lazy" decoding="async">
     </div>
     <div class="container-wide relative">
       <div class="benefits__text">
-        <svg data-parallax="-0.05" class="deco-spark benefits__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 13 22M16 34l18-9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
+        <svg data-parallax="-0.15" class="deco-spark benefits__spark--title" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 13 22M16 34l18-9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg>
         <div data-reveal="left">
         <p class="eyebrow-dash">A healthier website means</p>
         <h2 id="benefits-title" class="benefits__title">More visibility.<br>More trust.<br>

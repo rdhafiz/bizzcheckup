@@ -5,7 +5,8 @@
 // is plain static content. The class is removed again (disarm) if the browser asks for
 // reduced motion or if reveals don't happen when they should (the watchdog).
 //
-// Reveal:   <div data-reveal>               fade in and rise (default)
+// Reveal:   <div data-reveal>               fade in and rise (default); scrolling back up,
+//                                            it comes down from above instead
 //           data-reveal="scale|left|right"   other entrances
 //           data-reveal-once                 settle for good, don't replay
 //           data-reveal-group on a parent    children entering together are staggered
@@ -52,13 +53,17 @@
     });
   }
 
-  function hide(el) {
+  // `from` is the edge it left by: "above" (scrolled past) or "below" (not reached yet).
+  // It will come back from that side, so it waits there: scrolling up, content slides
+  // down into place instead of rising.
+  function hide(el, from) {
     // Only called once the element is completely off screen, so animating it back out
     // would be invisible work: reset it instantly. The delay is cleared too, or an
     // element deep in a staggered row would carry its delay into the next entrance check.
     instantly(el, function () {
       setDelay(el, 0);
       el.classList.remove("is-revealed");
+      el.setAttribute("data-from", from);
     });
   }
 
@@ -71,32 +76,40 @@
     return el.parentElement && el.parentElement.closest("[data-reveal-group]");
   }
 
+  function inPageOrder(a, b) {
+    return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+  }
+
   function onIntersect(entries) {
     var entering = [];
     entries.forEach(function (entry) {
       var el = entry.target;
+      var top = entry.rootBounds ? entry.rootBounds.top : 0;
       var view = entry.rootBounds ? entry.rootBounds.height : window.innerHeight;
       // Asymmetric: in at 15% (or a quarter of the screen for tall elements), out only
       // when fully gone. In between nothing changes, so nothing flickers at the edge.
       var enter = entry.isIntersecting &&
         (entry.intersectionRatio >= ENTER_RATIO || entry.intersectionRect.height >= view * 0.25);
-      if (enter && !el.classList.contains("is-revealed")) entering.push(el);
-      else if (!entry.isIntersecting && el.classList.contains("is-revealed")) hide(el);
+      if (enter) {
+        if (!el.classList.contains("is-revealed")) entering.push(el);
+      } else if (!entry.isIntersecting) {
+        var from = entry.boundingClientRect.bottom <= top ? "above" : "below";
+        if (el.classList.contains("is-revealed") || el.getAttribute("data-from") !== from) hide(el, from);
+      }
     });
 
     // Stagger index is worked out NOW, among the elements entering together in each
-    // group, in page order. Nothing is cached: membership can differ on every visit.
+    // group. Nothing is cached: membership can differ on every visit. Scrolling down
+    // they cascade in page order; scrolling up, from the bottom one (nearest the edge).
     var counters = new Map();
-    entering
-      .sort(function (a, b) {
-        return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-      })
-      .forEach(function (el) {
-        var group = groupOf(el);
-        var index = group ? (counters.get(group) || 0) : 0;
-        if (group) counters.set(group, index + 1);
-        show(el, Math.min(index * STAGGER_MS, STAGGER_CAP_MS));
-      });
+    var fromBelow = entering.filter(function (el) { return el.getAttribute("data-from") !== "above"; });
+    var fromAbove = entering.filter(function (el) { return el.getAttribute("data-from") === "above"; });
+    fromBelow.sort(inPageOrder).concat(fromAbove.sort(inPageOrder).reverse()).forEach(function (el) {
+      var group = groupOf(el);
+      var index = group ? (counters.get(group) || 0) : 0;
+      if (group) counters.set(group, index + 1);
+      show(el, Math.min(index * STAGGER_MS, STAGGER_CAP_MS));
+    });
   }
 
   function revealTarget(target) {
@@ -123,9 +136,10 @@
     armed = false;
     if (observer) observer.disconnect();
     observer = null;
-    root.classList.remove("motion-ready");
+    root.classList.remove("motion-ready", "motion-boot");
     revealables.forEach(function (el) {
       el.classList.remove("is-revealed", "reveal-instant");
+      el.removeAttribute("data-from");
       el.style.removeProperty("--reveal-delay");
     });
   }
@@ -151,7 +165,11 @@
   }
 
   function arm() {
-    if (armed || reducedMotion.matches || !revealables.length) return;
+    if (armed) return;
+    if (reducedMotion.matches || !revealables.length) {
+      root.classList.remove("motion-ready", "motion-boot"); // motion-boot.js may have set them
+      return;
+    }
     // A background tab gets no animation frames: an entrance would run unseen or stall.
     // Wait until the page is visible; until then nothing is hidden.
     if (document.visibilityState !== "visible") {
@@ -162,6 +180,8 @@
     root.classList.add("motion-ready");
     armed = true;
     revealables.forEach(function (el) { observer.observe(el); });
+    // From here on this script is in charge: switch off the CSS fail-safe from motion-boot.js.
+    root.classList.remove("motion-boot");
     onHash(); // opened at an #anchor: show it at once
     startWatchdog();
   }
