@@ -27,6 +27,7 @@ Read them in order the first time. Later, jump to the page you need.
 | 17 | [Security & abuse protection](17-security.md) | SSRF, rate limits, reuse, bots, IP privacy, headers |
 | 18 | [Legal pages, footer & crawler files](18-legal-pages.md) | Privacy, terms, cookies, acceptable use, disclaimer; the footer; robots.txt, sitemap.xml and llms.txt |
 | 19 | [Motion: scroll reveal & parallax](19-motion.md) | How sections animate in and photos drift; the safety nets; performance |
+| 20 | [Self-hosting on a Windows PC](20-self-hosting.md) | WSL2, Docker, Cloudflare Tunnel, the network firewall, backups, daily commands |
 
 ## What is BizzCheckup?
 

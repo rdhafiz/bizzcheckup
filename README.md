@@ -169,6 +169,10 @@ ruff check . && ruff format --check . && mypy . && pytest
 
 ## Deployment
 
+To run it publicly from a Windows PC (WSL2, Docker, Cloudflare Tunnel, no VPS), follow
+**[Self-hosting on a Windows PC](docs/20-self-hosting.md)**. It uses `compose.prod.yaml`
+on top of `compose.yaml`.
+
 The Docker image (`docker/Dockerfile`) includes headless Chromium and can run as the web
 server (gunicorn) and, with `CHECKUP_RUNNER=celery`, as the Celery worker.
 
@@ -181,7 +185,8 @@ server (gunicorn) and, with `CHECKUP_RUNNER=celery`, as the Celery worker.
    `DJANGO_CSRF_TRUSTED_ORIGINS`, `DATABASE_URL`, `REDIS_URL`, `CELERY_BROKER_URL` and
    `PSI_API_KEY`.
 4. Behind a reverse proxy, set `TRUST_X_FORWARDED_FOR=True` so rate limits see the real
-   visitor IP. Only do this if the proxy sets that header itself.
+   visitor IP. Only do this if the proxy sets that header itself. Behind Cloudflare, set
+   `CLIENT_IP_HEADER=CF-Connecting-IP` instead.
 5. **Isolate the worker's network.** It should reach the public internet, but **not**
    your internal services or cloud metadata. That's defence in depth on top of the SSRF
    guard (it covers DNS rebinding).

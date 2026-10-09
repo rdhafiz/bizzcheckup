@@ -6,6 +6,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Added
+- **Self-hosting guide** ([docs/20-self-hosting.md](docs/20-self-hosting.md)): run
+  BizzCheckup publicly from a Windows PC with WSL2, Docker and Cloudflare Tunnel, with a
+  firewall that keeps containers off the home network, daily backups and restore steps.
+- `compose.prod.yaml`, a production override for `compose.yaml` that reads its secrets
+  from `.env.prod`.
+- `deploy.sh`: one command to back up, rebuild, wait for the site to be healthy and run
+  Django's deployment check (`--pull` fetches the latest code first).
+- `CLIENT_IP_HEADER` setting: read the visitor IP from a header the proxy always sets,
+  like Cloudflare's `CF-Connecting-IP`, which visitors can't fake.
+
 ## [0.2.0-alpha] - 2026-10-08
 
 ### Added
