@@ -1,11 +1,10 @@
 // Report page: "Copy share link", the issue filters, "Copy" on code
-// blocks, the device screenshot tabs and the sidebar's "you are here" highlight.
+// blocks and the sidebar's "you are here" highlight.
 document.addEventListener("DOMContentLoaded", function () {
   setUpCopyLink();
   setUpIssueFilters();
   setUpIssueLinks();
   setUpCopyCode();
-  setUpDeviceTabs();
   setUpSectionHighlight();
 });
 
@@ -94,59 +93,6 @@ function setUpSectionHighlight() {
     var section = document.getElementById(id);
     if (section) observer.observe(section);
   });
-}
-
-// Desktop / Tablet / Phone screenshots as tabs. Without JavaScript all three stay
-// visible, so nothing is lost; with it, one shows at a time.
-// Keyboard: Left/Right move between tabs, Home/End jump to the first/last.
-// Panels are hidden with the `hidden` attribute, which every browser understands on its
-// own (no stylesheet needed). When printing, all views are shown, then hidden again.
-function setUpDeviceTabs() {
-  var list = document.querySelector("[data-device-tabs]");
-  if (!list) return;
-  var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
-  var current = tabs[0];
-
-  function panelOf(tab) {
-    return document.getElementById(tab.getAttribute("aria-controls"));
-  }
-
-  function select(tab, focus) {
-    current = tab;
-    tabs.forEach(function (other) {
-      var selected = other === tab;
-      other.setAttribute("aria-selected", selected ? "true" : "false");
-      other.tabIndex = selected ? 0 : -1;
-      var panel = panelOf(other);
-      if (panel) panel.hidden = !selected;
-    });
-    if (focus) tab.focus();
-  }
-
-  window.addEventListener("beforeprint", function () {
-    tabs.forEach(function (tab) {
-      var panel = panelOf(tab);
-      if (panel) panel.hidden = false;
-    });
-  });
-  window.addEventListener("afterprint", function () { select(current, false); });
-
-  tabs.forEach(function (tab, index) {
-    tab.addEventListener("click", function () { select(tab, false); });
-    tab.addEventListener("keydown", function (event) {
-      var next = null;
-      if (event.key === "ArrowRight") next = tabs[(index + 1) % tabs.length];
-      else if (event.key === "ArrowLeft") next = tabs[(index - 1 + tabs.length) % tabs.length];
-      else if (event.key === "Home") next = tabs[0];
-      else if (event.key === "End") next = tabs[tabs.length - 1];
-      if (next) {
-        event.preventDefault();
-        select(next, true);
-      }
-    });
-  });
-  list.hidden = false;
-  select(tabs[0], false);
 }
 
 // "Copy" on a suggested fix (e.g. a page's JSON-LD): copies the code exactly as shown.

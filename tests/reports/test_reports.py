@@ -217,7 +217,7 @@ def test_report_shows_how_the_homepage_looks_when_shared(client: Client, db: Non
     services.save_report(checkup, report)
     services.mark_done(checkup)
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
-    assert "How your homepage looks when someone shares it" in html
+    assert "When someone shares your link" in html
     assert reverse("checkups:image", args=[checkup.pk, "link_preview"]) in html
     assert "Fresh cakes" in html
     assert "SHOP.TEST" in html
@@ -250,17 +250,27 @@ def test_report_shows_the_homepage_on_each_device(client: Client, db: None) -> N
     services.save_report(checkup, report)
     services.mark_done(checkup)
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
-    assert 'role="tablist"' in html
+    assert "device-stage--trio" in html
     for kind in ["mobile", "tablet"]:
         assert reverse("checkups:image", args=[checkup.pk, kind]) in html
-    assert "Phone · 390 px wide" in html
+    assert "Phone · 390 px" in html
+    assert "computer, tablet, phone" in html  # "What we checked" counts the screens
 
 
-def test_no_device_tabs_without_phone_and_tablet_pictures(
+def test_only_the_computer_without_phone_and_tablet_pictures(
     client: Client, finished: Checkup
 ) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
-    assert 'role="tablist"' not in html
+    assert "device-stage--trio" not in html
+    assert "Phone · 390 px" not in html
+    assert 'role="tablist"' not in html  # the old tabs are gone for good
+
+
+def test_what_we_checked_shows_how_much_of_the_site_was_checked(
+    client: Client, finished: Checkup
+) -> None:
+    html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
+    assert "100% of your website checked" in visible_text(html)
 
 
 def test_hero_shows_the_sites_own_preview_image(client: Client, db: None) -> None:

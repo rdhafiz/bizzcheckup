@@ -100,18 +100,28 @@ colours.)
 
 ### Device screenshots (`templates/reports/_devices.html`)
 
-The overview shows the homepage on a **computer, a tablet and a phone** as tabs
-(`setUpDeviceTabs()` in `report.js`, the standard ARIA tabs pattern: arrow keys, Home
-and End). Without JavaScript all three are shown one under the other, and the PDF
-shows the computer view with the tablet and phone side by side underneath. The tablet
-and phone pictures sit in a box the same shape as the desktop one, so switching tabs
-doesn't move the page. The tabs only appear when those pictures exist. Hidden views
-use the browser's own `hidden` attribute, so the tabs work even if an old stylesheet is
-cached; when printing, `beforeprint` shows all three and `afterprint` restores the tab.
+"At a glance" shows the homepage on a **computer, a tablet and a phone at the same
+time**, like a product photo: a browser window (three dots and the address) holds the
+computer view, and the tablet and phone stand in front of its lower right corner. On
+phones they sit under the browser instead. No tabs and no JavaScript: everything is
+visible at once, on the web page and in the PDF alike.
+
+Every picture has a fixed shape (CSS `aspect-ratio`, plus `width`/`height` on the
+`<img>`), so nothing jumps while the pictures load. The overlap is a CSS grid with the
+browser and the handhelds in the same cell (`.device-stage--trio`), not absolute
+positioning, so the stage is always as tall as its content. The tablet and phone only
+appear when those pictures exist (`view.has_tablet`, `view.has_phone`).
+
+Under the screens, two cards side by side, always the same height (`.glance-row`):
+**when someone shares your link** (below) and **what we checked**: pages checked,
+checks run, screens (`view.screens`), and a bar showing how much of the website the
+free check-up covered. The bar is a small SVG whose `width` attribute is set by
+Django's `{% widthratio %}` tag, because the Content Security Policy forbids inline
+`style` attributes.
 
 ### Link preview card (`templates/reports/_link_preview.html`)
 
-At the top of the SEO section: how the homepage looks when shared (picture, domain,
+In "At a glance", beside "What we checked": how the homepage looks when shared (picture, domain,
 title, description), from `AuditReport.link_preview`. The picture is the one the
 engine downloaded and checked, served from **our** site (`/checkups/<id>/images/link_preview/`),
 so the report never loads anything from the audited site (the CSP forbids it, and it

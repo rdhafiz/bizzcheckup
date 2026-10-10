@@ -1089,37 +1089,70 @@
   }
 
 
-  /* The homepage on each device: tabs on the web page, all views in the PDF. */
-  .devices__tabs {
-    @apply mb-3 inline-flex gap-1 rounded-xl border border-line bg-card p-1;
+  /* "At a glance": the homepage on every screen at once, like a product shot. A browser
+     window holds the computer view; the tablet and phone stand in front of its lower right
+     corner (on small screens they sit under it). Every picture has a fixed shape
+     (aspect-ratio), so nothing moves while they load. */
+  .device-stage {
+    --bezel: #141b1d;
+    @apply mt-8 rounded-3xl border border-line p-4 sm:p-6 lg:p-8;
+    background:
+      radial-gradient(ellipse 70% 60% at 75% 0%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 70%),
+      radial-gradient(circle, color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1.4px) 0 0 / 18px 18px,
+      var(--card);
   }
-  .devices__tab {
-    @apply inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm
-      font-semibold text-muted;
+  .device-stage--trio {
+    @apply md:grid md:grid-cols-[minmax(0,1fr)];
   }
-  .devices__tab[aria-selected="true"] {
-    color: var(--on-brand);
-    background: var(--brand);
+  .device-stage__browser {
+    @apply overflow-hidden rounded-xl border border-line bg-card shadow-xl;
   }
-  .devices__tab:hover:not([aria-selected="true"]) {
-    @apply text-ink;
+  .device-stage--trio .device-stage__browser {
+    @apply md:col-start-1 md:row-start-1 md:mb-10 md:w-[82%];
   }
-  .devices__panels {
-    @apply space-y-4;
+  .browser-bar {
+    @apply flex items-center gap-3 border-b border-line bg-paper px-3 py-2;
   }
-  .device__stage {
-    /* the same shape as the desktop screenshot, so switching tabs doesn't move the page */
-    @apply flex aspect-[16/10] items-center justify-center rounded-2xl border border-line
-      bg-paper p-3;
+  .browser-bar__dots {
+    @apply flex shrink-0 gap-1.5;
   }
-  .device__frame {
-    @apply h-full w-auto rounded-xl border-4 border-ink object-cover object-top shadow-lg;
+  .browser-bar__dots i {
+    @apply block size-2.5 rounded-full;
+    background: var(--line);
   }
-  .device__frame--phone {
-    @apply rounded-2xl border-[6px];
+  .browser-bar__url {
+    @apply mx-auto inline-flex max-w-xs min-w-0 items-center gap-1.5 truncate rounded-full border
+      border-line bg-card px-3 py-1 text-xs text-muted;
   }
-  .device__caption {
-    @apply mt-2 text-center text-xs text-muted;
+  .device-stage__screen {
+    @apply block aspect-[16/10] w-full object-cover object-top;
+  }
+  .device-stage__empty {
+    @apply flex flex-col items-center justify-center gap-2 bg-paper p-6 text-center text-muted;
+  }
+  .device-stage__handhelds {
+    @apply relative -mt-6 flex items-end justify-center gap-[4%] md:col-start-1 md:row-start-1
+      md:mt-0 md:w-[32%] md:justify-self-end md:self-end;
+  }
+  .device-stage__tablet,
+  .device-stage__phone {
+    @apply block h-auto object-cover object-top shadow-2xl;
+    border: 6px solid var(--bezel);
+    outline: 1px solid var(--line);
+  }
+  .device-stage__tablet {
+    @apply aspect-[820/1180] w-[46%] rounded-2xl md:w-[62%];
+  }
+  .device-stage__phone {
+    @apply aspect-[390/844] w-[24%] rounded-[1.1rem] md:w-[32%];
+    border-width: 5px;
+  }
+  .device-legend {
+    @apply col-start-1 mt-5 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs font-semibold
+      text-muted md:row-start-2;
+  }
+  .device-legend span {
+    @apply inline-flex items-center gap-1.5;
   }
   .verdict {
     @apply text-center text-lg leading-snug font-semibold text-balance;
@@ -1261,11 +1294,8 @@
     @apply text-ink;
   }
   /* Link preview: the card a social network shows for a shared link. */
-  .share {
-    @apply max-w-md;
-  }
   .share-card {
-    @apply overflow-hidden rounded-xl border border-line bg-card;
+    @apply mt-4 overflow-hidden rounded-xl border border-line bg-paper;
   }
   .share-card__image {
     @apply block aspect-[1200/630] w-full object-cover;
@@ -1480,19 +1510,59 @@
     color: var(--tone-violet);
   }
 
-  /* "At a glance": the devices beside the share card and what we checked. */
-  .glance-grid {
-    @apply mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)];
+  /* "At a glance", under the screens: the share card and what we checked, side by side
+     and always the same height. */
+  .glance-row {
+    @apply mt-6 grid gap-6 md:grid-cols-2;
   }
-  .glance-side {
-    @apply grid gap-6;
+  .glance-row > * {
+    @apply flex min-w-0;
   }
-  .glance-side .share {
-    @apply max-w-none;
+  .glance-row > :only-child {
+    @apply md:col-span-2;
   }
   .glance-card {
-    @apply flex items-start gap-4;
-    background: linear-gradient(160deg, var(--card) 40%, var(--tone-soft));
+    @apply flex w-full min-w-0 flex-col rounded-2xl border border-line bg-card p-5 sm:p-6;
+  }
+  .glance-card__head {
+    @apply flex items-start gap-3;
+  }
+  .glance-card__title {
+    @apply text-base font-bold;
+  }
+  .glance-stats {
+    @apply mt-5 grid grid-cols-3 gap-3;
+  }
+  .glance-stats > div {
+    @apply min-w-0 rounded-xl bg-paper p-3;
+  }
+  .glance-stats dt {
+    @apply text-xs font-semibold text-muted;
+  }
+  .glance-stats dd {
+    @apply mt-1 text-3xl leading-none font-bold tabular-nums;
+    font-family: var(--font-display);
+  }
+  .glance-stats dd span {
+    @apply mt-1.5 block font-sans text-xs leading-snug font-normal text-muted;
+  }
+  .glance-coverage {
+    @apply mt-5 space-y-2;
+  }
+  .glance-coverage__bar {
+    @apply block h-2 w-full overflow-hidden rounded-full;
+  }
+  .glance-coverage__track {
+    fill: var(--line);
+  }
+  .glance-coverage__fill {
+    fill: var(--primary);
+  }
+  .glance-card__notes {
+    @apply mt-4 space-y-1 border-t border-line pt-4 text-sm text-muted;
+  }
+  .glance-card__link {
+    @apply mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-primary;
   }
 
   /* Cards with the homepage's tinted glow. */
@@ -1832,13 +1902,8 @@
   .issue-row:has(.snippet) {
     break-inside: auto; /* long code may continue on the next page */
   }
-  .devices__panels {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-  }
-  .device--desktop {
-    grid-column: 1 / -1;
+  .device-stage {
+    break-inside: avoid;
   }
   .snippet__code {
     max-height: none;

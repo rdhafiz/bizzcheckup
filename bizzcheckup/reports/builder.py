@@ -216,6 +216,11 @@ class ReportView:
     def has_phone(self) -> bool:
         return "mobile" in self.image_kinds
 
+    @property
+    def screens(self) -> list[str]:
+        """The screens the homepage was photographed on, for "What we checked"."""
+        return ["computer"] + ["tablet"] * self.has_tablet + ["phone"] * self.has_phone
+
     # --- "Pages we found" ------------------------------------------------------------
     @property
     def all_pages(self) -> list[tuple[str, bool]]:

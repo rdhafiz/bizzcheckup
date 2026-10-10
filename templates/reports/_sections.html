@@ -16,30 +16,50 @@
 {# 1. The cover band (PDF; on the web page it sits above the dashboard, report.html) - #}
 {% if pdf %}{% include "reports/_hero.html" %}{% endif %}
 
-{# 1b. At a glance: the site on each device, the share card, what we checked ------ #}
+{# 1b. At a glance: the site on every screen, how it looks when shared, what we checked #}
 <section id="snapshot" class="report-section" aria-labelledby="snapshot-title">
   <div class="section-head" data-reveal-group>
     <p class="eyebrow-dash" data-reveal>At a glance</p>
     <h2 id="snapshot-title" class="section-title" data-reveal="words">How your website looks <span class="text-highlight" data-word>today</span></h2>
   </div>
 
-  <div class="glance-grid" data-reveal-group>
-    <div class="card min-w-0" data-reveal>{% include "reports/_devices.html" %}</div>
-    <div class="glance-side">
-      {% if report.link_preview %}
-        <div data-reveal>{% include "reports/_link_preview.html" with card=report.link_preview %}</div>
-      {% endif %}
-      <div class="card tone-teal glance-card min-w-0" data-reveal>
-        <span class="tone-tile">{% include "partials/icon.html" with name="file" css="size-5" %}</span>
-        <div class="min-w-0">
-          <p class="text-xs font-bold tracking-wider text-muted uppercase">What we checked</p>
-          <p class="mt-1 font-semibold">{{ report.pages|length }} of {{ view.all_pages|length }} page{{ view.all_pages|length|pluralize }}, {{ report.results|length }} checks in 5 vital signs.</p>
-          {% if not pdf %}<a class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary" href="#pages">See every page we found {% include "partials/icon.html" with name="arrow" css="size-4" %}</a>{% endif %}
-          {% if report.notes %}
-            <ul class="mt-3 space-y-1 border-t border-line pt-3 text-sm text-muted">{% for note in report.notes %}<li>{{ note }}</li>{% endfor %}</ul>
-          {% endif %}
-        </div>
-      </div>
+  <div data-reveal>{% include "reports/_devices.html" %}</div>
+
+  <div class="glance-row" data-reveal-group>
+    {% if report.link_preview %}
+      <div data-reveal>{% include "reports/_link_preview.html" with card=report.link_preview %}</div>
+    {% endif %}
+    <div data-reveal>
+      <article class="glance-card">
+        <header class="glance-card__head">
+          <span class="tone-tile tone-green">{% include "partials/icon.html" with name="file" css="size-5" %}</span>
+          <div>
+            <h3 class="glance-card__title">What we checked</h3>
+            <p class="text-xs text-muted">The free check-up looks at a sample of your website.</p>
+          </div>
+        </header>
+        <dl class="glance-stats">
+          <div><dt>Pages checked</dt><dd>{{ report.pages|length }}<span>of {{ view.all_pages|length }} found</span></dd></div>
+          <div><dt>Checks run</dt><dd>{{ report.results|length }}<span>in 5 vital signs</span></dd></div>
+          <div><dt>Screens</dt><dd>{{ view.screens|length }}<span>{{ view.screens|join:", " }}</span></dd></div>
+        </dl>
+        {% with checked=report.pages|length found=view.all_pages|length %}
+          <div class="glance-coverage">
+            <p class="text-sm font-semibold">{% widthratio checked found 100 %}% of your website checked</p>
+            <svg class="glance-coverage__bar" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
+              <rect class="glance-coverage__track" width="100" height="2" rx="1"/>
+              <rect class="glance-coverage__fill" width="{% widthratio checked found 100 %}" height="2" rx="1"/>
+            </svg>
+            {% if checked < found %}<p class="text-xs text-muted">The other {{ view.unchecked_count }} page{{ view.unchecked_count|pluralize }} weren't checked this time; problems found here usually repeat on them.</p>{% endif %}
+          </div>
+        {% endwith %}
+        {% if report.notes %}
+          <ul class="glance-card__notes">{% for note in report.notes %}<li>{{ note }}</li>{% endfor %}</ul>
+        {% endif %}
+        {% if not pdf %}
+          <a class="glance-card__link" href="#pages">See every page we found {% include "partials/icon.html" with name="arrow" css="size-4" %}</a>
+        {% endif %}
+      </article>
     </div>
   </div>
 
