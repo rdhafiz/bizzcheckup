@@ -42,6 +42,24 @@
         </ul>
       </div>
     {% endif %}
+    {% if row.shots %}
+      <div class="issue__part sm:col-span-2">
+        <h4 class="issue__heading">{% include "partials/icon.html" with name="where" css="size-4" %} Where it is on the page</h4>
+        <div class="shot-grid">
+          {% for shot in row.shots %}
+            <figure class="shot">
+              <img src="{% url 'checkups:image' checkup.pk shot.image %}" loading="lazy"
+                   alt="Where it is on {{ shot.page|url_path }}, outlined in red: {{ shot.label }}">
+              <figcaption class="shot__caption">
+                {% if shot.device == "mobile" %}<span class="shot__device">{% include "partials/icon.html" with name="phone" css="size-3.5" %}On a phone</span>{% endif %}
+                <span class="font-mono break-all">{{ shot.label }}</span>
+                <span class="text-muted">on {{ shot.page|url_path }}</span>
+              </figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
     {% if finding.snippets %}
       <div class="issue__part sm:col-span-2">
         <h4 class="issue__heading">{% include "partials/icon.html" with name="fix" css="size-4" %} {% if finding.snippets.0.language == "element" %}Where on the page{% elif finding.snippets.0.language == "text" %}Page by page{% else %}Ready to use: copy, fill in any REPLACE values, paste{% endif %}</h4>

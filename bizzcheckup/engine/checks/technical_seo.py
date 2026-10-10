@@ -14,14 +14,17 @@ from selectolax.lexbor import LexborHTMLParser, LexborNode
 
 from ..context import PROBES, AuditContext
 from ..crawler import extract_links
-from ..types import Category, Finding, Level, Page, Severity, Snippet
-from ..urls import same_origin
+from ..types import Category, Finding, Level, Page, Severity, Shot, Snippet
+from ..urls import domain, same_origin, site_domain
 from ._helpers import (
     links_with_rel,
     meta_content,
     meta_http_equiv,
     on_pages,
     share_score,
+    shot_of,
+    shots_for_urls,
+    shots_of,
     title_text,
 )
 from .base import Check
@@ -67,9 +70,11 @@ class HeadingStructure(Check):
     def run(self, ctx: AuditContext) -> list[Finding]:
         outlines: dict[str, list[tuple[int, str]]] = {}
         words: dict[str, int] = {}
+        heading_nodes: dict[str, list[LexborNode]] = {}
         for page in ctx.html_pages:
             tree = ctx.dom(page)
             nodes = tree.css("h1, h2, h3, h4, h5, h6")
+            heading_nodes[page.final_url] = nodes
             outlines[page.final_url] = [(int((n.tag or "h0")[1]), heading_text(n)) for n in nodes]
             body = tree.body
             words[page.final_url] = len(body.text(separator=" ").split()) if body else 0
@@ -104,6 +109,19 @@ class HeadingStructure(Check):
             for url in flagged[:MAX_LISTED]
         ]
         total = len(outlines)
+        shots: list[Shot] = []
+        for url in problems:
+            outline = outlines[url]
+            culprits = [
+                node
+                for index, (node, (level, text)) in enumerate(
+                    zip(heading_nodes[url], outline, strict=True)
+                )
+                if not text  # empty
+                or (level == 1 and text.lower() in shared_h1)  # the same H1 as another page
+                or (level == 1 and index > 0 and outline[0][0] != 1)  # H1 not first
+            ]
+            shots += shots_of(culprits, url)
         if problems:
             return [
                 self.finding(
@@ -121,6 +139,7 @@ class HeadingStructure(Check):
                     impact=Level.MEDIUM if ctx.homepage.final_url in problems else Level.LOW,
                     urls=list(problems),
                     snippets=snippets,
+                    shots=shots,
                 )
             ]
         if notes:
@@ -252,6 +271,8 @@ class ImageSeo(Check):
     def run(self, ctx: AuditContext) -> list[Finding]:
         bad: dict[str, list[str]] = {}  # url -> lines for the breakdown (alt problems)
         minor: dict[str, list[str]] = {}  # url -> lines (file names, long alt)
+        bad_shots: list[Shot] = []
+        minor_shots: list[Shot] = []
         total = flagged = 0
         for page in ctx.html_pages:
             for img in ctx.dom(page).css("img"):
@@ -269,8 +290,10 @@ class ImageSeo(Check):
                 if problem:
                     flagged += 1
                     bad.setdefault(page.final_url, []).append(self.row(src, alt, [problem, *notes]))
+                    bad_shots.append(shot_of(img, page.final_url))
                 elif notes:
                     minor.setdefault(page.final_url, []).append(self.row(src, alt, notes))
+                    minor_shots.append(shot_of(img, page.final_url))
         if total == 0:
             return []
         self.partial = share_score(total, 0, flagged)
@@ -288,6 +311,7 @@ class ImageSeo(Check):
                     impact=Level.MEDIUM,
                     urls=list(bad),
                     snippets=snippets,
+                    shots=bad_shots,
                 )
             ]
         if minor:
@@ -302,6 +326,7 @@ class ImageSeo(Check):
                     impact=Level.LOW,
                     urls=list(minor),
                     snippets=snippets,
+                    shots=minor_shots,
                 )
             ]
         where = "on your homepage" if pages == 1 else f"on the {pages} pages we checked"
@@ -611,13 +636,21 @@ class MetaTags(Check):
 
 # --- links to other websites and images ---------------------------------------------------
 
+
 # Answers that mean "this site doesn't let robots check" rather than "broken":
 # 401/403 (members only or bot protection), 429 (too many requests), 999 (LinkedIn).
-CANT_VERIFY = {401, 403, 429, 999}
-
-
 def is_broken(code: int) -> bool:
-    return code not in CANT_VERIFY and (code == 0 or code >= 400)
+    """Only answers that clearly mean "this is gone": no answer, 404, 410 or a server error.
+
+    Other refusals (400, 401, 403, 429, LinkedIn's 999...) usually mean "robots not
+    welcome", so they can't tell us whether the page exists.
+    """
+    return code == 0 or code in (404, 410) or 500 <= code < 600
+
+
+def is_verified(code: int) -> bool:
+    """We know for sure: it works (2xx/3xx) or it's clearly broken."""
+    return 200 <= code < 400 or is_broken(code)
 
 
 class BrokenExternalLinks(Check):
@@ -641,29 +674,42 @@ class BrokenExternalLinks(Check):
     )
 
     def run(self, ctx: AuditContext) -> list[Finding]:
-        statuses = ctx.probes.external_status
+        statuses = {
+            url: code for url, code in ctx.probes.external_status.items() if is_verified(code)
+        }
         if not statuses:
-            return []
+            return []  # nothing we could check for sure
         broken = sorted(url for url, code in statuses.items() if is_broken(code))
         self.partial = share_score(len(statuses), len(broken))
+        skipped = self.skipped_note(ctx)
         if not broken:
             return [
                 self.passed(
-                    f"All {len(statuses)} links to other websites we checked work.", self.WHY
+                    f"All {len(statuses)} links to other websites we checked work.{skipped}",
+                    self.WHY,
                 )
             ]
         return [
             self.finding(
                 Severity.WARN,
                 f"{len(broken)} of the {len(statuses)} links to other websites we checked are "
-                "broken.",
+                f"broken.{skipped}",
                 self.WHY,
                 self.FIX,
                 impact=Level.LOW,
                 urls=broken,
                 snippets=[where_to_fix(broken, statuses, ctx.probes.external_sources)],
+                shots=shots_for_urls(ctx, broken, ctx.probes.external_sources, "a", "href"),
             )
         ]
+
+    @staticmethod
+    def skipped_note(ctx: AuditContext) -> str:
+        """Social networks block robots, so their links aren't checked; say so."""
+        sites = sorted({site_domain(domain(url)) for url in ctx.probes.external_skipped})
+        if not sites:
+            return ""
+        return f" Links to {', '.join(sites)} can't be checked by a robot, so we skipped them."
 
 
 class BrokenImages(Check):
@@ -701,5 +747,6 @@ class BrokenImages(Check):
                 impact=Level.MEDIUM,
                 urls=broken,
                 snippets=[where_to_fix(broken, statuses, ctx.probes.image_sources)],
+                shots=shots_for_urls(ctx, broken, ctx.probes.image_sources, "img", "src"),
             )
         ]

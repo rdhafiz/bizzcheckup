@@ -23,7 +23,7 @@ Severity meanings:
 | Id | Title | Weight | Looks at | Pass | Warn | Fail |
 |----|-------|--------|----------|------|------|------|
 | `seo.title` | Page titles | 8 | `<title>` on every page (partial) | 10–60 characters | Under 10 or over 60 | Missing (high impact) |
-| `seo.meta_description` | Search result descriptions | 6 | `<meta name="description">` (partial) | 50–160 characters | Missing (medium impact) or wrong length (low impact) | — |
+| `seo.meta_description` | Search result descriptions | 6 | `<meta name="description">` (partial) | 50–160 characters | Missing (medium impact), or the wrong length (low impact): the message counts how many are too long and too short, and a page-by-page list gives each description's length, how far off it is and the current text | — |
 | `seo.single_h1` | Main heading | 5 | `<h1>` count per page (partial) | Exactly one | None, or more than one | — |
 | `seo.canonical` | Preferred page address | 3 | `<link rel="canonical">` on the homepage | One absolute URL on the same domain | Missing, several, or relative | Points to **another domain** (high impact) |
 | `seo.robots_txt` | robots.txt | 5 | `/robots.txt` | Exists, Googlebot allowed | Missing | Blocks Googlebot from the homepage (high impact) |
@@ -46,8 +46,8 @@ to change where.
 | `seo.image_seo` | Image descriptions and file names | 4 | Every `<img>` (partial) | All described | Only camera-style file names (`IMG_4821.jpg`) or alt text over 125 characters | Missing alt, alt that is a file name, or a word like "image" | — |
 | `seo.url_structure` | Clean page addresses (URLs) | 3 | Crawled pages and internal links (partial) | All clean | Over 115 characters, more than 4 folders deep, many `?` parameters, technical endings (`.php`) | Capital letters, underscores, spaces, double slashes, session ids, or links to the `http://` version. Each comes with a suggested clean address. | — |
 | `seo.meta_tags` | Essential meta tags | 4 | `title`, `description`, `viewport`, `charset`, `canonical` and `<html lang>` on every page, plus meta refresh (partial) | All present | Only the language missing | Any of the five core tags missing (with a complete `<head>` block per page), or a meta refresh | — |
-| `seo.broken_external_links` | Links to other websites | 3 | Up to 30 links to other sites (needs PROBES) (partial) | All work | — | Any 404/410/5xx or unreachable. 401, 403, 429 and 999 (LinkedIn) mean "robots not allowed", so they don't count. | — |
-| `seo.broken_images` | Broken images | 4 | Up to 40 images on any site (needs PROBES) (partial) | All load | — | — | Any that don't load |
+| `seo.broken_external_links` | Links to other websites | 3 | Up to 30 links to other sites (needs PROBES) (partial) | All work | — | Clearly broken: 404, 410, a server error (5xx) or no answer. Other refusals (400, 401, 403, 429, LinkedIn's 999) usually mean "robots not welcome", so they don't count either way. **Social networks are skipped** (Facebook, Instagram, LinkedIn, X/Twitter, TikTok, Threads: `config.WALLED_SITES`): they hide pages from robots behind a login, and even a deleted page can answer 200, so the message says they weren't checked | — |
+| `seo.broken_images` | Broken images | 4 | Up to 40 images on any site (needs PROBES) (partial) | All load | — | — | Any that clearly don't load (same rule: 404, 410, 5xx or no answer) |
 
 Not applicable: `heading_structure` without headings, `image_seo` without images, and
 the two probe checks when nothing was probed. Requests to other websites have a short
@@ -87,6 +87,10 @@ business, an article, a product, an FAQ. The check works in three steps for **ea
 
 The suggestions travel on the finding as `snippets` (a `Snippet` has a `title` and the
 `code`), one per page, and the report shows each one with a **Copy** button.
+
+**Pictures.** Many SEO, accessibility, performance and phone checks also point at the
+elements causing a problem, and the report shows a picture of each with the element
+outlined in red (see [the audit engine](14-audit-engine.md#pictures-of-where-each-problem-is-collectorsshotspy)).
 
 ## Best practices (`bizzcheckup/engine/checks/best_practices.py`)
 

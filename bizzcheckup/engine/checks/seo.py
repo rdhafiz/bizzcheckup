@@ -4,9 +4,17 @@ from collections import defaultdict
 
 from .. import preview, schema
 from ..context import PROBES, AuditContext
-from ..types import Category, Finding, Level, Severity, Snippet
+from ..types import Category, Finding, Level, Severity, Shot, Snippet
 from ..urls import domain, origin
-from ._helpers import links_with_rel, meta_content, on_pages, share_score, title_text
+from ._helpers import (
+    links_with_rel,
+    meta_content,
+    on_pages,
+    share_score,
+    shots_for_urls,
+    shots_of,
+    title_text,
+)
 from .base import Check
 
 TITLE_MIN, TITLE_MAX = 10, 60
@@ -106,13 +114,14 @@ class MetaDescription(Check):
 
     def run(self, ctx: AuditContext) -> list[Finding]:
         pages = ctx.html_pages
-        missing, bad_length = [], []
+        missing: list[str] = []
+        bad_length: list[tuple[str, str]] = []  # (page, its description)
         for page in pages:
             text = meta_content(ctx.tree(page), "description")
             if not text:
                 missing.append(page.final_url)
             elif not DESCRIPTION_MIN <= len(text) <= DESCRIPTION_MAX:
-                bad_length.append(page.final_url)
+                bad_length.append((page.final_url, text))
 
         total = len(pages)
         self.partial = share_score(total, 0, len(missing) * 2 + len(bad_length))
@@ -137,19 +146,62 @@ class MetaDescription(Check):
             findings.append(
                 self.finding(
                     Severity.WARN,
-                    on_pages(
-                        len(bad_length),
-                        total,
-                        "has a description that is too short or too long.",
-                        "have descriptions that are too short or too long.",
-                    ),
+                    self.length_message(bad_length, total),
                     self.WHY,
-                    self.FIX,
+                    f"Rewrite each description listed below to {DESCRIPTION_MIN}-"
+                    f"{DESCRIPTION_MAX} characters: what the page offers, in your customers' "
+                    "words, ending with a reason to visit. Google cuts off longer ones with "
+                    "... and may replace very short ones with random text from the page.",
                     impact=Level.LOW,
-                    urls=bad_length,
+                    urls=[url for url, _ in bad_length],
+                    snippets=[self.length_breakdown(bad_length)],
                 )
             )
         return findings or [self.passed("Every page has a good search description.", self.WHY)]
+
+    @staticmethod
+    def length_message(bad: list[tuple[str, str]], total: int) -> str:
+        long = sum(1 for _, text in bad if len(text) > DESCRIPTION_MAX)
+        short = len(bad) - long
+        parts = []
+        if long:
+            parts.append(f"{long} too long (over {DESCRIPTION_MAX} characters)")
+        if short:
+            parts.append(f"{short} too short (under {DESCRIPTION_MIN})")
+        if total == 1:
+            [(_, text)] = bad
+            size = "too long" if len(text) > DESCRIPTION_MAX else "too short"
+            return (
+                f"Your homepage's search description is {size}: {len(text)} characters "
+                f"(aim for {DESCRIPTION_MIN}-{DESCRIPTION_MAX})."
+            )
+        pages = (
+            "page we checked has a description"
+            if len(bad) == 1
+            else "pages we checked have descriptions"
+        )
+        return f"{len(bad)} of the {total} {pages} of the wrong length: {' and '.join(parts)}."
+
+    @staticmethod
+    def length_breakdown(bad: list[tuple[str, str]]) -> Snippet:
+        """Each page with its description's length, how far off it is, and the text itself."""
+        rows = []
+        for url, text in bad:  # page order, like the "Where" list
+            length = len(text)
+            if length > DESCRIPTION_MAX:
+                verdict = (
+                    f"too long by {length - DESCRIPTION_MAX} (Google shows about {DESCRIPTION_MAX})"
+                )
+            else:
+                missing = DESCRIPTION_MIN - length
+                verdict = f"too short by {missing} (aim for {DESCRIPTION_MIN}-{DESCRIPTION_MAX})"
+            rows.append(f'{url}\n    {length} characters: {verdict}\n    now: "{text}"')
+        return Snippet(
+            title=f"{len(bad)} description{'s' if len(bad) > 1 else ''} {schema.EM_DASH} "
+            "length, page by page",
+            code="\n\n".join(rows),
+            language="text",
+        )
 
 
 class SingleH1(Check):
@@ -166,12 +218,14 @@ class SingleH1(Check):
     def run(self, ctx: AuditContext) -> list[Finding]:
         pages = ctx.html_pages
         none, several = [], []
+        shots: list[Shot] = []
         for page in pages:
             count = len(ctx.tree(page).css("h1"))
             if count == 0:
                 none.append(page.final_url)
             elif count > 1:
                 several.append(page.final_url)
+                shots += shots_of(ctx.dom(page).css("h1"), page.final_url)
 
         total = len(pages)
         self.partial = share_score(total, 0, len(none) + len(several))
@@ -203,6 +257,7 @@ class SingleH1(Check):
                     "headings.",
                     impact=Level.LOW,
                     urls=several,
+                    shots=shots,
                 )
             )
         return findings or [self.passed("Every page has exactly one main heading.", self.WHY)]
@@ -699,6 +754,7 @@ class BrokenLinks(Check):
                 impact=Level.MEDIUM,
                 urls=broken,
                 snippets=[breakdown],
+                shots=shots_for_urls(ctx, broken, ctx.probes.link_sources, "a", "href"),
             )
         ]
 

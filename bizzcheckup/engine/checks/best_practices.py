@@ -4,8 +4,8 @@ import re
 from dataclasses import dataclass
 
 from ..context import PROBES, RENDER, AuditContext
-from ..types import Category, Finding, Level, Page, Severity
-from ._helpers import meta_content, meta_http_equiv, on_pages, version_tuple
+from ..types import Category, Finding, Level, Page, Severity, Shot
+from ._helpers import meta_content, meta_http_equiv, on_pages, shot_of, version_tuple
 from .base import Check
 
 HSTS_MIN_SECONDS = 180 * 24 * 60 * 60  # 180 days
@@ -121,6 +121,7 @@ class MixedContent(Check):
             return []
         active: set[str] = set()
         passive: set[str] = set()
+        shots: list[Shot] = []  # only visible things (images, media, frames) can be shown
         for page in secure_pages:
             tree = ctx.tree(page)
             stylesheets = [
@@ -135,6 +136,8 @@ class MixedContent(Check):
                 for node in tree.css(resource.selector):
                     if (node.attributes.get(resource.attribute) or "").startswith("http://"):
                         (active if resource.active else passive).add(page.final_url)
+                        if node.tag in ("img", "iframe", "video", "audio") and len(shots) < 3:
+                            shots.append(shot_of(node, page.final_url))
 
         total = len(secure_pages)
         fix = (
@@ -154,6 +157,7 @@ class MixedContent(Check):
                     fix,
                     impact=Level.HIGH,
                     urls=sorted(active | passive),
+                    shots=shots,
                 )
             ]
         if passive:
@@ -170,6 +174,7 @@ class MixedContent(Check):
                     fix,
                     impact=Level.MEDIUM,
                     urls=sorted(passive),
+                    shots=shots,
                 )
             ]
         return [self.passed("All files on your secure pages are loaded securely.", self.WHY)]

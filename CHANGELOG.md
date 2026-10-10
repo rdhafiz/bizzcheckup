@@ -17,9 +17,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - `CLIENT_IP_HEADER` setting: read the visitor IP from a header the proxy always sets,
   like Cloudflare's `CF-Connecting-IP`, which visitors can't fake.
 
+### Added
+- **Pictures of where each problem is**: issues with an element to point at (images
+  without alt text, broken links and images, unlabelled form fields, too-small buttons on
+  a phone, several H1s and more) now show a screenshot of the spot with the element
+  outlined in red, also on the "Fix these first" cards. Taken after the checks, at most 24
+  per check-up within 30 seconds; phone problems are photographed at phone size.
+- **Description lengths page by page**: "wrong length" now says how many descriptions are
+  too long and too short, and lists each page's description with its character count, how
+  far off it is and the current text.
+
 ### Changed
 - Scroll reveals no longer blur: content and heading words fade and rise only. Animating
   the blur made reveals stall half-way on some devices, leaving content stuck blurry.
+
+### Fixed
+- Links to social networks (Facebook, Instagram, LinkedIn, X, TikTok, Threads) were
+  reported as broken: they refuse robots (Facebook answers 400). They're now skipped, and
+  the report says so. For other sites only clear answers count as broken (404, 410, 5xx or
+  no answer); other refusals such as 400 or 403 no longer do.
+- Screen-reader-only links ("Skip to content", 1×1 px until focused) are no longer
+  counted as too small to tap.
 
 ## [0.2.0-alpha] - 2026-10-08
 

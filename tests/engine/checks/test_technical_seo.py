@@ -215,7 +215,7 @@ def test_meta_refresh_warns() -> None:
 # --- links to other websites and images ------------------------------------------------------
 
 
-def probed(**statuses: dict[str, object]) -> AuditContext:
+def probed(**statuses: object) -> AuditContext:
     ctx = make_context(make_page(fixture_html("healthy")), capabilities={PROBES})
     for name, value in statuses.items():
         setattr(ctx.probes, name, value)
@@ -255,3 +255,39 @@ def test_nothing_probed_is_not_applicable() -> None:
     assert [
         f.severity for f in tech.BrokenImages().run(probed(image_status={f"{HOME}a": 200}))
     ] == [Severity.PASS]
+
+
+@pytest.mark.parametrize(
+    ("code", "broken", "verified"),
+    [
+        (200, False, True),
+        (301, False, True),
+        (404, True, True),
+        (410, True, True),
+        (503, True, True),
+        (0, True, True),  # no answer at all
+        (400, False, False),  # Facebook's answer to robots
+        (403, False, False),
+        (429, False, False),
+        (999, False, False),  # LinkedIn's
+    ],
+)
+def test_only_clear_answers_count(code: int, broken: bool, verified: bool) -> None:
+    assert tech.is_broken(code) is broken
+    assert tech.is_verified(code) is verified
+
+
+def test_social_network_links_are_skipped_and_explained() -> None:
+    ctx = probed(
+        external_status={"https://partner.test/": 200, "https://other.test/x": 403},
+        external_skipped=[
+            "https://www.facebook.com/bizzacquire",
+            "https://www.instagram.com/bizzacquire",
+        ],
+    )
+    [finding] = tech.BrokenExternalLinks().run(ctx)
+    assert finding.severity is Severity.PASS
+    assert finding.message == (
+        "All 1 links to other websites we checked work. Links to facebook.com, instagram.com "
+        "can't be checked by a robot, so we skipped them."
+    )

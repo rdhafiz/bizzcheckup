@@ -105,9 +105,9 @@ class CheckupImage(models.Model):
 
     # Only real pictures are stored (checked from their first bytes, never SVG).
     ALLOWED_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
-    # Besides the kinds above: "element-1" ... "element-99", pictures of the elements an
-    # accessibility rule flagged, outlined in red.
-    ELEMENT_KIND = re.compile(r"element-[1-9][0-9]?")
+    # Besides the kinds above: "element-1" ... "element-99" (elements an accessibility rule
+    # flagged) and "shot-1" ... "shot-99" (where any other problem is), outlined in red.
+    ELEMENT_KIND = re.compile(r"(element|shot)-[1-9][0-9]?")
 
     checkup = models.ForeignKey(Checkup, on_delete=models.CASCADE, related_name="images")
     kind = models.CharField(max_length=20)  # a Kind value, or "element-<n>"

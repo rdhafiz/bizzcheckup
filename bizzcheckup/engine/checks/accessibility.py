@@ -11,8 +11,8 @@ from itertools import pairwise
 from selectolax.lexbor import LexborNode
 
 from ..context import RENDER, AuditContext
-from ..types import AxeNode, AxeRule, Category, Finding, Level, Severity, Snippet
-from ._helpers import on_pages, share_score
+from ..types import AxeNode, AxeRule, Category, Finding, Level, Severity, Shot, Snippet
+from ._helpers import on_pages, share_score, shots_of
 from .base import Check
 
 WHO = (
@@ -55,6 +55,7 @@ class ImageAlt(Check):
         total = 0
         missing_pages: list[str] = []
         missing = 0
+        shots: list[Shot] = []
         for page in ctx.html_pages:
             images = ctx.dom(page).css("img")
             bad = [img for img in images if "alt" not in img.attributes]
@@ -62,6 +63,7 @@ class ImageAlt(Check):
             missing += len(bad)
             if bad:
                 missing_pages.append(page.final_url)
+                shots += shots_of(bad, page.final_url)
         if total == 0:
             return []
         self.partial = share_score(total, missing)
@@ -77,6 +79,7 @@ class ImageAlt(Check):
                 effort=Level.LOW if missing <= 10 else Level.MEDIUM,
                 impact=Level.HIGH,
                 urls=missing_pages,
+                shots=shots,
             )
         ]
 
@@ -139,15 +142,21 @@ class HeadingOrder(Check):
         pages = ctx.html_pages
         skipped: list[str] = []
         with_headings = 0
+        shots: list[Shot] = []
         for page in pages:
-            levels = [
-                int((node.tag or "h0")[1]) for node in ctx.dom(page).css("h1, h2, h3, h4, h5, h6")
-            ]
+            nodes = ctx.dom(page).css("h1, h2, h3, h4, h5, h6")
+            levels = [int((node.tag or "h0")[1]) for node in nodes]
             if not levels:
                 continue
             with_headings += 1
-            if any(current > previous + 1 for previous, current in pairwise(levels)):
+            jumps = [
+                node
+                for (previous, current), node in zip(pairwise(levels), nodes[1:], strict=True)
+                if current > previous + 1
+            ]
+            if jumps:
                 skipped.append(page.final_url)
+                shots += shots_of(jumps, page.final_url)
         if with_headings == 0:
             return []
         self.partial = share_score(with_headings, 0, len(skipped))
@@ -167,6 +176,7 @@ class HeadingOrder(Check):
                 "the look with CSS instead of picking a smaller heading level.",
                 impact=Level.LOW,
                 urls=skipped,
+                shots=shots,
             )
         ]
 
@@ -188,6 +198,7 @@ class FormLabels(Check):
         total = 0
         unlabelled = 0
         pages_with_problems: list[str] = []
+        shots: list[Shot] = []
         for page in ctx.html_pages:
             tree = ctx.dom(page)
             label_targets = {
@@ -203,6 +214,7 @@ class FormLabels(Check):
             unlabelled += len(bad)
             if bad:
                 pages_with_problems.append(page.final_url)
+                shots += shots_of(bad, page.final_url)
         if total == 0:
             return []  # no forms: nothing to check
         self.partial = share_score(total, unlabelled)
@@ -218,6 +230,7 @@ class FormLabels(Check):
                 "not a label.",
                 impact=Level.HIGH,
                 urls=pages_with_problems,
+                shots=shots,
             )
         ]
 
@@ -252,6 +265,7 @@ class AccessibleNames(Check):
         total = 0
         nameless = 0
         pages_with_problems: list[str] = []
+        shots: list[Shot] = []
         for page in ctx.html_pages:
             tree = ctx.dom(page)
             elements = tree.css("a[href], button")
@@ -262,6 +276,7 @@ class AccessibleNames(Check):
             nameless += len(bad)
             if bad:
                 pages_with_problems.append(page.final_url)
+                shots += shots_of(bad, page.final_url)
         if total == 0:
             return []
         self.partial = share_score(total, 0, nameless)
@@ -276,6 +291,7 @@ class AccessibleNames(Check):
                 "For image links, give the image an alt text.",
                 impact=Level.MEDIUM,
                 urls=pages_with_problems,
+                shots=shots,
             )
         ]
 

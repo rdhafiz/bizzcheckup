@@ -13,14 +13,20 @@ import asyncio
 from urllib.parse import urlsplit, urlunsplit
 
 from .. import preview
-from ..config import AI_AGENT_USER_AGENT, BROWSER_USER_AGENT, ROBOTS_AGENT_NAME, EngineConfig
+from ..config import (
+    AI_AGENT_USER_AGENT,
+    BROWSER_USER_AGENT,
+    ROBOTS_AGENT_NAME,
+    WALLED_SITES,
+    EngineConfig,
+)
 from ..context import PROBES, AuditContext
 from ..crawler import extract_links
 from ..fetcher import Fetcher, FetchError
 from ..firewall import checkpoint_provider
 from ..netguard import BlockedURLError
 from ..types import AgentProbe
-from ..urls import absolute, domain, same_origin, same_site
+from ..urls import absolute, domain, same_origin, same_site, site_domain
 
 
 async def collect_probes(ctx: AuditContext, fetcher: Fetcher, config: EngineConfig) -> None:
@@ -151,10 +157,13 @@ async def probe_external_links(ctx: AuditContext, fetcher: Fetcher, config: Engi
                 pages = sources.setdefault(link, [])
                 if page.final_url not in pages:
                     pages.append(page.final_url)
+    walled = [url for url in sources if site_domain(domain(url)) in WALLED_SITES]
+    checkable = [url for url in sources if url not in walled]
     ctx.probes.external_status = await check_all(
-        fetcher, list(sources)[: config.max_external_checks], config
+        fetcher, checkable[: config.max_external_checks], config
     )
     ctx.probes.external_sources = sources
+    ctx.probes.external_skipped = walled
 
 
 async def probe_images(ctx: AuditContext, fetcher: Fetcher, config: EngineConfig) -> None:

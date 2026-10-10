@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from selectolax.lexbor import LexborHTMLParser
 
 from ..context import PAGESPEED, AuditContext
-from ..types import Category, Finding, Level, Severity, SpeedTest
-from ._helpers import on_pages, share_score
+from ..types import Category, Finding, Level, Severity, Shot, SpeedTest
+from ._helpers import on_pages, share_score, shots_of
 from .base import Check
 
 SPEED_WHY = (
@@ -280,6 +280,7 @@ class ImageDimensions(Check):
         total = 0
         unsized = 0
         pages: list[str] = []
+        shots: list[Shot] = []
         for page in ctx.html_pages:
             images = [
                 img
@@ -293,6 +294,7 @@ class ImageDimensions(Check):
             unsized += len(bad)
             if bad:
                 pages.append(page.final_url)
+                shots += shots_of(bad, page.final_url)
         if total == 0:
             return []
         self.partial = share_score(total, 0, unsized)
@@ -307,6 +309,7 @@ class ImageDimensions(Check):
                 'height="600" alt="...">. CSS can still make them responsive.',
                 impact=Level.MEDIUM,
                 urls=pages,
+                shots=shots,
             )
         ]
 

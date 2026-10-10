@@ -13,6 +13,7 @@ STEPS: list[tuple[int, str]] = [
         (runner.CHECKS_START + runner.CHECKS_STEP * index, f"Checking {category.label}")
         for index, category in enumerate(Category)
     ],
+    (runner.SHOTS_START, "Taking pictures of the problems"),
     (runner.REPORT_START, "Preparing your report"),
 ]
 

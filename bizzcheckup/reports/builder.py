@@ -11,7 +11,15 @@ import segno
 from bizzcheckup.checkups.models import Checkup
 from bizzcheckup.engine.scoring import CATEGORY_WEIGHTS, HEALTHY_FROM
 from bizzcheckup.engine.treatment import TreatmentPlan, build_treatment_plan
-from bizzcheckup.engine.types import AuditReport, Band, Category, CategoryScore, Finding, Severity
+from bizzcheckup.engine.types import (
+    AuditReport,
+    Band,
+    Category,
+    CategoryScore,
+    Finding,
+    Severity,
+    Shot,
+)
 
 from .branding import Branding, Service, load_branding
 
@@ -109,6 +117,15 @@ class IssueRow:
     finding: Finding
     key: str  # stable within the report, for links to the row, e.g. "seo-title-1"
     quick_win: bool = False
+    shots: list[Shot] = field(default_factory=list)  # pictures of where it is (taken ones)
+    element_images: list[str] = field(default_factory=list)  # accessibility-scan pictures
+
+    @property
+    def preview_image(self) -> str:
+        """One picture for the "Fix these first" card: a shot, or an accessibility picture."""
+        if self.shots:
+            return self.shots[0].image
+        return self.element_images[0] if self.element_images else ""
 
     @property
     def anchor(self) -> str:
@@ -224,6 +241,7 @@ def build_report(checkup: Checkup) -> ReportView:
     vital_signs = [vital_sign(report, category) for category in Category]
     plan = build_treatment_plan(report.findings)
     recommendations, extra = recommend_services(branding, vital_signs)
+    image_kinds = set(checkup.images.values_list("kind", flat=True))
     return ReportView(
         checkup=checkup,
         report=report,
@@ -234,19 +252,28 @@ def build_report(checkup: Checkup) -> ReportView:
         recommendations=recommendations,
         extra_services=extra,
         qr_svg=qr_code_svg(str(branding.qr_target)) if branding.qr_target else "",
-        image_kinds=set(checkup.images.values_list("kind", flat=True)),
-        issues=issue_rows(plan, vital_signs),
+        image_kinds=image_kinds,
+        issues=issue_rows(plan, vital_signs, image_kinds),
     )
 
 
-def issue_rows(plan: TreatmentPlan, signs: list[VitalSign]) -> list[IssueRow]:
+def issue_rows(
+    plan: TreatmentPlan, signs: list[VitalSign], image_kinds: set[str] | None = None
+) -> list[IssueRow]:
     """Quick wins, then the other problems (plan order), then the "good to know" notes."""
     counts: dict[str, int] = {}
+    saved = image_kinds or set()
 
     def row(finding: Finding, quick_win: bool = False) -> IssueRow:
         base = finding.check_id.replace(".", "-").replace("_", "-")
         counts[base] = counts.get(base, 0) + 1
-        return IssueRow(finding=finding, key=f"{base}-{counts[base]}", quick_win=quick_win)
+        return IssueRow(
+            finding=finding,
+            key=f"{base}-{counts[base]}",
+            quick_win=quick_win,
+            shots=[shot for shot in finding.shots if shot.image and shot.image in saved],
+            element_images=[s.image for s in finding.snippets if s.image and s.image in saved],
+        )
 
     rows = [row(f, quick_win=True) for f in plan.quick_wins]
     rows += [row(f) for f in plan.others]

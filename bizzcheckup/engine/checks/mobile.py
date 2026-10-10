@@ -4,7 +4,7 @@ They use the browser collector's phone (390 px) and tablet (820 px) views of the
 """
 
 from ..context import RENDER, AuditContext
-from ..types import Category, DeviceView, Finding, Level, Severity, Snippet
+from ..types import Category, DeviceView, Finding, Level, Severity, Shot, Snippet
 from ._helpers import share_score
 from .base import Check
 
@@ -24,6 +24,27 @@ def shrink_percent(view: DeviceView) -> int:
 def article(number: int) -> str:
     """ "a" or "an" before a number said aloud: a 390, an 820, an 11."""
     return "an" if str(number).startswith(("8", "11", "18")) else "a"
+
+
+def phone_shots(url: str, selectors: list[str], labels: list[str]) -> list[Shot]:
+    """Pictures of these elements, taken in a phone-sized window."""
+    return [
+        Shot(
+            page=url,
+            selector=selector,
+            match_text=quoted_text(label),
+            label=label or "element",
+            device="mobile",
+        )
+        for selector, label in zip(selectors, labels, strict=False)
+        if selector
+    ][:3]
+
+
+def quoted_text(label: str) -> str:
+    """The text part of a browser description: 'a.nav "Home"' -> 'Home'."""
+    start = label.find('"')
+    return label[start + 1 : label.rfind('"')][:40] if start != -1 and label.endswith('"') else ""
 
 
 def examples(title: str, items: list[str]) -> list[Snippet]:
@@ -84,6 +105,9 @@ class MobileLayout(Check):
                         impact=Level.HIGH if serious else Level.MEDIUM,
                         urls=url,
                         snippets=examples(f"Wider than the {view.label} screen", view.overflowing),
+                        shots=phone_shots(url[0], view.overflowing_selectors, view.overflowing)
+                        if serious
+                        else [],
                     )
                 )
         if findings:
@@ -149,6 +173,7 @@ class TapTargets(Check):
                 snippets=examples(
                     f"Smaller than {TAP_PX} x {TAP_PX} pixels", view.small_tap_examples
                 ),
+                shots=phone_shots(url[0], view.small_tap_selectors, view.small_tap_examples),
             )
         ]
 

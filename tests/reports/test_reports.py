@@ -22,6 +22,7 @@ from bizzcheckup.engine.types import (
     LinkPreview,
     ReportImage,
     Severity,
+    Shot,
 )
 from bizzcheckup.reports import pdf as pdf_module
 from bizzcheckup.reports.apps import check_branding_file
@@ -286,6 +287,35 @@ def test_help_cards_link_to_the_issues_they_treat(client: Client, finished: Chec
     assert '<article class="sign-card help-card tone-violet">' in html
     assert 'class="help-card__link" href="#issues" data-filter-category="seo"' in html
     assert "Treats the 1 seo issue in this report" in visible_text(html)
+
+
+def test_report_shows_where_each_problem_is(client: Client, db: None) -> None:
+    report = make_report()
+    finding = report.results[0].findings[0]
+    pictured = Shot(
+        page="https://shop.test/", selector="h1", label='<h1> "Welcome"', image="shot-1"
+    )
+    lost = Shot(page="https://shop.test/", selector="h2", label="not saved", image="shot-2")
+    unshot = Shot(page="https://shop.test/", selector="h3", label="never taken")
+    result = report.results[0].model_copy(
+        update={"findings": [finding.model_copy(update={"shots": [pictured, lost, unshot]})]}
+    )
+    report = report.model_copy(
+        update={
+            "results": [result],
+            "images": {"shot-1": ReportImage(content_type="image/jpeg", data=b"jpeg")},
+        }
+    )
+    checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
+    services.save_report(checkup, report)
+    services.mark_done(checkup)
+    html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
+    picture = reverse("checkups:image", args=[checkup.pk, "shot-1"])
+    assert "Where it is on the page" in html
+    assert html.count(f'src="{picture}"') == 2  # in the issue, and on its "Fix these first" card
+    assert "&lt;h1&gt; &quot;Welcome&quot;" in html
+    assert "not saved" not in html  # no picture, not shown
+    assert "never taken" not in html
 
 
 def test_report_contact_links_come_from_branding(client: Client, finished: Checkup) -> None:

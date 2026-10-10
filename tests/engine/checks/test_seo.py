@@ -326,3 +326,36 @@ def test_broken_preview_picture(status: int, kind: str, too_big: bool, expected:
         )
     else:
         assert [f.severity for f in findings] == [Severity.PASS]
+
+
+def test_description_lengths_are_listed_page_by_page() -> None:
+    long = "Strategy-led growth marketing for Bangladesh startups and SMEs. " * 3  # 192
+    pages = [
+        make_page(page_with_head(f'<meta name="description" content="{long}">'), url=f"{HOME}a"),
+        make_page(page_with_head('<meta name="description" content="Too short.">'), url=f"{HOME}b"),
+        make_page(
+            page_with_head(f'<meta name="description" content="{"x" * 120}">'), url=f"{HOME}c"
+        ),
+    ]
+    [finding] = seo.MetaDescription().run(make_context(*pages))
+    assert finding.message == (
+        "2 of the 3 pages we checked have descriptions of the wrong length: "
+        "1 too long (over 160 characters) and 1 too short (under 50)."
+    )
+    [snippet] = finding.snippets
+    rows = snippet.code.split("\n\n")
+    assert rows[0].splitlines()[:2] == [
+        f"{HOME}a",
+        f"    {len(long.strip())} characters: too long by {len(long.strip()) - 160} "
+        "(Google shows about 160)",
+    ]
+    assert rows[1].splitlines()[1] == "    10 characters: too short by 40 (aim for 50-160)"
+    assert rows[1].splitlines()[2] == '    now: "Too short."'
+
+
+def test_homepage_description_length_message() -> None:
+    html = page_with_head('<meta name="description" content="Cakes.">')
+    [finding] = seo.MetaDescription().run(make_context(make_page(html)))
+    assert finding.message == (
+        "Your homepage's search description is too short: 6 characters (aim for 50-160)."
+    )

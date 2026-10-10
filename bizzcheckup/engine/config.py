@@ -45,6 +45,16 @@ AI_CRAWLERS: dict[str, str] = {
     "ClaudeBot": "training",  # Anthropic
 }
 
+# Social networks hide pages from robots behind a login and answer with misleading codes
+# (Facebook: 400; a deleted page can even answer 200), so links to them can't be checked
+# automatically. Matched on the site domain (www.facebook.com -> facebook.com).
+WALLED_SITES = frozenset(
+    {
+        "facebook.com", "fb.com", "fb.me", "instagram.com", "linkedin.com", "lnkd.in",
+        "x.com", "twitter.com", "t.co", "tiktok.com", "threads.net", "threads.com",
+    }
+)  # fmt: skip
+
 # User-Agents used to compare how the site treats an AI agent vs a normal visitor.
 AI_AGENT_USER_AGENT = (
     "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; "
@@ -69,6 +79,8 @@ class EngineConfig(BaseModel):
     max_image_checks: int = 40  # images whose status we check
     external_timeout: float = 8.0  # seconds per request to another website
     outside_budget: float = 30.0  # seconds for all link/image status checks together
+    max_shots: int = Field(default=24, ge=0)  # pictures of where problems are (0 = none)
+    shots_budget: float = 30.0  # seconds for taking those pictures
     render_timeout: float = 45.0  # seconds for the browser to load the homepage
     viewport_width: int = 1280
     viewport_height: int = 800

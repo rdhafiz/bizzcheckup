@@ -83,6 +83,13 @@ Checks that explain rather than fix (heading outlines, image lists, URL suggesti
 broken links with the pages they're on) use the same blocks under **"Page by page"**
 (`Snippet.language == "text"`).
 
+**"Where it is on the page"** shows the pictures the shots step took for a finding
+(`Finding.shots`, see [the audit engine](14-audit-engine.md#pictures-of-where-each-problem-is-collectorsshotspy)):
+each with the element outlined in red, what it is (`<img src="banner.jpg">`), the page,
+and "On a phone" for phone-layout problems. Only shots that really have a picture are
+shown (`IssueRow.shots`). The first picture of a finding also appears on its **"Fix these
+first"** card (`IssueRow.preview_image`, which falls back to an accessibility picture).
+
 Accessibility scan findings use **"Where on the page"** (`Snippet.language ==
 "element"`): each element gets its screenshot with a red outline (`Snippet.image`),
 "What's wrong" in words (`Snippet.note`) and, below, its HTML and CSS selector. For

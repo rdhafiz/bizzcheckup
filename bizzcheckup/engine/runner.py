@@ -17,6 +17,7 @@ import httpx
 from . import preview
 from .checks.base import Check
 from .collectors import DEFAULT_COLLECTORS, Collector
+from .collectors.shots import take_shots
 from .config import EngineConfig
 from .context import PAGESPEED, PROBES, RENDER, AuditContext
 from .crawler import UnusableHomepageError, crawl
@@ -38,6 +39,7 @@ COLLECT_START = 20  # the slow part: browser, PageSpeed, probes (in parallel)
 COLLECT_END = 70
 CHECKS_START = 70  # five categories, quick
 CHECKS_STEP = 4
+SHOTS_START = 88  # pictures of where the problems are
 REPORT_START = 90  # scoring here, then the web app saves the report and makes the PDF
 
 # What the visitor reads while each data source is still working.
@@ -112,6 +114,7 @@ async def _run(
             ) from error
 
         ctx = AuditContext(crawl=result)
+        net_guard = fetcher.guard  # the shots step (after the checks) uses it too
         page_word = "page" if len(result.pages) == 1 else "pages"
         await progress(COLLECT_START, f"Found {len(result.pages)} {page_word}, taking vital signs")
 
@@ -159,6 +162,12 @@ async def _run(
         await progress(CHECKS_START + CHECKS_STEP * index, f"Checking {category.label}")
         results.extend(run_check(check, ctx) for check in group)
 
+    # Pictures of where the problems are, if a browser could open the site.
+    shot_images: dict[str, ReportImage] = {}
+    if ctx.has(RENDER) and config.max_shots:
+        await progress(SHOTS_START, "Taking pictures of the problems")
+        results, shot_images = await take_shots(results, net_guard, config)
+
     await progress(REPORT_START, "Preparing your report")
     categories = score_categories(results)
     overall = health_score(categories)
@@ -187,7 +196,7 @@ async def _run(
         browser_note=ctx.unavailable.get(RENDER, ""),
         link_preview=link_preview(ctx),
         screenshot_jpeg=ctx.render.screenshot_jpeg if ctx.render else None,
-        images=report_images(ctx),
+        images=report_images(ctx) | shot_images,
     )
 
 

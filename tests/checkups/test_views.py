@@ -162,6 +162,8 @@ def test_screenshot(client: Client) -> None:
         ("element-0", False),
         ("element-100", False),
         ("element-1/../x", False),
+        ("shot-1", True),
+        ("shot-24", True),
         ("anything", False),
     ],
 )

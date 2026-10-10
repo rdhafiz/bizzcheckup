@@ -22,6 +22,8 @@ run_audit(url)                                      runner.py
   │     ▼
   ├─ every Check.run(ctx) → list[Finding]            checks/*.py
   │     ▼
+  ├─ take_shots()     pictures of where the problems are   collectors/shots.py
+  │     ▼
   ├─ scoring          check scores → category scores → Business Health Score
   │                                                  scoring.py
   ▼
@@ -80,6 +82,7 @@ switched them on, and BizzCheckup stays an identifiable visitor.
 | `total_timeout` | 180 s | The whole check-up is cancelled after 3 minutes |
 | `max_link_checks` / `max_external_checks` / `max_image_checks` | 50 / 30 / 40 | How many internal links, links to other sites and images get their status checked |
 | `external_timeout` / `outside_budget` | 8 s / 30 s | Per request to another site, and for all status checks together, so slow sites can't hold up the check-up |
+| `max_shots` / `shots_budget` | 24 / 30 s | Pictures of where problems are (most serious first), and the time allowed for taking them |
 
 ## SSRF protection (`netguard.py`)
 
@@ -190,6 +193,42 @@ quota), the note says "Google PageSpeed couldn't measure your site this time".
 and `config/settings/base.py` points Playwright there (`PLAYWRIGHT_BROWSERS_PATH`)
 whenever that folder exists. Every process (your terminal, an editor, `start.sh`) then
 uses the same browser. The Docker image sets its own path (`/ms-playwright`).
+
+## Pictures of where each problem is (`collectors/shots.py`)
+
+Checks never use a browser, so they can't take pictures themselves. Instead, a check that
+can point at the elements causing a problem adds a `Shot` to its finding (at most 3):
+
+| `Shot` field | What it is |
+|--------------|------------|
+| `page` | The page's address |
+| `selector` | A CSS path to the element, built from the parsed page (`_helpers.css_path()`, e.g. `#gallery > img:nth-of-type(2)`) |
+| `match_tag`, `match_attr`, `match_value` | A sturdier way to find it: the first `<img>` whose `src` is this address, the first `<a>` whose `href` is that one |
+| `match_text` | Its visible text. Checked before outlining, because positions can shift between two visits of the same page (menus, banners); the text doesn't |
+| `label` | What the report calls it, e.g. `<img src="banner.jpg">` |
+| `device` | `desktop`, or `mobile` for phone-layout problems (a 390 px phone window) |
+| `image` | Filled in once the picture is taken: `shot-1`, `shot-2`… |
+
+**After all checks have run**, `take_shots()` opens each page that needs pictures once in
+headless Chromium (only if the browser could open the site at all), then for each shot:
+finds the element, scrolls it to the middle of the screen, outlines it in red, dims the
+rest and saves a cropped JPEG. It finds the element by its attribute first, then by its
+CSS path, and if neither shows the expected text, by its text. If the element can't be
+found or can't be seen (hidden in a closed menu, 1×1 px), there's no picture rather than
+a wrong one.
+
+It photographs with **reduced motion** and with CSS transitions off, so sites that fade
+content in as you scroll show it at once. Every browser request passes the SSRF guard,
+as in the render collector. Limits: `max_shots` (24) pictures, the most serious problems
+first, and `shots_budget` (30 s) in total. Whatever isn't done by then simply has no
+picture.
+
+Checks that point at elements: image alt text, form labels, link and button names,
+heading order, several H1s, heading structure, image descriptions, broken links (on this
+site and to others), broken images, insecure images, unsized images, sideways scrolling
+and tap targets on a phone. Problems without an element (a missing header, robots.txt,
+the title) have no picture. The accessibility scan keeps its own pictures (`element-N`,
+taken by the render collector, which knows axe's failing elements).
 
 ## Crawling rules (`crawler.py`)
 

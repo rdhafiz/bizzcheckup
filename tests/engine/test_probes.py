@@ -201,3 +201,21 @@ async def test_slow_outside_sites_are_left_out(fetcher: Fetcher, router: respx.R
     config = EngineConfig(outside_budget=0.2)
     urls = ["https://other.test/slow", "https://other.test/fast"]
     assert await check_all(fetcher, urls, config) == {"https://other.test/fast": 404}
+
+
+async def test_social_network_links_are_not_requested(
+    fetcher: Fetcher, router: respx.Router
+) -> None:
+    home = make_page(
+        '<a href="https://www.facebook.com/shop">FB</a> <a href="https://other.test/">P</a>'
+    )
+    router.head("https://other.test/").respond(200)
+    router.head("http://shop.test/").respond(301, headers={"Location": "https://shop.test/"})
+    router.head("https://shop.test/").respond(200)
+    mock_agent_and_llms_routes(router)
+    ctx = make_context(home)
+
+    await collect_probes(ctx, fetcher, EngineConfig())  # the router fails on unmocked requests
+
+    assert ctx.probes.external_status == {"https://other.test/": 200}
+    assert ctx.probes.external_skipped == ["https://www.facebook.com/shop"]

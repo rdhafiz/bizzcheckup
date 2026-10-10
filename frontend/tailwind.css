@@ -1298,6 +1298,27 @@
   .snippet__title::-webkit-details-marker {
     display: none;
   }
+  /* Pictures of where a problem is (taken after the checks, outlined in red). */
+  .shot-grid {
+    @apply mt-2 grid gap-3 sm:grid-cols-2;
+  }
+  .shot {
+    @apply min-w-0 overflow-hidden rounded-xl border border-line bg-paper;
+  }
+  .shot img {
+    @apply block h-auto max-h-72 w-full object-contain object-top;
+  }
+  .shot__caption {
+    @apply flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line px-3 py-2 text-xs;
+  }
+  .shot__device {
+    @apply inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 font-semibold
+      text-primary;
+  }
+  .risk__shot {
+    @apply mt-3 block h-auto max-h-40 w-full rounded-lg border border-line object-cover object-top;
+  }
+
   /* A flagged element: its picture (outlined in red) beside what's wrong with it. */
   .element-view {
     @apply grid gap-4 border-t border-line p-3 md:grid-cols-[auto_minmax(0,1fr)] md:items-start;

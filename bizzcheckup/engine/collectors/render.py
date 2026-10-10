@@ -280,6 +280,20 @@ MEASURE_JS = """() => {
       .trim().replace(/ +/g, " ");
     return label ? text + ' "' + label.slice(0, 40) + '"' : text;
   };
+  // A CSS path to the element, so the shots step can photograph it later.
+  const cssPath = (el) => {
+    const parts = [];
+    while (el && el.nodeType === 1 && el.tagName !== "HTML") {
+      const tag = el.tagName.toLowerCase();
+      if (tag === "body") { parts.unshift("body"); break; }
+      if (el.id && /^[A-Za-z][A-Za-z0-9_-]*$/.test(el.id)) { parts.unshift("#" + el.id); break; }
+      const parent = el.parentElement;
+      const same = parent ? [...parent.children].filter((c) => c.tagName === el.tagName) : [];
+      parts.unshift(same.length > 1 ? tag + ":nth-of-type(" + (same.indexOf(el) + 1) + ")" : tag);
+      el = parent;
+    }
+    return parts.join(" > ");
+  };
   const visible = (el, box) => {
     if (box.width === 0 || box.height === 0) return false;
     const style = getComputedStyle(el);
@@ -309,6 +323,8 @@ MEASURE_JS = """() => {
       && parent && ["P", "LI", "TD", "SPAN", "LABEL"].includes(parent.tagName)
       && (parent.textContent || "").trim().length > (el.textContent || "").trim().length + 20;
     if (inSentence) continue;
+    // Screen-reader-only links ("Skip to content") are 1 x 1 px until focused: not targets.
+    if (box.width <= 2 || box.height <= 2) continue;
     targets += 1;
     if (box.width < 24 || box.height < 24) small.push(el);
   }
@@ -331,9 +347,11 @@ MEASURE_JS = """() => {
     layout_width: width,
     scroll_width: scrollWidth,
     overflowing: overflowing.map(describe),
+    overflowing_selectors: overflowing.map(cssPath),
     tap_targets: targets,
     small_tap_targets: small.length,
     small_tap_examples: small.slice(0, MAX_EXAMPLES).map(describe),
+    small_tap_selectors: small.slice(0, MAX_EXAMPLES).map(cssPath),
     text_chars: textChars,
     small_text_chars: smallTextChars,
   };

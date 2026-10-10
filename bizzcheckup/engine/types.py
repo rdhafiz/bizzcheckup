@@ -80,6 +80,30 @@ class Snippet(BaseModel):
     note: str = ""  # what's wrong, in words, shown above the code
 
 
+class Shot(BaseModel):
+    """Where a problem is: one element on one page, photographed after the checks run.
+
+    Checks only say *where* (they never use a browser); the shots step
+    (collectors/shots.py) opens the page, outlines the element in red and fills `image`.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    page: str  # the page's address
+    selector: str  # CSS path to the element, from the parsed page
+    # Found by attribute first when there is one (robust if scripts moved things around):
+    # the first <match_tag> whose <match_attr> equals <match_value>.
+    match_tag: str = ""
+    match_attr: str = ""
+    match_value: str = ""
+    # Its visible text (first words), checked before outlining: positions can shift between
+    # two visits of the same page (menus, injected banners), the text doesn't.
+    match_text: str = ""
+    label: str = Field(min_length=1)  # what it is, e.g. '<img src="banner.jpg">'
+    device: str = "desktop"  # "desktop" or "mobile" (phone-sized window)
+    image: str = ""  # key of its picture in the report's images, once taken
+
+
 class Finding(BaseModel):
     """One result of one check: something wrong, or something healthy."""
 
@@ -95,6 +119,7 @@ class Finding(BaseModel):
     impact: Level
     affected_urls: list[str] = Field(default_factory=list)
     snippets: list[Snippet] = Field(default_factory=list)  # optional ready-made fixes
+    shots: list[Shot] = Field(default_factory=list)  # where it is on the page (pictures)
 
 
 class Page(BaseModel):
@@ -189,6 +214,7 @@ class ProbeResults(BaseModel):
     # The same for links to other websites, and for images (any website).
     external_status: dict[str, int] = Field(default_factory=dict)
     external_sources: dict[str, list[str]] = Field(default_factory=dict)
+    external_skipped: list[str] = Field(default_factory=list)  # social networks: not checkable
     image_status: dict[str, int] = Field(default_factory=dict)
     image_sources: dict[str, list[str]] = Field(default_factory=dict)
     # /llms.txt: a plain-text guide to your site written for AI assistants.
@@ -242,9 +268,11 @@ class DeviceView(BaseModel):
     layout_width: int  # the width the page was laid out at (980 = desktop page shrunk)
     scroll_width: int  # the page's width: wider than its layout means sideways scrolling
     overflowing: list[str] = Field(default_factory=list)  # elements sticking out
+    overflowing_selectors: list[str] = Field(default_factory=list)  # ...their CSS paths
     tap_targets: int = 0  # links and buttons on the first load
     small_tap_targets: int = 0  # smaller than 24 x 24 pixels
     small_tap_examples: list[str] = Field(default_factory=list)
+    small_tap_selectors: list[str] = Field(default_factory=list)  # ...their CSS paths
     text_chars: int = 0  # visible text, in characters
     small_text_chars: int = 0  # ... of which smaller than 12 px
     screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)

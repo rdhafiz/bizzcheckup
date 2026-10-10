@@ -152,12 +152,13 @@ def test_engine_config_comes_from_settings(settings) -> None:  # type: ignore[no
 @pytest.mark.parametrize(
     ("progress", "states"),
     [
-        (0, ["active"] + ["pending"] * 7),
-        (20, ["done", "active"] + ["pending"] * 6),
-        (60, ["done", "active"] + ["pending"] * 6),  # still taking vital signs
-        (75, ["done"] * 3 + ["active"] + ["pending"] * 4),  # checking accessibility
-        (94, ["done"] * 7 + ["active"]),  # preparing the report and PDF
-        (100, ["done"] * 8),
+        (0, ["active"] + ["pending"] * 8),
+        (20, ["done", "active"] + ["pending"] * 7),
+        (60, ["done", "active"] + ["pending"] * 7),  # still taking vital signs
+        (75, ["done"] * 3 + ["active"] + ["pending"] * 5),  # checking accessibility
+        (88, ["done"] * 7 + ["active", "pending"]),  # taking pictures of the problems
+        (94, ["done"] * 8 + ["active"]),  # preparing the report and PDF
+        (100, ["done"] * 9),
     ],
 )
 def test_progress_steps(progress: int, states: list[str]) -> None:

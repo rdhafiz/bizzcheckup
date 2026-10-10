@@ -23,7 +23,9 @@ from typing import Any, ClassVar
 from ..context import AuditContext
 from ..registry import default_registry
 from ..scoring import severity_score
-from ..types import Category, Finding, Level, Severity, Snippet
+from ..types import Category, Finding, Level, Severity, Shot, Snippet
+
+MAX_SHOTS_PER_FINDING = 3  # pictures of where a problem is, per finding
 
 
 class Check(ABC):
@@ -70,6 +72,7 @@ class Check(ABC):
         impact: Level = Level.MEDIUM,
         urls: Iterable[str] = (),
         snippets: Iterable[Snippet] = (),
+        shots: Iterable[Shot] = (),
     ) -> Finding:
         return Finding(
             check_id=self.id,
@@ -82,6 +85,7 @@ class Check(ABC):
             impact=impact,
             affected_urls=list(urls),
             snippets=list(snippets),
+            shots=list(shots)[:MAX_SHOTS_PER_FINDING],
         )
 
     def passed(self, message: str, why_it_matters: str, urls: Iterable[str] = ()) -> Finding:
