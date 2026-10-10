@@ -13,7 +13,12 @@
 1. The visitor opens the landing page: "Is your business website healthy?", with the
    check-up form next to a report preview, the five vital signs explained and a
    three-step "How it works".
-2. They enter their website address. **Name and email are optional.**
+2. They enter their website address. **Name and email are optional.** Only the main
+   address is used: whatever they type, the free check-up covers the website from its
+   homepage (`https://shop.com/products/cake` becomes `https://shop.com/`). A subdomain is
+   kept, since it's often a separate website (`blog.shop.com`). If they entered a page,
+   the progress page tells them, and that checking specific pages or every page is part
+   of the full check-up offered at the end of the report.
 3. They tick the **required** consent box: "I agree to the privacy note. If I leave my
    email, I'm happy to be contacted about my report."
 4. They click **Start my free check-up** and are sent straight to `/checkups/<uuid>/`.

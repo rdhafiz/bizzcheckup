@@ -7,6 +7,7 @@ from bizzcheckup.engine.urls import (
     normalize_url,
     origin,
     same_origin,
+    site_root,
 )
 
 
@@ -77,3 +78,16 @@ def test_site_domain(host: str, site: str) -> None:
     from bizzcheckup.engine.urls import site_domain
 
     assert site_domain(host) == site
+
+
+@pytest.mark.parametrize(
+    ("url", "root"),
+    [
+        ("https://shop.test/", "https://shop.test/"),
+        ("https://shop.test/products/cake?colour=red#reviews", "https://shop.test/"),
+        ("https://blog.shop.test/post/123", "https://blog.shop.test/"),
+        ("http://shop.test:8080/a", "http://shop.test:8080/"),
+    ],
+)
+def test_site_root(url: str, root: str) -> None:
+    assert site_root(url) == root

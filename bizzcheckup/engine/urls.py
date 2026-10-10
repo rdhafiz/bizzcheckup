@@ -82,6 +82,18 @@ def same_site(host: str, other: str) -> bool:
     return site_domain(host) == site_domain(other)
 
 
+def site_root(url: str) -> str:
+    """The website's main address: scheme and host only, always ending in "/".
+
+    "https://blog.shop.com/post/123?x=1#top" -> "https://blog.shop.com/"
+
+    The free check-up always covers a website from its homepage, never one page picked by
+    the visitor: checking specific pages, or every page, is the paid full check-up.
+    A subdomain is kept, because it's often a separate website (a blog, a shop).
+    """
+    return origin(url) + "/"
+
+
 def same_origin(a: str, b: str) -> bool:
     return origin(a) == origin(b)
 

@@ -33,6 +33,24 @@ def test_start_redirects_instantly_to_the_checkup_page(client: Client) -> None:
     assert response["Location"] == reverse("checkups:detail", args=[checkup.pk])
 
 
+@pytest.mark.parametrize(
+    ("entered", "checked"),
+    [
+        ("shop.test", "https://shop.test/"),
+        ("https://shop.test/products/cake?colour=red#reviews", "https://shop.test/"),
+        ("https://blog.shop.test/post/123", "https://blog.shop.test/"),  # a subdomain is kept
+    ],
+)
+def test_only_the_main_address_is_checked(client: Client, entered: str, checked: str) -> None:
+    with patch.object(tasks.run_checkup, "delay"):
+        response = client.post(
+            reverse("checkups:start"), {"url": entered, "consent": "on"}, follow=True
+        )
+    assert Checkup.objects.get().url == checked
+    note = "so we checked" in response.content.decode()
+    assert note is (entered.rstrip("/").count("/") > 2)  # only when a page was entered
+
+
 def test_start_shows_friendly_error_for_bad_url(client: Client) -> None:
     response = client.post(reverse("checkups:start"), {"url": "ftp://shop.test", "consent": "on"})
     assert response.status_code == 400
@@ -89,6 +107,14 @@ def test_finished_checkup_shows_the_report_at_the_same_url(
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
     assert "BizzCheckup Health Report" in html
     assert "Needs attention" in html  # health score 66
+
+
+def test_check_again_uses_the_main_address(client: Client) -> None:
+    old = make_checkup(status=Checkup.Status.DONE)
+    Checkup.objects.filter(pk=old.pk).update(url="https://shop.test/old-page")
+    with patch.object(tasks.run_checkup, "delay"):
+        client.post(reverse("checkups:recheck", args=[old.pk]))
+    assert Checkup.objects.exclude(pk=old.pk).get().url == "https://shop.test/"
 
 
 def test_saved_findings_keep_their_suggested_fixes(report: AuditReport) -> None:

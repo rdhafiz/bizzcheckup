@@ -36,7 +36,7 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 |------|--------------|
 | `types.py` | Data models: `Category`, `Severity`, `Level`, `Band`, `Finding`, `Snippet` (ready-made code that fixes a finding), `Page`, `RobotsInfo`, `SitemapInfo`, `CrawlResult`, `CheckResult`, `CategoryScore`, `AuditReport` |
 | `config.py` | `EngineConfig` (limits) and our User-Agent: a browser identity ending in `BizzCheckup/0.1 (+https://ridwanulhafiz.me)` (see below) |
-| `urls.py` | `normalize_url()`, `origin()`, `same_origin()`, `absolute()` |
+| `urls.py` | `normalize_url()`, `site_root()` (the main address only), `origin()`, `same_origin()`, `absolute()` |
 | `netguard.py` | SSRF protection |
 | `fetcher.py` | The only code that makes HTTP requests |
 | `crawler.py` | Picks and fetches pages |

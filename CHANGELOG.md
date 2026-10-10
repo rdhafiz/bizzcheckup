@@ -17,7 +17,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - `CLIENT_IP_HEADER` setting: read the visitor IP from a header the proxy always sets,
   like Cloudflare's `CF-Connecting-IP`, which visitors can't fake.
 
-### Added
 - **Pictures of where each problem is**: issues with an element to point at (images
   without alt text, broken links and images, unlabelled form fields, too-small buttons on
   a phone, several H1s and more) now show a screenshot of the spot with the element
@@ -28,6 +27,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   far off it is and the current text.
 
 ### Changed
+- **The free check-up only covers a website's main address.** Whatever address is
+  entered, only its host is kept (`https://shop.com/products/cake` is checked as
+  `https://shop.com/`), also when checking again, so the free tool can't be used to audit
+  a site page by page. Visitors who entered a page are told, and pointed to the full
+  check-up for specific pages or every page. Subdomains are kept.
+
 - Scroll reveals no longer blur: content and heading words fade and rise only. Animating
   the blur made reveals stall half-way on some devices, leaving content stuck blurry.
 

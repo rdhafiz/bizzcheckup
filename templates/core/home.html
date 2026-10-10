@@ -54,7 +54,7 @@
       <form id="start" method="post" action="{% url 'checkups:start' %}" class="hero__form" data-reveal="scale" novalidate>
         {% csrf_token %}
         <h2 class="text-2xl font-bold">Start your <span class="text-primary">check-up</span></h2>
-        <label for="id_url" class="mt-1 block text-sm text-muted">Enter your website address to get a free report.</label>
+        <label for="id_url" class="mt-1 block text-sm text-muted">Enter your website's address: we check it from its homepage, for free.</label>
 
         {% for error in form.non_field_errors %}
           <p class="alert band-urgent mt-4" role="alert">{{ error }}</p>

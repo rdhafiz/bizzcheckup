@@ -41,7 +41,7 @@ def test_create_checkup_normalises_url_and_queues_job(django_capture_on_commit_c
     ):
         checkup = services.create_checkup("Shop.TEST/about#team", ip_hash="abc")
 
-    assert checkup.url == "https://shop.test/about"
+    assert checkup.url == "https://shop.test/"  # the main address only, never one page
     assert checkup.domain == "shop.test"
     assert checkup.status == Checkup.Status.QUEUED
     delay.assert_called_once_with(str(checkup.pk))

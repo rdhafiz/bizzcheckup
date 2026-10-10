@@ -14,7 +14,7 @@ from django.utils import timezone
 from bizzcheckup.engine.config import EngineConfig
 from bizzcheckup.engine.netguard import NetGuard
 from bizzcheckup.engine.types import AuditReport, Category
-from bizzcheckup.engine.urls import domain, normalize_url
+from bizzcheckup.engine.urls import domain, normalize_url, site_root
 
 from .models import Checkup, CheckupImage, Finding, Lead
 
@@ -53,7 +53,7 @@ def create_checkup(raw_url: str, *, ip_hash: str = "", lead: Lead | None = None)
 
     Raises engine.urls.InvalidURLError for addresses that can't be checked.
     """
-    url = normalize_url(raw_url)
+    url = site_root(normalize_url(raw_url))  # the main address only (see urls.site_root)
     checkup = Checkup.objects.create(url=url, domain=domain(url), ip_hash=ip_hash, lead=lead)
 
     # Only queue the job once the row is really saved, or the worker might not find it.

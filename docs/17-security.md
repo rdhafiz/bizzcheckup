@@ -40,7 +40,16 @@ any number of web servers. Change it with `CHECKUP_RATE_LIMIT_PER_HOUR`.
 - The development settings (`config/settings/dev.py`) default to 50 per hour, because you
   start many check-ups yourself while working. Production keeps 5.
 
-## 3. Report reuse: same site within 24 hours
+## 3. One free check-up per website, from its main address
+
+Whatever address a visitor enters, only its scheme and host are kept
+(`engine/urls.py::site_root()`: `https://shop.com/products/cake?x=1` becomes
+`https://shop.com/`). This happens in the form, in `services.create_checkup()` and in
+"Check again now", so nobody can use the free tool to audit a site page by page.
+Checking specific pages, or every page, is the paid full check-up. Subdomains are kept,
+because they are often separate websites (a blog, a shop).
+
+## 3b. Report reuse: same site within 24 hours
 
 When a finished check-up of the **same normalised URL** exists from the last 24 hours
 (`CHECKUP_REUSE_HOURS`), the visitor goes straight to that report. If one is still

@@ -10,6 +10,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from bizzcheckup.core import security
 from bizzcheckup.engine.netguard import BlockedURLError
+from bizzcheckup.engine.urls import domain, site_root
 
 from . import protection, services
 from .forms import CheckupForm
@@ -22,6 +23,12 @@ RATE_LIMIT_ERROR = (
     "starting another one."
 )
 BUSY_ERROR = "We're checking a lot of websites right now. Please try again in a few minutes."
+# Shown when the visitor entered the address of one page: we check the whole site instead.
+PAGE_DROPPED_NOTE = (
+    "The free check-up covers your website from its main address, so we checked {domain} "
+    "from its homepage. Checking specific pages, or every page of your website, is part of "
+    "the full check-up: see the offer at the end of your report."
+)
 
 
 @require_POST
@@ -40,6 +47,8 @@ def start(request: HttpRequest) -> HttpResponse:
             return _form_error(request, form, BOT_ERROR, status=400)
 
     url = form.cleaned_data["url"]
+    if form.page_dropped:
+        messages.info(request, PAGE_DROPPED_NOTE.format(domain=domain(url)))
     # Same site checked recently (or right now)? Show that instead of starting again.
     existing = protection.recent_report(url) or protection.in_progress(url)
     if existing is not None:
@@ -68,8 +77,9 @@ def recheck(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     """
     previous = get_object_or_404(Checkup, pk=checkup_id)
     back = redirect("checkups:detail", checkup_id=previous.pk)
+    url = site_root(previous.url)  # older check-ups may have been made from a page address
 
-    running = protection.in_progress(previous.url)
+    running = protection.in_progress(url)
     if running is not None:
         return redirect("checkups:detail", checkup_id=running.pk)
 
@@ -81,7 +91,7 @@ def recheck(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
             return back
     try:
         # The site's address may point somewhere else by now, so check it again.
-        async_to_sync(services.make_guard().check_url)(previous.url)
+        async_to_sync(services.make_guard().check_url)(url)
     except BlockedURLError as error:
         messages.error(request, str(error))
         return back
@@ -94,7 +104,7 @@ def recheck(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
         messages.error(request, BUSY_ERROR)
         return back
 
-    checkup = services.create_checkup(previous.url, ip_hash=ip_hash)
+    checkup = services.create_checkup(url, ip_hash=ip_hash)
     return redirect("checkups:detail", checkup_id=checkup.pk)
 
 
