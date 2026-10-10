@@ -59,6 +59,18 @@
         {% if not pdf %}
           <a class="glance-card__link" href="#pages">See every page we found {% include "partials/icon.html" with name="arrow" css="size-4" %}</a>
         {% endif %}
+        {# The offer: the free check-up covers a sample; the full one, by the report's owner, covers every page. #}
+        {% if view.unchecked_count %}
+          <div class="mt-auto pt-6"><div class="glance-offer">
+            <div class="glance-offer__who">
+              {% if brand.photo_url %}<img class="glance-offer__photo" src="{{ brand.photo_url }}" alt="" width="48" height="48" loading="lazy">{% endif %}
+              <p class="text-sm"><span class="font-bold">Want all {{ view.all_pages|length }} pages checked?</span> {{ brand.name }} can check every page and send you a plan to fix them.</p>
+            </div>
+            <a class="btn-primary glance-offer__button" href="{{ brand.full_audit_url }}" rel="noopener" target="_blank">
+              Get a full check-up by {{ brand.name }} {% include "partials/icon.html" with name="arrow" css="size-4" %}
+            </a>
+          </div></div>
+        {% endif %}
       </article>
     </div>
   </div>

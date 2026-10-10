@@ -271,6 +271,19 @@ def test_what_we_checked_shows_how_much_of_the_site_was_checked(
 ) -> None:
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
     assert "100% of your website checked" in visible_text(html)
+    assert "glance-offer" not in html  # every page was checked: nothing to offer
+
+
+def test_what_we_checked_offers_the_full_check_up_when_pages_were_left(
+    client: Client, db: None
+) -> None:
+    checkup = Checkup.objects.create(url="https://shop.test/", domain="shop.test")
+    found = [*make_report().pages, "https://shop.test/a", "https://shop.test/b"]
+    services.save_report(checkup, make_report().model_copy(update={"discovered_pages": found}))
+    services.mark_done(checkup)
+    html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
+    assert "glance-offer" in html
+    assert "Get a full check-up by" in visible_text(html)
 
 
 def test_hero_shows_the_sites_own_preview_image(client: Client, db: None) -> None:

@@ -31,7 +31,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   all at once, like a product photo (a browser window with the tablet and phone in front),
   instead of behind tabs. Under it, the share card and "What we checked" sit side by side
   at the same height; "What we checked" now shows pages, checks and screens as figures,
-  plus a bar of how much of the website was checked.
+  plus a bar of how much of the website was checked and, when pages were left out, an
+  offer to get a full check-up of every page.
 - **The free check-up only covers a website's main address.** Whatever address is
   entered, only its host is kept (`https://shop.com/products/cake` is checked as
   `https://shop.com/`), also when checking again, so the free tool can't be used to audit

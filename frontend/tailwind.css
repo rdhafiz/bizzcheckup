@@ -1562,7 +1562,23 @@
     @apply mt-4 space-y-1 border-t border-line pt-4 text-sm text-muted;
   }
   .glance-card__link {
-    @apply mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-primary;
+    @apply mt-4 inline-flex items-center gap-1 self-start text-sm font-semibold text-primary;
+  }
+  /* The offer at the bottom of "What we checked": the full check-up, every page. */
+  .glance-offer {
+    @apply flex flex-col gap-4 rounded-xl border p-4 sm:p-5;
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--line));
+    background: color-mix(in srgb, var(--primary) 8%, var(--card));
+  }
+  .glance-offer__who {
+    @apply flex items-center gap-3;
+  }
+  .glance-offer__photo {
+    @apply size-12 shrink-0 rounded-full object-cover;
+    background: color-mix(in srgb, var(--primary) 18%, var(--card));
+  }
+  .glance-offer__button {
+    @apply w-full justify-center text-center;
   }
 
   /* Cards with the homepage's tinted glow. */

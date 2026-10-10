@@ -115,7 +115,10 @@ appear when those pictures exist (`view.has_tablet`, `view.has_phone`).
 Under the screens, two cards side by side, always the same height (`.glance-row`):
 **when someone shares your link** (below) and **what we checked**: pages checked,
 checks run, screens (`view.screens`), and a bar showing how much of the website the
-free check-up covered. The bar is a small SVG whose `width` attribute is set by
+free check-up covered. When some pages weren't checked, the card ends with an offer:
+the branding owner's photo and name (`branding.yaml`) and a button, "Get a full check-up
+by ...", to the same address as the proposal under "Pages we found"
+(`brand.full_audit_url`). The bar is a small SVG whose `width` attribute is set by
 Django's `{% widthratio %}` tag, because the Content Security Policy forbids inline
 `style` attributes.
 
