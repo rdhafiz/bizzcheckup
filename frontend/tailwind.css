@@ -289,38 +289,111 @@
     overflow: hidden;
   }
 
-  /* --- Live progress (templates/checkups/progress.html, static/js/progress.js) --- */
+  /* --- Live progress (templates/checkups/progress.html, static/js/progress.js) ---
+     The homepage hero (photo, dark backdrop) with the check-up running on it: a big ring
+     and the current step on the left, the steps as a timeline in the card on the right. */
+  .page-progress .messages {
+    @apply absolute inset-x-0 top-16 z-30;
+  }
+  .live-dot {
+    @apply relative block size-2.5 rounded-full bg-white;
+  }
+  .live-dot::after {
+    @apply absolute inset-0 animate-ping rounded-full bg-white;
+    content: "";
+  }
+  .progress-title {
+    @apply mt-6 text-4xl leading-[1.08] font-extrabold tracking-tight text-balance sm:text-5xl
+      xl:text-6xl;
+  }
+  .progress-now {
+    @apply mt-10 grid max-w-xl grid-cols-[auto_minmax(0,1fr)] items-center gap-5 rounded-3xl p-4
+      backdrop-blur-md sm:gap-6 sm:p-5;
+    background: rgb(255 255 255 / 0.05);
+    border: 1px solid rgb(255 255 255 / 0.12);
+  }
+  /* The ring and the percentage share one grid cell, the number centred in the circle. */
+  .progress-ring,
+  .progress-now__percent {
+    @apply col-start-1 row-start-1;
+  }
+  .progress-ring {
+    @apply size-24 sm:size-28;
+  }
+  .progress-ring circle {
+    fill: none;
+    stroke-width: 9;
+  }
+  .progress-ring__track {
+    stroke: rgb(255 255 255 / 0.1);
+  }
+  .progress-ring__value {
+    stroke: var(--brand);
+    stroke-linecap: round;
+    transition: stroke-dasharray 300ms ease-out;
+  }
+  .progress-now__percent {
+    @apply self-center justify-self-center text-3xl font-extrabold tabular-nums text-ink;
+    font-family: var(--font-display);
+  }
+  .progress-now__step {
+    @apply mt-1 text-lg font-bold text-ink sm:text-xl;
+  }
+  .progress-panel__count {
+    @apply rounded-full bg-primary-soft px-3 py-1 text-xs font-bold tabular-nums text-primary;
+  }
+
+  /* The steps: a vertical line joins the markers; the line turns green as steps finish. */
+  .progress-steps {
+    @apply mt-5;
+  }
   .progress-step {
-    @apply flex items-center gap-3 text-muted transition-colors duration-300;
+    @apply relative flex items-center gap-3 py-2 text-sm text-muted transition-colors duration-300;
+  }
+  .progress-step:not(:last-child)::after {
+    @apply absolute top-[calc(50%+0.875rem)] left-[0.8125rem] h-[calc(100%-1.75rem)] w-0.5 rounded-full;
+    content: "";
+    background: var(--line);
+    transition: background-color 300ms ease-out;
+  }
+  .progress-step.is-done:not(:last-child)::after {
+    background: var(--brand);
   }
   .progress-step.is-active,
   .progress-step.is-done {
     @apply text-ink;
   }
+  .progress-step.is-active {
+    @apply -mx-2 rounded-xl bg-primary-soft px-2;
+  }
   .progress-step.is-active .progress-step__label {
-    @apply font-semibold;
+    @apply font-bold;
   }
   .progress-step__icon {
-    @apply relative flex size-5 shrink-0 items-center justify-center;
+    @apply relative flex size-7 shrink-0 items-center justify-center;
   }
   .progress-step__icon > * {
     @apply hidden;
   }
   .progress-step.is-done .icon-done {
-    @apply block size-5 text-healthy;
+    @apply block size-7 rounded-full p-1.5;
+    color: var(--on-brand);
+    background: var(--brand);
     animation: pop-in 320ms ease-out;
   }
   .progress-step.is-active .icon-active {
-    @apply flex size-5 items-center justify-center;
+    @apply flex size-7 items-center justify-center;
   }
   .progress-step.is-pending .icon-pending {
-    @apply block size-2 rounded-full bg-line;
+    @apply flex size-7 items-center justify-center rounded-full border border-line text-xs
+      font-semibold tabular-nums text-muted;
   }
   .icon-active .ping {
-    @apply absolute size-3.5 animate-ping rounded-full bg-brand opacity-40;
+    @apply absolute size-6 animate-ping rounded-full bg-brand opacity-30;
   }
   .icon-active .dot {
-    @apply size-2.5 rounded-full bg-brand;
+    @apply size-3 rounded-full bg-brand;
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand) 25%, transparent);
   }
 
   .progress-success {
@@ -2088,6 +2161,12 @@ html.parallax-on [data-parallax] {
   .success-mark__circle,
   .success-mark__check {
     stroke-dashoffset: 0;
+  }
+  /* Live markers stay still: a steady dot says "running" just as well. */
+  .icon-active .ping,
+  .live-dot::after {
+    animation: none;
+    opacity: 0;
   }
   *, *::before, *::after {
     transition-duration: 0.01ms !important;

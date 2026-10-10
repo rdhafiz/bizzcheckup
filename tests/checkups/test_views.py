@@ -66,7 +66,9 @@ def test_running_checkup_shows_progress_with_htmx_polling(client: Client) -> Non
     checkup = make_checkup(status=Checkup.Status.RUNNING, progress=60, current_step="Checking SEO")
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
 
-    assert "We're examining shop.test" in html
+    assert "We're examining" in html
+    assert ">shop.test</span>" in html  # the address, highlighted in green
+    assert 'stroke-dasharray="60 100"' in html  # the big ring starts where the check-up is
     assert 'hx-trigger="every 1s"' in html
     assert "js/progress.js" in html  # the smooth animation
     assert 'data-start="70" data-end="74"' in html  # step ranges for the animation

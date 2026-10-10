@@ -168,6 +168,20 @@ then draws exactly 72 % of the ring, with no maths needed in the template.
 
 ## The live progress page (HTMX + `static/js/progress.js`)
 
+**How it looks.** The page reuses the homepage hero (`templates/checkups/progress.html`):
+the same photo, dark backdrop and green highlights, so going from "Start" to "We're
+examining your site" feels like one place. On the left: the website's name, and a
+frosted panel with a big **progress ring**, the percentage in its middle and the step
+running "right now". On the right: a white card listing every step as a **timeline**:
+numbered circles for steps still to come, a pulsing dot for the current one (on a light
+green row), a green tick for finished ones, and a line joining them that turns green as
+steps finish. A counter ("3 of 9") sits in the card's corner.
+
+The ring is an SVG circle with `pathLength="100"`, like the score gauge above:
+`progress.js` sets its `stroke-dasharray` *attribute* (e.g. `"47 100"`), which is not a
+`style`, so the Content Security Policy is happy. With `prefers-reduced-motion`, the
+pulsing dots stand still.
+
 Two pieces work together:
 
 1. **HTMX fetches the facts.** Every second it asks the server for the latest progress,

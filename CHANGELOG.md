@@ -27,6 +27,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   far off it is and the current text.
 
 ### Changed
+- **The check-up progress page redesigned in the homepage's look.** The hero photo and
+  dark backdrop, the website's name in green, a big progress ring with the step running
+  right now, and every step in a timeline card that ticks itself off ("3 of 9").
 - **"At a glance" redesigned.** The homepage on a computer, a tablet and a phone is shown
   all at once, like a product photo (a browser window with the tablet and phone in front),
   instead of behind tabs. Under it, the share card and "What we checked" sit side by side

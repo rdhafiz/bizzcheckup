@@ -17,6 +17,8 @@
   var bar = card.querySelector("[data-bar]");
   var percentText = card.querySelector("[data-percent]");
   var stepText = card.querySelector("[data-step-text]");
+  var ring = card.querySelector("[data-ring]"); // the big circle: an SVG attribute, not a style (CSP)
+  var doneCount = card.querySelector("[data-done-count]");
   var steps = Array.prototype.slice.call(card.querySelectorAll(".progress-step"));
 
   var shown = Number(bar.value) || 0; // what the visitor sees
@@ -70,16 +72,20 @@
     bar.value = value;
     bar.textContent = value + "%";
     percentText.textContent = value;
+    if (ring) ring.setAttribute("stroke-dasharray", value + " 100");
+    var done = 0;
     steps.forEach(function (li) {
       var start = Number(li.getAttribute("data-start"));
       var end = Number(li.getAttribute("data-end"));
       var state = value >= end ? "done" : value >= start ? "active" : "pending";
+      if (state === "done") done += 1;
       if (!li.classList.contains("is-" + state)) {
         li.classList.remove("is-done", "is-active", "is-pending");
         li.classList.add("is-" + state);
         li.querySelector("[data-step-state]").textContent = "(" + state + ")";
       }
     });
+    if (doneCount && doneCount.textContent !== String(done)) doneCount.textContent = done;
   }
 
   function tick(now) {
