@@ -6,6 +6,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+## [0.3.0-alpha] - 2026-10-10
+
 ### Added
 - **Self-hosting guide** ([docs/20-self-hosting.md](docs/20-self-hosting.md)): run
   BizzCheckup publicly from a Windows PC with WSL2, Docker and Cloudflare Tunnel, with a
@@ -16,7 +18,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   Django's deployment check (`--pull` fetches the latest code first).
 - `CLIENT_IP_HEADER` setting: read the visitor IP from a header the proxy always sets,
   like Cloudflare's `CF-Connecting-IP`, which visitors can't fake.
-
 - **Pictures of where each problem is**: issues with an element to point at (images
   without alt text, broken links and images, unlabelled form fields, too-small buttons on
   a phone, several H1s and more) now show a screenshot of the spot with the element
@@ -41,7 +42,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   `https://shop.com/`), also when checking again, so the free tool can't be used to audit
   a site page by page. Visitors who entered a page are told, and pointed to the full
   check-up for specific pages or every page. Subdomains are kept.
-
 - Scroll reveals no longer blur: content and heading words fade and rise only. Animating
   the blur made reveals stall half-way on some devices, leaving content stuck blurry.
 
@@ -240,6 +240,7 @@ First public release: the complete check-up flow from landing page to PDF.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).
 
-[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.2.0-alpha...HEAD
+[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.3.0-alpha...HEAD
+[0.3.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.3.0-alpha
 [0.2.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.2.0-alpha
 [0.1.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.1.0-alpha
