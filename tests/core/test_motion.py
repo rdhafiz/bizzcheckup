@@ -105,10 +105,9 @@ def test_clipping_sections_cannot_be_scrolled_by_links(selector: str) -> None:
     assert "overflow: clip" in rule, selector
 
 
-def test_no_blur_on_small_screens() -> None:
-    """Phones get the reveal without the (expensive) blur."""
-    start = CSS.index("@media (max-width: 767.98px)")
-    block = CSS[start : start + 300]  # the @media block and its one rule
-    assert "html.motion-ready [data-reveal]," in block
-    assert '[data-reveal="words"] .word' in block
-    assert "filter: none" in block
+def test_reveals_never_blur() -> None:
+    """Reveals only fade and move: an animated blur stalled half-way on some devices."""
+    motion = CSS[CSS.index("/* --- Motion: scroll reveal") :]
+    motion = motion[: motion.index("@keyframes draw")]
+    assert "filter: blur" not in motion
+    assert "transition-property: opacity, transform;" in motion

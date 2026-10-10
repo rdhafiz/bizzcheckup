@@ -17,6 +17,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 - `CLIENT_IP_HEADER` setting: read the visitor IP from a header the proxy always sets,
   like Cloudflare's `CF-Connecting-IP`, which visitors can't fake.
 
+### Changed
+- Scroll reveals no longer blur: content and heading words fade and rise only. Animating
+  the blur made reveals stall half-way on some devices, leaving content stuck blurry.
+
 ## [0.2.0-alpha] - 2026-10-08
 
 ### Added

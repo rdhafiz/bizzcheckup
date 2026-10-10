@@ -21,7 +21,7 @@ for the parallax maths. A library would add 30–70 KB for things we don't use.
 ```html
 <div data-reveal>...</div>                 fade in and rise 32px (the default)
 <div data-reveal="scale">...</div>         fade in and grow from 94%
-<h2 data-reveal="words">...</h2>           a heading: word by word, each sharpening out of a blur
+<h2 data-reveal="words">...</h2>           a heading: word by word, each rising and fading in
   <span data-word>...</span>               ...this part moves as ONE word (gradient text, highlights)
 <div data-reveal data-reveal-once>         animate once, then stay put for good
 
@@ -134,16 +134,17 @@ an animation must "hold" its first frame or it flashes).
 Hidden elements are only *see-through and shifted*, never removed: screen readers still read
 them, in page order.
 
-## The blur
+## Word-by-word headings
 
-Inspired by bizzacquire.com: everything that reveals also **sharpens out of a blur**.
+**Headings** (`data-reveal="words"`) reveal **word by word**: `motion.js` wraps each word in
+`<span class="word">` (`splitWords()`), gives each one a `--word-delay` of 0, 90, 180ms...
+(the last one starts by 900ms at most), and each word rises half a line and fades in. The
+heading itself doesn't move.
 
-- **Blocks** (paragraphs, cards, buttons) start at `filter: blur(8px)` together with the
-  usual fade and 32px offset, and transition to `filter: none`.
-- **Headings** (`data-reveal="words"`) reveal **word by word**: `motion.js` wraps each word in
-  `<span class="word">` (`splitWords()`), gives each one a `--word-delay` of 0, 90, 180ms...
-  (the last one starts by 900ms at most), and each word rises half a line, fades in and
-  sharpens from `blur(9px)`. The heading itself doesn't move.
+**No blur.** Reveals used to sharpen out of a blur too (`filter: blur()`). That was removed:
+animating a filter makes the browser repaint the layer on every frame, and on some devices
+the transition stalled half-way, leaving content stuck faded and blurry. Reveals now use only
+`opacity` and `transform`, which the graphics card handles without repainting.
 
 How the splitting stays safe:
 
@@ -165,10 +166,8 @@ How the splitting stays safe:
   (`:not(.words-ready)`), so the unsplit text never shows and then disappears. The CSS
   fail-safe still shows it after 1.5s if `motion.js` never loads.
 
-**Cost.** `filter: blur()` makes the browser repaint the blurred layer while it sharpens, more
-work than fading and moving. Measured in Edge with graphics acceleration, the blur itself adds
-nothing measurable on top of the reveals; the total motion cost depends on how much animates at
-once:
+**Cost.** Measured in Edge with graphics acceleration (when reveals still had the blur, so
+today's numbers can only be lower); the total motion cost depends on how much animates at once:
 
 | Scrolling the whole homepage | Normal speed | CPU slowed 4× |
 |--|--|--|
@@ -176,10 +175,7 @@ once:
 | Motion on (37 blocks + 31 heading words) | 0.8% | ~12–15% |
 | Long tasks (> 50ms) | none | none |
 
-**No blur under 768px.** Phones have the least power to spare and blur is the most expensive
-part of a reveal, so small screens get the same fade, rise and word-by-word timing without
-it. (One `@media (max-width: 767.98px)` rule sets `filter: none` on both the blocks and the
-heading words.) If a slow phone still struggles, fewer animated elements is the next lever.
+If a slow device still struggles, fewer animated elements is the next lever.
 
 ## How the parallax works
 

@@ -8,7 +8,7 @@
 // Reveal:   <div data-reveal>               fade in and rise (default); scrolling back up,
 //                                            it comes down from above instead
 //           data-reveal="scale"              zoom in instead (no sideways entrances, by design)
-//           data-reveal="words"              a heading: each word sharpens out of a blur in turn
+//           data-reveal="words"              a heading: each word rises and fades in, in turn
 //           data-word (inside a heading)     keep this part as one word (gradient text, highlights)
 //           data-reveal-once                 settle for good, don't replay
 //           data-reveal-group on a parent    children entering together are staggered
@@ -101,7 +101,7 @@
     el.classList.remove("reveal-instant"); // ...so the entrance transition starts from it
   }
 
-  // Wrap each word of a heading in <span class="word"> so the words can blur in one by one.
+  // Wrap each word of a heading in <span class="word"> so the words can fade in one by one.
   // Only text is split: tags inside stay as they are. Parts marked data-word (gradient text,
   // highlights) move as one word, because splitting would break their colouring. Screen-reader
   // only text is left alone. The spaces between words stay real spaces, so the heading reads
