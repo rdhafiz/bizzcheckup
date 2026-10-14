@@ -59,6 +59,23 @@ Each issue appears **once**. The order follows the questions a business owner as
 | 5 | **How {first name} can help** (`#help`) | *Who can fix this?* | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, as the homepage's vital-sign cards (the same colour and icon per vital sign, `builder.CATEGORY_LOOK`): score, service, description and "Treats the N … issues in this report", which shows those issues. A lone last card spans the full width. The broad "rebuild" service (when 3+ areas need care) is a dark wide card, and the call to action a green banner with the heartbeat line | `builder.recommend_services()` |
 | 6 | **Contact** (`#contact`) | *How do I reach them?* | The **booking calendar** (`#book`, only when `booking_url` is set in `branding.yaml`): the Cal.com page in an `<iframe>` with `loading="lazy"` (it loads only when the reader scrolls near it) and a fixed height, so nothing jumps; "Book a free review call" in Get help jumps to it, and the PDF gets a link instead. Then a dark card in the opening band's style: the photo in a green gradient ring, name, title, intro, the highlights as credential badges; each way to reach them (email, WhatsApp, website, GitHub, CV, portfolio) as a large tile with its coloured icon; the QR code; the footer note | `branding.yaml`, `builder.qr_code_svg()` (made with a `viewBox`, so CSS scales it to fill its white square) |
 
+### How long fixes take (`reports/fixtime.py`)
+
+Every finding has an **effort** level set by its check. `fixtime.py` turns it into words a
+business owner can plan with, and who usually does it:
+
+| Effort | Time shown | Who |
+|--------|-----------|-----|
+| low | about 20 minutes (`~20 min` on the issue) | You can usually do this yourself |
+| medium | 2 to 3 hours (`2-3 h`) | Usually a job for a web developer |
+| high | 1 to 3 days (`1-3 days`) | A job for a web developer |
+
+Each problem shows its time as a chip (with a clock icon) and, when opened, "Time: about
+20 minutes. You can usually do this yourself." under "How to fix it". The issue list's
+header adds them up ("17 to fix · about 2 days of work", `ReportView.fix_summary`), and
+"Get help" splits the total: "12 quick fixes you can do yourself, and about 2 days for a
+developer. Ridwanul can take that off your hands." These are typical times, not a quote.
+
 ### The share card (`reports/share_card.py`, `/checkups/<id>/share.png`)
 
 **Share your score** (in the band's buttons) opens a picture of the score, 1200 × 630

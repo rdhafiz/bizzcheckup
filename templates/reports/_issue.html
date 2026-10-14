@@ -20,7 +20,7 @@
     </span>
     <span class="issue__chips">
       <span class="chip">Impact: {{ finding.impact }}</span>
-      <span class="chip">Effort: {{ finding.effort }}</span>
+      {% if finding.severity.value != "info" %}<span class="chip" title="{{ row.fix_time.who }}">{% include "partials/icon.html" with name="clock" css="mr-1 size-3.5" %}{{ row.fix_time.short }}</span>{% endif %}
     </span>
     <span class="issue__chevron no-print">{% include "partials/icon.html" with name="chevron" css="size-5" %}</span>
   </summary>
@@ -32,6 +32,7 @@
     <div class="issue__part issue__part--fix">
       <h4 class="issue__heading">{% include "partials/icon.html" with name="fix" css="size-4" %} How to fix it</h4>
       <p class="break-words">{{ finding.how_to_fix|urlize }}</p>
+      {% if finding.severity.value != "info" %}<p class="issue__time">{% include "partials/icon.html" with name="clock" css="size-4" %}<span><strong>Time: {{ row.fix_time.label }}.</strong> {{ row.fix_time.who }}.</span></p>{% endif %}
     </div>
     {% if finding.affected_urls %}
       <div class="issue__part sm:col-span-2">

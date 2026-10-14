@@ -27,6 +27,7 @@ from bizzcheckup.engine.types import (
 
 from .branding import Branding, Service, load_branding
 from .comparison import Comparison, compare
+from .fixtime import FixSummary, FixTime, fix_time, summarise
 
 SEVERITY_ORDER = {Severity.FAIL: 0, Severity.WARN: 1, Severity.INFO: 2, Severity.PASS: 3}
 IMPACT_ORDER = {"high": 0, "medium": 1, "low": 2}
@@ -136,6 +137,10 @@ class IssueRow:
     def anchor(self) -> str:
         return f"issue-{self.key}"
 
+    @property
+    def fix_time(self) -> FixTime:
+        return fix_time(self.finding)
+
 
 @dataclass
 class ReportView:
@@ -162,6 +167,11 @@ class ReportView:
     @property
     def problem_rows(self) -> list[IssueRow]:
         return [row for row in self.issues if row.finding.severity is not Severity.INFO]
+
+    @property
+    def fix_summary(self) -> FixSummary:
+        """How long fixing every problem takes, and how much of it is a developer's work."""
+        return summarise([row.finding for row in self.problem_rows])
 
     @property
     def note_rows(self) -> list[IssueRow]:

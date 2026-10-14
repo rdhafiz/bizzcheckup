@@ -45,6 +45,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   vital signs and the homepage screenshot) to download and post, with WhatsApp, LinkedIn,
   Facebook and X links that point to the homepage, never to the private report. Made with
   the PDF's offline Chromium, once per check-up.
+- **How long fixes take.** Every problem shows a typical time ("~20 min", "2-3 h",
+  "1-3 days") and who usually does it ("You can usually do this yourself" or "a job for a
+  web developer"). The issue list adds them up ("about 2 days of work") and "Get help"
+  splits the quick fixes from the developer's part.
 - New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
   `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
 

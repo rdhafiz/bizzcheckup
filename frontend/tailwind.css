@@ -1426,6 +1426,12 @@
   .issue__part--fix p {
     @apply text-ink;
   }
+  .issue__part .issue__time {
+    @apply mt-2 flex items-start gap-2 text-sm text-muted;
+  }
+  .issue__time svg {
+    @apply mt-0.5 shrink-0;
+  }
   /* Link preview: the card a social network shows for a shared link. */
   .share-card {
     @apply mt-4 overflow-hidden rounded-xl border border-line bg-paper;
