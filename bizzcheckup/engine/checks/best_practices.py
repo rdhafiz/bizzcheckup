@@ -2,9 +2,10 @@
 
 import re
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
-from ..context import PROBES, RENDER, AuditContext
-from ..types import Category, Finding, Level, Page, Severity, Shot
+from ..context import PROBES, RENDER, SECURITY, AuditContext
+from ..types import Category, Finding, Level, Page, Severity, Shot, Snippet
 from ._helpers import meta_content, meta_http_equiv, on_pages, shot_of, version_tuple
 from .base import Check
 
@@ -651,5 +652,290 @@ class ThirdPartyCookies(Check):
                 effort=Level.MEDIUM,
                 impact=Level.MEDIUM,
                 urls=[ctx.homepage.final_url],
+            )
+        ]
+
+
+# --- Security basics (collectors/security.py) -------------------------------------------
+
+
+def days_until(when: datetime) -> int:
+    return (when - datetime.now(UTC)).days
+
+
+def friendly_date(when: datetime) -> str:
+    return f"{when.day} {when:%B %Y}"  # e.g. 3 March 2027
+
+
+class CertificateExpiry(Check):
+    id = "best_practices.certificate_expiry"
+    category = Category.BEST_PRACTICES
+    title = "Security certificate valid"
+    weight = 6
+    requires = frozenset({SECURITY})
+
+    WHY = (
+        'When the certificate runs out, browsers show a full-page "Your connection is not '
+        'private" warning instead of your website, and almost every visitor leaves.'
+    )
+    FIX = (
+        "Renew it now in your hosting panel, and turn on automatic renewal. Free Let's "
+        "Encrypt certificates renew themselves 30 days before they run out, so one this close "
+        "to its end means renewal is failing."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        info = ctx.security
+        if not is_https(ctx.homepage.final_url):
+            return []  # the Https check reports this
+        home = [ctx.homepage.final_url]
+        if info.cert_error:
+            return [
+                self.finding(
+                    Severity.FAIL,
+                    f"Your security certificate isn't valid: {info.cert_error}.",
+                    self.WHY,
+                    "Ask your host to install a valid certificate for this exact address "
+                    "(free from Let's Encrypt), including the www. version if you use it.",
+                    effort=Level.MEDIUM,
+                    impact=Level.HIGH,
+                    urls=home,
+                )
+            ]
+        if info.cert_expires is None:
+            return []  # couldn't connect: nothing reliable to say
+        days = days_until(info.cert_expires)
+        issuer = f" ({info.cert_issuer})" if info.cert_issuer else ""
+        until = friendly_date(info.cert_expires)
+        if days > 20:
+            return [
+                self.passed(
+                    f"Your security certificate{issuer} is valid until {until} ({days} days).",
+                    self.WHY,
+                )
+            ]
+        if days < 0:
+            severity, message = (
+                Severity.FAIL,
+                f"Your security certificate{issuer} ran out on {until}.",
+            )
+        elif days <= 7:
+            severity = Severity.FAIL
+            message = f"Your security certificate{issuer} runs out in {days} days, on {until}."
+        else:
+            severity = Severity.WARN
+            message = (
+                f"Your security certificate{issuer} runs out in {days} days, on {until}, and "
+                "hasn't been renewed yet."
+            )
+        return [self.finding(severity, message, self.WHY, self.FIX, impact=Level.HIGH, urls=home)]
+
+
+class DomainExpiry(Check):
+    id = "best_practices.domain_expiry"
+    category = Category.BEST_PRACTICES
+    title = "Domain name renewed in time"
+    weight = 3
+    requires = frozenset({SECURITY})
+
+    WHY = (
+        "If your domain name's registration runs out, your website and your email stop "
+        "working, and someone else can buy the name."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        info = ctx.security
+        if info.domain_expires is None:
+            return [
+                self.finding(
+                    Severity.INFO,
+                    f"We couldn't look up when {info.domain} expires: its registry doesn't "
+                    "publish it.",
+                    self.WHY,
+                    "Check the renewal date with the company you bought the name from, and "
+                    "turn on auto-renew.",
+                    impact=Level.LOW,
+                )
+            ]
+        days = days_until(info.domain_expires)
+        until = friendly_date(info.domain_expires)
+        if days > 30:
+            return [self.passed(f"{info.domain} is registered until {until}.", self.WHY)]
+        severity = Severity.FAIL if days <= 7 else Severity.WARN
+        when = f"ran out on {until}" if days < 0 else f"runs out in {days} days, on {until}"
+        return [
+            self.finding(
+                severity,
+                f"Your domain name {info.domain} {when}.",
+                self.WHY,
+                "Renew it now with the company you bought it from, turn on auto-renew, and "
+                "make sure the payment card on that account is still valid.",
+                impact=Level.HIGH,
+                urls=[ctx.homepage.final_url],
+            )
+        ]
+
+
+class EmailSpoofing(Check):
+    id = "best_practices.email_spoofing"
+    category = Category.BEST_PRACTICES
+    title = "Protection against fake emails (SPF, DMARC)"
+    weight = 5
+    requires = frozenset({SECURITY})
+
+    WHY = (
+        "Without these two DNS records, anyone can send emails that look like they come from "
+        "your address, to trick your customers into paying fake invoices or giving passwords. "
+        "Gmail and Yahoo also send email without them to spam."
+    )
+    FIX = (
+        "Add the TXT records below in your DNS settings (where you manage your domain, e.g. "
+        "Cloudflare or your registrar). Your email provider's help pages give the exact SPF "
+        "line for their service."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        info = ctx.security
+        if not info.dns_checked:
+            return []
+        domain = info.domain
+        missing = [
+            name for name, record in (("SPF", info.spf), ("DMARC", info.dmarc)) if not record
+        ]
+        weak_dmarc = "p=none" in (info.dmarc or "").replace(" ", "").lower()
+        if not missing and not weak_dmarc:
+            return [
+                self.passed(f"{domain} has SPF and DMARC records that stop fake emails.", self.WHY)
+            ]
+
+        snippets = []
+        if not info.spf:
+            snippets.append(self.spf_snippet(domain, has_email=bool(info.has_mx)))
+        if not info.dmarc or weak_dmarc:
+            snippets.append(
+                Snippet(
+                    title=f"DMARC: a TXT record on _dmarc.{domain}",
+                    code=f"v=DMARC1; p=quarantine; rua=mailto:dmarc@{domain}",
+                    language="dns",
+                    note="What to do with emails that fail SPF: put them in spam (quarantine). "
+                    "Use p=reject once you're sure your own emails pass.",
+                )
+            )
+        if missing:
+            severity = Severity.WARN
+            message = (
+                f"{domain} has no {' and no '.join(missing)} record: anyone can send email "
+                "pretending to be you."
+            )
+        else:
+            severity = Severity.INFO
+            message = (
+                f"{domain}'s DMARC record is set to p=none: fake emails are reported but "
+                "still delivered."
+            )
+        return [
+            self.finding(
+                severity,
+                message,
+                self.WHY,
+                self.FIX,
+                impact=Level.MEDIUM,
+                urls=[ctx.homepage.final_url],
+                snippets=snippets,
+            )
+        ]
+
+    @staticmethod
+    def spf_snippet(domain: str, *, has_email: bool) -> Snippet:
+        if has_email:
+            return Snippet(
+                title=f"SPF: a TXT record on {domain}",
+                code="v=spf1 include:_spf.google.com ~all",
+                language="dns",
+                note="Who may send email for your domain. This example is for Google "
+                "Workspace (Gmail): use the line your email provider gives you.",
+            )
+        return Snippet(
+            title=f"SPF: a TXT record on {domain}",
+            code="v=spf1 -all",
+            language="dns",
+            note="Your domain receives no email, so this says nobody may send email for it.",
+        )
+
+
+class ExposedFiles(Check):
+    id = "best_practices.exposed_files"
+    category = Category.BEST_PRACTICES
+    title = "Private files kept private"
+    weight = 8
+    requires = frozenset({SECURITY})
+
+    WHY = (
+        "These files hold your website's source code and its passwords (database, email, "
+        "payment keys). Robots scan every website for them all day; anyone who finds them can "
+        "take over your site and your accounts."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        info = ctx.security
+        if not info.files_checked:
+            return []
+        exposed = []
+        if info.env_exposed:
+            exposed.append("/.env (passwords and keys)")
+        if info.git_exposed:
+            exposed.append("/.git/ (your source code)")
+        if not exposed:
+            return [self.passed("Your private files (.env, .git) aren't public.", self.WHY)]
+        return [
+            self.finding(
+                Severity.FAIL,
+                f"Anyone can download {' and '.join(exposed)} from your website.",
+                self.WHY,
+                "Today: block these paths on your server (or delete them from the public "
+                "folder), then change every password and key that was in them, because they "
+                "may already have been copied. Ask your developer to deploy without them.",
+                effort=Level.MEDIUM,
+                impact=Level.HIGH,
+                urls=[ctx.homepage.final_url],
+            )
+        ]
+
+
+class SecurityTxt(Check):
+    id = "best_practices.security_txt"
+    category = Category.BEST_PRACTICES
+    title = "Security contact (security.txt)"
+    weight = 1
+    requires = frozenset({SECURITY})
+
+    WHY = (
+        "When someone finds a security hole in your website, security.txt tells them how to "
+        "warn you privately, instead of the problem going unreported."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        info = ctx.security
+        if info.security_txt is None:
+            return []
+        if info.security_txt:
+            return [self.passed("Your website has a security.txt with a contact.", self.WHY)]
+        next_year = datetime.now(UTC).year + 1
+        return [
+            self.finding(
+                Severity.INFO,
+                "Your website has no security.txt, so people who find a security problem "
+                "don't know how to tell you.",
+                self.WHY,
+                "Create the file below at /.well-known/security.txt on your website.",
+                impact=Level.LOW,
+                snippets=[
+                    Snippet(
+                        title="/.well-known/security.txt",
+                        code=f"Contact: mailto:security@{info.domain}\n"
+                        f"Expires: {next_year}-12-31T23:59:59Z",
+                        language="text",
+                    )
+                ],
             )
         ]

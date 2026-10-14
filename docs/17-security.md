@@ -16,6 +16,7 @@ that should be private.
 | Every engine request | `engine/fetcher.py` | Runs the guard on the first URL **and every redirect hop** (it follows redirects itself) |
 | Every browser request | `engine/collectors/render.py::_SafeRouter` | The same, for everything Chromium loads, including redirect hops. WebSockets and service workers are blocked. |
 | The PDF | `reports/pdf.py` | Chromium has no network at all, apart from the branding photo |
+| The certificate check | `engine/collectors/security.py::read_certificate` | Runs the guard on `https://<host>/` before opening the TLS connection (port 443 only). DNS and RDAP lookups go to fixed public services (Cloudflare DNS, rdap.org) through the fetcher, so the guard checks them too |
 
 The guard rules (`engine/netguard.py`): only `http`/`https`, only ports 80/443, no
 `localhost`/`.local`/`.internal`, and **every** address the name resolves to must be a

@@ -16,6 +16,9 @@ FAKE_DNS = {
     "www.shop.test": [PUBLIC_IP],
     "other.test": [PUBLIC_IP],
     "evil.test": ["10.0.0.1"],
+    # The security collector's lookups (DNS-over-HTTPS and RDAP).
+    "cloudflare-dns.com": ["104.16.248.249"],
+    "rdap.org": ["104.21.0.1"],
 }
 
 

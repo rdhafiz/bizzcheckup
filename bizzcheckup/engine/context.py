@@ -15,6 +15,7 @@ from .types import (
     ProbeResults,
     RenderResult,
     RobotsInfo,
+    SecurityInfo,
     SitemapInfo,
 )
 
@@ -23,6 +24,7 @@ from .types import (
 RENDER = "render"  # Playwright: rendered HTML, screenshot, axe-core (phase 4)
 PAGESPEED = "pagespeed"  # Google PageSpeed Insights (phase 5)
 PROBES = "probes"  # extra requests: llms.txt, link statuses, AI user agents (phase 5)
+SECURITY = "security"  # certificate, domain expiry, email DNS records, exposed files
 
 
 @dataclass
@@ -32,6 +34,7 @@ class AuditContext:
     probes: ProbeResults = field(default_factory=ProbeResults)  # filled by PROBES collector
     render: RenderResult | None = None  # filled by RENDER collector
     pagespeed: PageSpeedResult | None = None  # filled by PAGESPEED collector
+    security: SecurityInfo = field(default_factory=SecurityInfo)  # filled by SECURITY collector
     # capability -> why it's missing, e.g. {PAGESPEED: "Google couldn't measure ..."}
     unavailable: dict[str, str] = field(default_factory=dict)
     _trees: dict[str, LexborHTMLParser] = field(default_factory=dict, repr=False)

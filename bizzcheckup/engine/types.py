@@ -347,6 +347,33 @@ class SpeedTest(BaseModel):
     field: FieldData | None = None
 
 
+class SecurityInfo(BaseModel):
+    """Security basics found by the SECURITY collector (collectors/security.py).
+
+    None means "couldn't find out" (e.g. the lookup failed), which the checks treat
+    differently from "missing".
+    """
+
+    # The TLS certificate the homepage is served with.
+    cert_expires: datetime | None = None
+    cert_issuer: str = ""  # e.g. "Let's Encrypt"
+    cert_error: str = ""  # set when the certificate couldn't be read or verified
+    # The domain name's registration (from RDAP, the modern WHOIS).
+    domain: str = ""  # the registered name, e.g. shop.com for www.shop.com
+    domain_expires: datetime | None = None
+    domain_lookup_failed: bool = False  # the registry doesn't publish it (e.g. many ccTLDs)
+    # Email: who may send email as @domain (SPF), and what to do with fakes (DMARC).
+    dns_checked: bool = False
+    has_mx: bool | None = None  # does the domain receive email at all?
+    spf: str | None = None  # the "v=spf1 ..." record, "" = none
+    dmarc: str | None = None  # the "v=DMARC1 ..." record, "" = none
+    # Files that must never be public. Only yes/no is kept: never their content.
+    files_checked: bool = False
+    git_exposed: bool = False  # /.git/ (the site's source code history)
+    env_exposed: bool = False  # /.env (passwords and keys)
+    security_txt: bool | None = None  # /.well-known/security.txt with a Contact: line
+
+
 class PageSpeedResult(BaseModel):
     mobile: SpeedTest | None = None
     desktop: SpeedTest | None = None

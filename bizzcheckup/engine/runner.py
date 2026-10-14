@@ -17,9 +17,10 @@ import httpx
 from . import preview
 from .checks.base import Check
 from .collectors import DEFAULT_COLLECTORS, Collector
+from .collectors.security import probe_exposed_files
 from .collectors.shots import take_shots
 from .config import EngineConfig
-from .context import PAGESPEED, PROBES, RENDER, AuditContext
+from .context import PAGESPEED, PROBES, RENDER, SECURITY, AuditContext
 from .crawler import UnusableHomepageError, crawl
 from .fetcher import Fetcher, FetchError
 from .netguard import BlockedURLError, NetGuard
@@ -45,6 +46,7 @@ REPORT_START = 90  # scoring here, then the web app saves the report and makes t
 # What the visitor reads while each data source is still working.
 COLLECTOR_LABELS = {
     "collect_probes": "Checking links, security and AI access",
+    "collect_security": "Checking your certificate, domain and email security",
     "collect_render": "Opening your site in a real browser",
     "collect_pagespeed": "Measuring speed with Google PageSpeed",
 }
@@ -53,6 +55,7 @@ SKIP_REASONS = {  # a data source was tried but failed
     RENDER: "We couldn't open your site in a browser, so this wasn't checked.",
     PAGESPEED: "Google PageSpeed couldn't measure your site this time, so speed wasn't checked.",
     PROBES: "Extra checks of your site couldn't be completed.",
+    SECURITY: "The security lookups couldn't be completed this time.",
 }
 NO_PAGESPEED_KEY = "Speed wasn't measured because no PageSpeed API key is configured."
 
@@ -155,6 +158,13 @@ async def _run(
                 logger.error("Collector %s failed: %r", name, outcome, exc_info=outcome)
         if not config.psi_api_key:
             ctx.unavailable[PAGESPEED] = NO_PAGESPEED_KEY
+        # Asking for /.env can make a site's firewall block us, so only after the browser
+        # and the other collectors are done with the site.
+        if ctx.has(SECURITY):
+            try:
+                await probe_exposed_files(ctx, fetcher)
+            except Exception:
+                logger.exception("Exposed files probe failed")
 
     results: list[CheckResult] = []
     groups = [(category, list(items)) for category, items in groupby(checks, lambda c: c.category)]

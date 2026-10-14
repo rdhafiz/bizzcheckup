@@ -1,9 +1,11 @@
 """Rules every check must follow (acceptance checklist), tested across all the checks."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from bizzcheckup.engine.checks.base import Check
-from bizzcheckup.engine.context import PAGESPEED, PROBES, RENDER, AuditContext
+from bizzcheckup.engine.context import PAGESPEED, PROBES, RENDER, SECURITY, AuditContext
 from bizzcheckup.engine.registry import load_builtin_checks
 from bizzcheckup.engine.types import (
     AgentProbe,
@@ -12,6 +14,7 @@ from bizzcheckup.engine.types import (
     PageSpeedResult,
     RenderResult,
     RobotsInfo,
+    SecurityInfo,
     Severity,
     SpeedTest,
 )
@@ -30,13 +33,19 @@ def sick_site() -> AuditContext:
         robots=RobotsInfo(
             url=f"{HOME}robots.txt", exists=True, text="User-agent: *\nDisallow: /\n"
         ),
-        capabilities={PROBES, RENDER, PAGESPEED},
+        capabilities={PROBES, RENDER, PAGESPEED, SECURITY},
     )
     ctx.probes.http_final_url = "http://shop.test/"
     ctx.probes.link_status = {HOME: 200, f"{HOME}old-offer": 404}
     ctx.probes.link_sources = {f"{HOME}old-offer": [HOME]}
     ctx.probes.as_ai_agent = AgentProbe(status_code=403, text_length=100)
     ctx.probes.as_browser = AgentProbe(status_code=200, text_length=9000)
+    soon = datetime.now(UTC) + timedelta(days=5)
+    ctx.security = SecurityInfo(
+        cert_expires=soon, domain="shop.test", domain_expires=soon, dns_checked=True,
+        has_mx=True, spf="", dmarc="", files_checked=True, env_exposed=True, git_exposed=True,
+        security_txt=False,
+    )  # fmt: skip
     ctx.render = RenderResult(
         url=HOME,
         html=fixture_html("neglected"),
@@ -67,7 +76,7 @@ def sick_site() -> AuditContext:
 
 
 def test_check_count_across_five_categories() -> None:
-    assert len(CHECKS) == 54
+    assert len(CHECKS) == 59
     assert len({check.category for check in CHECKS}) == 5
 
 

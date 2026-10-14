@@ -20,6 +20,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   Cal.com page) and the report's Contact section shows the booking calendar; "Book a free
   review call" jumps to it. It loads only when scrolled to, and the security policy allows
   that one site in a frame and nothing else. The PDF links to the booking page.
+- **5 security checks (59 in total)**, under Security & standards: the security
+  certificate's expiry (and whether it's valid), the domain name's expiry (RDAP), protection
+  against fake emails (SPF and DMARC records, with the records to add), private files left
+  public (`/.env`, `/.git/`: only yes/no is kept, never their content) and a security
+  contact (`security.txt`, with a ready file). A new SECURITY collector uses DNS-over-HTTPS
+  and RDAP, so no new library is needed.
 - New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
   `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
 
