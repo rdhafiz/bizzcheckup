@@ -16,6 +16,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   the report by email, or clicks **Get a full check-up** (now a tracked link), with the
   site, score and top problems. Optionally also for anonymous low scores
   (`LEAD_ALERT_LOW_SCORE`).
+- **Book a call inside the report.** Set `booking_url` in `branding.yaml` (e.g. a free
+  Cal.com page) and the report's Contact section shows the booking calendar; "Book a free
+  review call" jumps to it. It loads only when scrolled to, and the security policy allows
+  that one site in a frame and nothing else. The PDF links to the booking page.
 - New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
   `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
 

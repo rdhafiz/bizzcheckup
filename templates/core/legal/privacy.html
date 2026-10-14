@@ -51,6 +51,9 @@
   <h2>Other services involved</h2>
   <ul>
     <li><strong>Google PageSpeed Insights</strong> receives the website address to measure its speed.</li>
+    <li><strong>Google (Gmail)</strong> delivers the emails we send: your report, if you asked for it.</li>
+    {% if branding.booking_url %}<li><strong>Cal.com</strong> shows the booking calendar in the report. It loads only when you
+      scroll to it, and what you enter there goes to Cal.com.</li>{% endif %}
     {% if turnstile %}<li><strong>Cloudflare Turnstile</strong> checks that you're a person, not a bot, when you start a check-up.</li>{% endif %}
   </ul>
   <p>They handle that data under their own privacy policies.</p>

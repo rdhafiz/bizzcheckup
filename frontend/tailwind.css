@@ -292,6 +292,25 @@
   /* --- Live progress (templates/checkups/progress.html, static/js/progress.js) ---
      The homepage hero (photo, dark backdrop) with the check-up running on it: a big ring
      and the current step on the left, the steps as a timeline in the card on the right. */
+  /* The booking calendar (Cal.com) in the report's contact section. A fixed height, so the
+     page doesn't jump when the calendar loads. */
+  .booking {
+    @apply overflow-hidden rounded-3xl border border-line bg-card;
+  }
+  .booking__head {
+    @apply flex flex-wrap items-center gap-4 p-5 sm:p-6;
+  }
+  .booking__head > .min-w-0 {
+    @apply flex-1;
+  }
+  .booking__open {
+    @apply inline-flex basis-full items-center gap-1 text-sm font-semibold text-primary
+      sm:basis-auto;
+  }
+  .booking__frame {
+    @apply block h-[46rem] w-full border-0 border-t border-line bg-paper md:h-[40rem];
+  }
+
   /* "Email me the report" (report hero): a <details> whose form drops down under it. */
   .email-report > summary {
     @apply list-none gap-2;

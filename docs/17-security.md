@@ -120,6 +120,11 @@ Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 Cross-Origin-Resource-Policy: same-origin
 ```
 
+`frame-src` stays `'none'` unless something needs a frame: Turnstile's widget, or the
+booking calendar when `booking_url` is set in `branding.yaml` (then only that site, e.g.
+`https://cal.com`, may be shown in a frame; `security.booking_origin()`). The calendar is a
+plain `<iframe>`: no script of theirs runs on our page, so `script-src` stays `'self'`.
+
 Django's own settings add `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`
 and `Referrer-Policy`. Production adds HSTS, an HTTPS redirect and secure cookies.
 

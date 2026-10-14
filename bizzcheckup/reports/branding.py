@@ -69,6 +69,9 @@ class Branding(BaseModel):
     cv_url: HttpUrl | None = None
     portfolio_url: HttpUrl | None = None
     qr_target: HttpUrl | None = None
+    # A booking page, e.g. https://cal.com/your-name/30min: shown as a calendar in the
+    # report so visitors can book a call without leaving it. Empty = no calendar.
+    booking_url: HttpUrl | None = None
 
     services: list[Service] = Field(default_factory=list)
     call_to_action: CallToAction
@@ -78,6 +81,14 @@ class Branding(BaseModel):
     @property
     def full_audit_url(self) -> str:
         return str(self.full_audit.button_url or self.call_to_action.button_url)
+
+    @property
+    def booking_embed_url(self) -> str:
+        """The booking page in "embed" mode: just the calendar, without the site around it."""
+        if not self.booking_url:
+            return ""
+        url = str(self.booking_url)
+        return url + ("&" if "?" in url else "?") + "embed=true&layout=month_view"
 
     @property
     def first_name(self) -> str:

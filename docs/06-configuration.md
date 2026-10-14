@@ -140,6 +140,15 @@ This file controls everything personal in the report: product name, consultant i
 contact links, services and the call to action. Someone who forks the project only
 edits this file.
 
+`booking_url` (optional) is your booking page, e.g. `https://cal.com/your-name/30min`.
+When it's set, the report shows the calendar in its Contact section so visitors can book a
+call without leaving the report, and "Book a free review call" jumps to it. Making one:
+
+1. Sign up for free at <https://cal.com> (with Google, so it sees your calendar's busy times).
+2. Create an **event type**, e.g. "Free review call", 30 minutes, with a Google Meet link.
+3. Copy its public link (`https://cal.com/<you>/<event>`) into `branding.yaml` as
+   `booking_url:` and restart the server.
+
 The `legal` section (operator, country, "last updated" date) feeds the legal pages; see
 [Legal pages & footer](18-legal-pages.md).
 

@@ -251,7 +251,11 @@
       <h3 class="text-2xl font-bold sm:text-3xl">{{ brand.call_to_action.heading }}</h3>
       <p class="mt-2 max-w-2xl">{{ brand.call_to_action.text }}</p>
     </div>
-    <a class="help-cta__button" href="{{ brand.call_to_action.button_url }}" rel="noopener" target="_blank">
+    {% if brand.booking_url and not pdf %}
+      <a class="help-cta__button" href="#book">
+    {% else %}
+      <a class="help-cta__button" href="{% firstof brand.booking_url brand.call_to_action.button_url %}" rel="noopener" target="_blank">
+    {% endif %}
       {{ brand.call_to_action.button_label }} {% include "partials/icon.html" with name="arrow" css="size-4" %}
     </a>
   </div>
@@ -263,6 +267,25 @@
     <p class="eyebrow-dash" data-reveal>Contact</p>
     <h2 id="contact-title" class="section-title" data-reveal="words">Talk to <span class="text-highlight" data-word>{{ brand.first_name }}</span> about your report</h2>
   </div>
+
+  {# Book a call without leaving the report: the booking page (Cal.com) in a frame. It only
+     loads when the reader scrolls near it (loading="lazy"). The PDF gets a link instead. #}
+  {% if brand.booking_url %}
+    <div id="book" class="booking mt-8" data-reveal>
+      <div class="booking__head">
+        <span class="perk-card__icon tone-green">{% include "partials/icon.html" with name="calendar" css="size-5" %}</span>
+        <div class="min-w-0">
+          <h3 class="text-xl font-bold">Book your free review call</h3>
+          <p class="text-sm text-muted">Pick a time that suits you. {{ brand.first_name }} will walk you through this report.</p>
+        </div>
+        <a class="booking__open" href="{{ brand.booking_url }}" rel="noopener" target="_blank">Open in a new tab {% include "partials/icon.html" with name="arrow" css="size-4" %}</a>
+      </div>
+      {% if not pdf %}
+        <iframe class="booking__frame" src="{{ brand.booking_embed_url }}" title="Book a call with {{ brand.name }}"
+                loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      {% endif %}
+    </div>
+  {% endif %}
 
   <div class="contact-card on-dark mt-8" data-reveal>
     <div class="contact-card__profile">

@@ -28,6 +28,9 @@ github: https://github.com/rdhafiz
 cv_url: https://ridwanulhafiz.me/cv
 portfolio_url: https://ridwanulhafiz.me/work
 qr_target: https://ridwanulhafiz.me
+# Your booking page (free at https://cal.com): the report shows it as a calendar so
+# visitors can book a call right there. Remove the # and put your own link:
+# booking_url: https://cal.com/your-name/30min
 
 # --- Services: mapped to failing report categories ---------------------------
 # related_categories must match the engine's category ids:

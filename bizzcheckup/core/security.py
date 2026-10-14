@@ -76,7 +76,8 @@ def verify_turnstile(token: str, ip: str) -> bool:
 
 
 def content_security_policy() -> str:
-    """Only our own files may load, plus the branding photo host and Turnstile if used."""
+    """Only our own files may load, plus the branding photo host, the booking calendar and
+    Turnstile if used."""
     img = ["'self'", "data:"]
     photo = branding_photo_origin()
     if photo:
@@ -88,6 +89,9 @@ def content_security_policy() -> str:
         script.append(TURNSTILE_ORIGIN)
         frame = [TURNSTILE_ORIGIN]
         connect.append(TURNSTILE_ORIGIN)
+    booking = booking_origin()
+    if booking:  # the booking calendar in the report (an <iframe>, no script of theirs)
+        frame = [*(f for f in frame if f != "'none'"), booking]
     directives = {
         "default-src": ["'self'"],
         "script-src": script,
@@ -118,6 +122,17 @@ def branding_photo_origin() -> str:
     except Exception:  # a broken branding.yaml is reported by the system check instead
         return ""
     return origin_of(str(photo)) if photo else ""
+
+
+def booking_origin() -> str:
+    """The booking calendar (branding.yaml `booking_url`, e.g. Cal.com) is shown in a frame."""
+    from bizzcheckup.reports.branding import load_branding  # avoids an import cycle
+
+    try:
+        url = load_branding().booking_url
+    except Exception:  # a broken branding.yaml is reported by the system check instead
+        return ""
+    return origin_of(str(url)) if url else ""
 
 
 class SecurityHeadersMiddleware:
