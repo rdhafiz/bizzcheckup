@@ -13,6 +13,7 @@ urlpatterns = [
     path("<uuid:checkup_id>/full-checkup/", views.full_checkup, name="full_checkup"),
     path("unsubscribe/<uuid:token>/", views.unsubscribe, name="unsubscribe"),
     path("<uuid:checkup_id>/badge.svg", views.badge, name="badge"),
+    path("<uuid:checkup_id>/share.png", views.share_card, name="share_card"),
     path("<uuid:checkup_id>/screenshot.jpg", views.screenshot, name="screenshot"),
     path("<uuid:checkup_id>/images/<slug:kind>/", views.image, name="image"),
 ]

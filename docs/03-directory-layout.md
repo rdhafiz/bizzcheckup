@@ -58,6 +58,7 @@ bizzcheckup/
 │       ├── branding.py       Reads and validates branding.yaml (Pydantic)
 │       ├── builder.py        Report data: vital signs, diagnosis, risks, services, QR
 │       ├── comparison.py     Before and after: what changed since the last check-up
+│       ├── share_card.py     The score as a 1200 x 630 picture for social media
 │       ├── pdf.py            Headless Chromium → PDF, with no network access
 │       ├── views.py          report_page (used by checkups.detail), pdf download
 │       └── urls.py           /checkups/<uuid>/report.pdf

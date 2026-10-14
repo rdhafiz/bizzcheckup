@@ -8,7 +8,7 @@ ourselves, with a short time limit). Everything else is refused.
 
 import contextlib
 import mimetypes
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -74,9 +74,12 @@ async def fetch_photo(url: str) -> tuple[bytes, str] | None:
     return response.content, response.headers.get("content-type", "application/octet-stream")
 
 
-async def html_to_pdf(
-    html: str, resolve: Resolver, *, allowed_urls: set[str], footer_note: str
-) -> bytes:
+def offline_router(
+    html: str, resolve: Resolver, allowed_urls: set[str]
+) -> Callable[[Route], Awaitable[None]]:
+    """Answers every request of the offline browser: the page itself, our own files, the
+    allowed outside pictures; everything else is refused. Shared with the share card."""
+
     async def handle(route: Route) -> None:
         url = route.request.url
         if url == f"{ORIGIN}/":
@@ -97,6 +100,14 @@ async def html_to_pdf(
                 await route.fulfill(body=found[0], content_type=found[1])
                 return
         await route.abort("blockedbyclient")
+
+    return handle
+
+
+async def html_to_pdf(
+    html: str, resolve: Resolver, *, allowed_urls: set[str], footer_note: str
+) -> bytes:
+    handle = offline_router(html, resolve, allowed_urls)
 
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(args=["--disable-dev-shm-usage"])

@@ -1,0 +1,79 @@
+{% load static bizz %}<!doctype html>
+{% comment %}
+  The share card: a 1200 x 630 picture (the size Facebook, LinkedIn and WhatsApp use) of
+  the website's score, made by photographing this page in Chromium (reports/share_card.py).
+  This page is never shown to visitors, only to that offline browser, so it can have its
+  own <style>: the site's Content Security Policy doesn't apply here.
+{% endcomment %}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Bricolage"; src: url("{% static 'fonts/bricolage-grotesque.woff2' %}") format("woff2"); font-weight: 200 800; }
+  @font-face { font-family: "Public Sans"; src: url("{% static 'fonts/public-sans.woff2' %}") format("woff2"); font-weight: 100 900; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: "Public Sans", sans-serif; color: #e7efec;
+    background:
+      radial-gradient(ellipse 60% 70% at 85% 10%, rgba(49,172,100,.28), transparent 70%),
+      radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1.4px) 0 0 / 22px 22px,
+      #0c1517;
+    display: grid; grid-template-columns: 560px 1fr; gap: 48px; padding: 56px 64px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; font-family: "Bricolage"; font-weight: 800; font-size: 26px; }
+  .brand__mark { width: 40px; height: 40px; border-radius: 11px; background: #31ac64; display: grid; place-items: center; }
+  .brand b { color: #5cc98a; }
+  .eyebrow { margin-top: 44px; font-size: 15px; letter-spacing: .2em; text-transform: uppercase; color: #5cc98a; font-weight: 700; }
+  .domain { margin-top: 10px; font-family: "Bricolage"; font-weight: 800; font-size: 54px; line-height: 1.05; letter-spacing: -.02em; overflow-wrap: anywhere; }
+  .score { margin-top: 34px; display: flex; align-items: center; gap: 26px; }
+  .ring { width: 150px; height: 150px; position: relative; flex: none; }
+  .ring svg { width: 100%; height: 100%; }
+  .ring__value { position: absolute; inset: 0; display: grid; place-items: center; font-family: "Bricolage"; font-weight: 800; font-size: 54px; }
+  .band { font-family: "Bricolage"; font-weight: 800; font-size: 30px; }
+  .band-healthy { color: #5cc98a; } .band-attention { color: #f5b544; } .band-urgent { color: #f97066; }
+  .of { margin-top: 6px; font-size: 18px; color: #a9bcb7; }
+  .signs { margin-top: 30px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .sign { border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); border-radius: 14px; padding: 10px 12px; }
+  .sign__score { font-family: "Bricolage"; font-weight: 800; font-size: 26px; }
+  .sign__label { margin-top: 2px; font-size: 12px; color: #a9bcb7; line-height: 1.2; }
+  .shot { align-self: center; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,.16); box-shadow: 0 40px 80px -30px rgba(0,0,0,.8); background: #132124; }
+  .shot__bar { height: 30px; display: flex; align-items: center; gap: 7px; padding: 0 14px; background: #1b2c30; }
+  .shot__bar i { width: 10px; height: 10px; border-radius: 50%; background: #2b4045; }
+  .shot img, .shot__empty { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
+  .shot__empty { display: grid; place-items: center; color: #a9bcb7; font-size: 18px; }
+  .footer { position: absolute; left: 64px; right: 64px; bottom: 30px; display: flex; justify-content: space-between; font-size: 16px; color: #a9bcb7; }
+  .footer strong { color: #e7efec; }
+</style>
+</head>
+<body>
+  <div>
+    <p class="brand"><span class="brand__mark"><svg width="26" height="26" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Bizz</b>Checkup</span></p>
+    <p class="eyebrow">Website health report</p>
+    <p class="domain">{{ checkup.domain }}</p>
+    <div class="score">
+      <div class="ring">
+        <svg viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="3.2"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="{{ colour }}" stroke-width="3.2" stroke-linecap="round" pathLength="100" stroke-dasharray="{{ report.health_score|default:0 }} 100" transform="rotate(-90 18 18)"/>
+        </svg>
+        <span class="ring__value">{{ report.health_score }}</span>
+      </div>
+      <div>
+        <p class="band band-{{ report.health_score|band }}">{{ report.health_score|band_label }}</p>
+        <p class="of">Health score out of 100 · {{ checkup.finished_at|date:"j M Y" }}</p>
+      </div>
+    </div>
+    <div class="signs">
+      {% for sign in signs %}
+        <div class="sign"><p class="sign__score band-{{ sign.score.score|band }}">{{ sign.score.score|default:"–" }}</p><p class="sign__label">{{ sign.label }}</p></div>
+      {% endfor %}
+    </div>
+  </div>
+  <figure class="shot">
+    <div class="shot__bar"><i></i><i></i><i></i></div>
+    {% if checkup.screenshot %}<img src="{% url 'checkups:screenshot' checkup.pk %}" alt="">{% else %}<div class="shot__empty">{{ checkup.domain }}</div>{% endif %}
+  </figure>
+  <p class="footer"><span>Free website check-up for business owners</span><strong>{{ site_host }}</strong></p>
+</body>
+</html>

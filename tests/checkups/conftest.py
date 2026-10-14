@@ -81,3 +81,11 @@ def no_pdf_rendering(monkeypatch: pytest.MonkeyPatch) -> None:
     from bizzcheckup.reports import pdf
 
     monkeypatch.setattr(pdf, "ensure_pdf", lambda checkup: b"%PDF-fake")
+
+
+@pytest.fixture(autouse=True)
+def no_share_card_rendering(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The same for the share card picture (test_share_card.py makes a real one)."""
+    from bizzcheckup.reports import share_card
+
+    monkeypatch.setattr(share_card, "render_share_card", lambda checkup: b"PNG-fake")

@@ -289,8 +289,10 @@
     <h2 id="contact-title" class="section-title" data-reveal="words">Talk to <span class="text-highlight" data-word>{{ brand.first_name }}</span> about your report</h2>
   </div>
 
-  {# Book a call without leaving the report: the booking page (Cal.com) in a frame. It only
-     loads when the reader scrolls near it (loading="lazy"). The PDF gets a link instead. #}
+  {% comment %}
+    Book a call without leaving the report: the booking page (Cal.com) in a frame. It only
+    loads when the reader scrolls near it (loading="lazy"). The PDF gets a link instead.
+  {% endcomment %}
   {% if brand.booking_url %}
     <div id="book" class="booking mt-8" data-reveal>
       <div class="booking__head">

@@ -1,5 +1,6 @@
 """Check-up pages (CONTROLLER layer): start a check-up, show progress, show the result."""
 
+import logging
 from uuid import UUID
 
 from asgiref.sync import async_to_sync
@@ -19,6 +20,8 @@ from . import badges, emails, protection, services
 from .forms import CheckupForm, EmailReportForm
 from .models import Checkup, CheckupImage, Lead, ReportEmail, Subscription
 from .progress import steps_for
+
+logger = logging.getLogger(__name__)
 
 BOT_ERROR = "We couldn't start your check-up. Please reload the page and try again."
 RATE_LIMIT_ERROR = (
@@ -169,6 +172,25 @@ def full_checkup(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     if cache.add(key, True, timeout=24 * 60 * 60):  # add() is False if already there
         emails.alert_owner(checkup, "clicked 'Get a full check-up'", checkup.lead)
     return redirect(load_branding().full_audit_url)
+
+
+@require_GET
+def share_card(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
+    """The score as a 1200 x 630 picture to post on social media (made once, then kept)."""
+    from bizzcheckup.reports.share_card import ensure_share_card  # avoids a circular import
+
+    checkup = get_object_or_404(Checkup, pk=checkup_id, status=Checkup.Status.DONE)
+    try:
+        png = ensure_share_card(checkup)
+    except Exception as error:  # e.g. Chromium missing: never a raw error page
+        logger.exception("Share card for %s failed", checkup.pk)
+        raise Http404 from error
+    response = HttpResponse(png, content_type="image/png")
+    response["Cache-Control"] = "public, max-age=86400, immutable"  # it never changes
+    if request.GET.get("download"):
+        name = f"bizzcheckup-{checkup.domain}-score.png"
+        response["Content-Disposition"] = f'attachment; filename="{name}"'
+    return response
 
 
 @require_GET

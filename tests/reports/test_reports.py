@@ -423,3 +423,11 @@ def test_slow_or_broken_photo_never_holds_up_the_pdf() -> None:
     with respx.mock() as router:
         router.get(PHOTO).respond(404)
         assert async_to_sync(pdf_module.fetch_photo)(PHOTO) is None
+
+
+def test_no_template_comment_leaks_into_pages(client: Client, finished: Checkup) -> None:
+    """{# ... #} only works on one line: a comment split over two lines shows as text."""
+    for url in [reverse("checkups:detail", args=[finished.pk]), reverse("core:home")]:
+        html = client.get(url).content.decode()
+        assert "{#" not in html, url
+        assert "#}" not in html, url

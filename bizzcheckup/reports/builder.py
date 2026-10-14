@@ -5,6 +5,7 @@ web report and the PDF are always identical, and the logic is easy to test.
 """
 
 from dataclasses import dataclass, field
+from urllib.parse import quote
 
 import segno
 from django.conf import settings
@@ -206,6 +207,28 @@ class ReportView:
             problems = "1 serious problem is" if serious == 1 else f"{serious} serious problems are"
             return f"Your website works, but {problems} holding your business back."
         return f"Your website works, but {total} issues are holding your business back."
+
+    # --- sharing the score on social media --------------------------------------------
+    @property
+    def share_text(self) -> str:
+        return (
+            f"My website {self.checkup.domain} scored {self.report.health_score}/100 on "
+            f"{self.branding.product_name}'s free website check-up. Check yours: "
+            f"{settings.SITE_URL}/"
+        )
+
+    @property
+    def share_links(self) -> list[tuple[str, str]]:
+        """(network, address) to post about the score. They share our homepage (the report
+        stays private); the picture itself is downloaded and attached by the visitor."""
+        site = quote(f"{settings.SITE_URL}/", safe="")
+        text = quote(self.share_text, safe="")
+        return [
+            ("WhatsApp", f"https://wa.me/?text={text}"),
+            ("LinkedIn", f"https://www.linkedin.com/sharing/share-offsite/?url={site}"),
+            ("Facebook", f"https://www.facebook.com/sharer/sharer.php?u={site}"),
+            ("X", f"https://x.com/intent/post?text={text}"),
+        ]
 
     # --- the badge for the site itself ------------------------------------------------
     @property

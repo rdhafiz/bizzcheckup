@@ -321,8 +321,29 @@
   .email-report[open] > summary {
     @apply ring-2 ring-brand/60;
   }
-  .email-report[open] {
+  .email-report[open],
+  .share-score[open] {
     @apply basis-full;
+  }
+  .share-score > summary {
+    @apply list-none gap-2;
+  }
+  .share-score > summary::-webkit-details-marker {
+    display: none;
+  }
+  .share-score[open] > summary {
+    @apply ring-2 ring-brand/60;
+  }
+  .share-score__panel {
+    @apply mt-3 w-full max-w-xl rounded-2xl border border-line bg-card p-4 text-ink shadow-2xl;
+    animation: fade-up 200ms ease-out;
+  }
+  .share-score__image {
+    @apply block aspect-[1200/630] h-auto w-full rounded-xl border border-line bg-paper;
+  }
+  .share-score__network {
+    @apply inline-flex min-h-11 items-center rounded-xl border border-line px-3 text-sm font-semibold
+      text-ink no-underline hover:border-primary hover:text-primary hover:no-underline;
   }
   .email-report__form {
     @apply mt-3 w-full max-w-md rounded-2xl border border-line bg-card p-4 text-ink shadow-2xl;

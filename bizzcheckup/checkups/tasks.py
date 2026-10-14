@@ -78,6 +78,14 @@ def run_checkup(checkup_id: str) -> None:
 
     emails.after_checkup(checkup)
 
+    # The score picture for social media, made now so "Share your score" opens at once.
+    try:
+        from bizzcheckup.reports.share_card import ensure_share_card
+
+        ensure_share_card(checkup)
+    except Exception:
+        logger.exception("Share card for check-up %s failed", checkup.pk)
+
 
 @shared_task
 def run_due_rechecks() -> int:

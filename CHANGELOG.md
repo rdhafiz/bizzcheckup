@@ -41,6 +41,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   Healthy" badge (SVG) to paste into their footer, with a Copy button. It links to the
   homepage (the report stays private) and always shows the site's newest score, so it
   updates by itself after each monthly re-check.
+- **Share your score.** A 1200 × 630 picture of the score (domain, score ring, the five
+  vital signs and the homepage screenshot) to download and post, with WhatsApp, LinkedIn,
+  Facebook and X links that point to the homepage, never to the private report. Made with
+  the PDF's offline Chromium, once per check-up.
 - New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
   `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
 

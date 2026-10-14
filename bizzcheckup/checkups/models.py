@@ -130,6 +130,7 @@ class CheckupImage(models.Model):
         LINK_PREVIEW = "link_preview", "Link preview picture"
         MOBILE = "mobile", "Phone screenshot"
         TABLET = "tablet", "Tablet screenshot"
+        SHARE_CARD = "share_card", "Share card (score picture for social media)"
 
     # Only real pictures are stored (checked from their first bytes, never SVG).
     ALLOWED_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")

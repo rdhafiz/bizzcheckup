@@ -59,6 +59,19 @@ Each issue appears **once**. The order follows the questions a business owner as
 | 5 | **How {first name} can help** (`#help`) | *Who can fix this?* | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, as the homepage's vital-sign cards (the same colour and icon per vital sign, `builder.CATEGORY_LOOK`): score, service, description and "Treats the N … issues in this report", which shows those issues. A lone last card spans the full width. The broad "rebuild" service (when 3+ areas need care) is a dark wide card, and the call to action a green banner with the heartbeat line | `builder.recommend_services()` |
 | 6 | **Contact** (`#contact`) | *How do I reach them?* | The **booking calendar** (`#book`, only when `booking_url` is set in `branding.yaml`): the Cal.com page in an `<iframe>` with `loading="lazy"` (it loads only when the reader scrolls near it) and a fixed height, so nothing jumps; "Book a free review call" in Get help jumps to it, and the PDF gets a link instead. Then a dark card in the opening band's style: the photo in a green gradient ring, name, title, intro, the highlights as credential badges; each way to reach them (email, WhatsApp, website, GitHub, CV, portfolio) as a large tile with its coloured icon; the QR code; the footer note | `branding.yaml`, `builder.qr_code_svg()` (made with a `viewBox`, so CSS scales it to fill its white square) |
 
+### The share card (`reports/share_card.py`, `/checkups/<id>/share.png`)
+
+**Share your score** (in the band's buttons) opens a picture of the score, 1200 × 630
+pixels (the size Facebook, LinkedIn and WhatsApp show), with **Download the picture** and
+links to post on WhatsApp, LinkedIn, Facebook and X. The posts link to our homepage, not
+to the report, which stays private (`ReportView.share_links`, `share_text`).
+
+The picture is made like the PDF, with no new library: `templates/reports/share_card.html`
+is a small page of exactly 1200 × 630, opened in headless Chromium **with no network** (the
+same `pdf.offline_router()`: only our fonts and the homepage screenshot are served), and
+photographed with `page.screenshot()`. It's made right after the check-up (in the task)
+and saved as a `CheckupImage` of kind `share_card`, so later requests just send it.
+
 ### The score badge (`checkups/badges.py`, `/checkups/<id>/badge.svg`)
 
 When the health score is 90 or more (`ReportView.badge_ready`), "At a glance" offers a
