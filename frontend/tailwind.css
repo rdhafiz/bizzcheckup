@@ -1730,6 +1730,53 @@
     @apply h-11 w-auto justify-self-start md:justify-self-center;
   }
 
+  /* "You vs a competitor" (_competitor.html). */
+  .rival-scores {
+    @apply mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6;
+  }
+  .rival-score {
+    @apply min-w-0 rounded-2xl border border-line bg-card p-4 text-center sm:p-6;
+  }
+  .rival-score--ours {
+    background: color-mix(in srgb, var(--primary) 8%, var(--card));
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--line));
+  }
+  .rival-score__who {
+    @apply truncate text-xs font-semibold text-muted sm:text-sm;
+  }
+  .rival-score__value {
+    @apply mt-1 text-4xl font-extrabold tabular-nums sm:text-6xl;
+    font-family: var(--font-display);
+  }
+  .rival-scores__vs {
+    @apply text-sm font-bold tracking-widest text-muted uppercase;
+  }
+  .rival-table {
+    @apply mt-6 overflow-x-auto rounded-2xl border border-line bg-card;
+  }
+  .rival-table table {
+    @apply w-full text-sm;
+  }
+  .rival-table th,
+  .rival-table td {
+    @apply px-4 py-3 text-left;
+  }
+  .rival-table thead th {
+    @apply text-xs font-semibold text-muted;
+  }
+  .rival-table tbody tr {
+    @apply border-t border-line;
+  }
+  .rival-table td {
+    @apply tabular-nums;
+  }
+  .rival-table td.is-lead {
+    @apply font-bold text-ink;
+  }
+  .rival-form {
+    @apply mt-6 max-w-xl rounded-2xl border border-line bg-card p-5;
+  }
+
   /* "Since last time" (_changes.html): score changes, then fixed / new / still to fix. */
   .change-scores {
     @apply mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6;
@@ -1755,7 +1802,8 @@
     font-family: var(--font-display);
   }
   .delta {
-    @apply mt-auto inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold;
+    @apply mt-auto inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold
+      whitespace-nowrap;
   }
   .delta--up {
     color: var(--healthy);

@@ -87,6 +87,10 @@ class Checkup(models.Model):
     subscription = models.ForeignKey(
         Subscription, null=True, blank=True, on_delete=models.SET_NULL, related_name="checkups"
     )
+    # "Compare with a competitor": the competitor's check-up, shown side by side.
+    competitor = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="compared_by"
+    )
     raw_results = models.JSONField(default=dict, blank=True)  # the full engine AuditReport
     # Homepage screenshot (JPEG). Kept in the database so the web and worker
     # containers don't need a shared disk.

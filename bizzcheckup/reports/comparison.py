@@ -107,3 +107,73 @@ def compare(checkup: Checkup, report: AuditReport | None = None) -> Comparison |
         still=[finding for check, finding in now.items() if check in old],
         newly_checked=[f for check, f in now.items() if check not in checked_before],
     )
+
+
+# --- Side by side with a competitor ------------------------------------------------------
+
+
+@dataclass
+class ScorePair:
+    label: str
+    ours: int | None
+    theirs: int | None
+
+    @property
+    def leader(self) -> str:
+        """ "ours", "theirs" or "tie" (also "tie" when one wasn't measured)."""
+        if self.ours is None or self.theirs is None or self.ours == self.theirs:
+            return "tie"
+        return "ours" if self.ours > self.theirs else "theirs"
+
+
+@dataclass
+class RivalComparison:
+    competitor: Checkup
+    health: ScorePair
+    signs: list[ScorePair]
+    they_solved: list[Finding] = field(default_factory=list)  # our problems they don't have
+    # Their problems we don't have, by check name (their messages speak to *their* owner).
+    we_solved: list[str] = field(default_factory=list)
+
+    @property
+    def ahead_count(self) -> int:
+        return sum(1 for sign in self.signs if sign.leader == "ours")
+
+    @property
+    def behind_count(self) -> int:
+        return sum(1 for sign in self.signs if sign.leader == "theirs")
+
+
+def compare_with_competitor(
+    checkup: Checkup, report: AuditReport | None = None
+) -> RivalComparison | None:
+    """Our report next to the competitor's, once their check-up has finished."""
+    competitor = checkup.competitor
+    if competitor is None or competitor.status != Checkup.Status.DONE:
+        return None
+    try:
+        theirs = AuditReport.model_validate(competitor.raw_results)
+    except ValueError:
+        return None
+    ours = report or AuditReport.model_validate(checkup.raw_results)
+    our_problems = problems_by_check(ours)
+    their_problems = problems_by_check(theirs)
+    both_checked = {r.check_id for r in ours.results} & {r.check_id for r in theirs.results}
+    titles = {r.check_id: r.title for r in theirs.results}
+    return RivalComparison(
+        competitor=competitor,
+        health=ScorePair("Health score", ours.health_score, theirs.health_score),
+        signs=[
+            ScorePair(c.label, ours.category(c).score, theirs.category(c).score) for c in Category
+        ],
+        they_solved=[
+            f
+            for check, f in our_problems.items()
+            if check not in their_problems and check in both_checked
+        ],
+        we_solved=[
+            titles.get(check, check)
+            for check in their_problems
+            if check not in our_problems and check in both_checked
+        ],
+    )

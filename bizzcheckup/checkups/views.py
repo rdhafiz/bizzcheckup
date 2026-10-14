@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -17,7 +18,7 @@ from bizzcheckup.engine.urls import domain, site_root
 from bizzcheckup.reports.branding import load_branding
 
 from . import badges, emails, protection, services
-from .forms import CheckupForm, EmailReportForm
+from .forms import CheckupForm, CompetitorForm, EmailReportForm
 from .models import Checkup, CheckupImage, Lead, ReportEmail, Subscription
 from .progress import steps_for
 
@@ -118,6 +119,42 @@ def recheck(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
 
     checkup = services.create_checkup(url, ip_hash=ip_hash)
     return redirect("checkups:detail", checkup_id=checkup.pk)
+
+
+COMPETITOR_SAME = "That's your own website: enter a competitor's address to compare."
+COMPETITOR_STARTED = (
+    "We're checking {domain} now. It takes about a minute: reload this page to see the comparison."
+)
+
+
+@require_POST
+def compare(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
+    """ "Compare with a competitor": check their site (same rules as any check-up)."""
+    checkup = get_object_or_404(Checkup, pk=checkup_id, status=Checkup.Status.DONE)
+    back = redirect(reverse("checkups:detail", args=[checkup.pk]) + "#competitor")
+    form = CompetitorForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, str(form.errors["url"][0]))
+        return back
+    url = form.cleaned_data["url"]
+    if url == checkup.url:
+        messages.error(request, COMPETITOR_SAME)
+        return back
+
+    theirs = protection.recent_report(url) or protection.in_progress(url)
+    if theirs is None:
+        ip_hash = security.hash_ip(security.client_ip(request))
+        if protection.over_rate_limit(ip_hash):
+            messages.error(request, RATE_LIMIT_ERROR)
+            return back
+        if protection.too_busy():
+            messages.error(request, BUSY_ERROR)
+            return back
+        theirs = services.create_checkup(url, ip_hash=ip_hash)
+    Checkup.objects.filter(pk=checkup.pk).update(competitor=theirs)
+    if theirs.status != Checkup.Status.DONE:
+        messages.success(request, COMPETITOR_STARTED.format(domain=theirs.domain))
+    return back
 
 
 EMAIL_SENT = (

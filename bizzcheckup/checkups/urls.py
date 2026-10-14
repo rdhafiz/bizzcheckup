@@ -10,6 +10,7 @@ urlpatterns = [
     path("<uuid:checkup_id>/progress/", views.progress, name="progress"),
     path("<uuid:checkup_id>/recheck/", views.recheck, name="recheck"),
     path("<uuid:checkup_id>/email/", views.email_report, name="email_report"),
+    path("<uuid:checkup_id>/compare/", views.compare, name="compare"),
     path("<uuid:checkup_id>/full-checkup/", views.full_checkup, name="full_checkup"),
     path("unsubscribe/<uuid:token>/", views.unsubscribe, name="unsubscribe"),
     path("<uuid:checkup_id>/badge.svg", views.badge, name="badge"),

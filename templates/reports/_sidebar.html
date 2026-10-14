@@ -18,6 +18,7 @@
   <nav class="side-nav" aria-label="Report sections">
     <a href="#overview">{% include "partials/icon.html" with name="chart" css="size-4" %}<span>Overview</span></a>
     {% if view.comparison %}<a href="#changes">{% include "partials/icon.html" with name="chart" css="size-4" %}<span>Since last time</span></a>{% endif %}
+    <a href="#competitor">{% include "partials/icon.html" with name="bolt" css="size-4" %}<span>Competitor</span></a>
     {% if view.risk_rows %}<a href="#fix-first">{% include "partials/icon.html" with name="bolt" css="size-4" %}<span>Fix these first</span><span class="side-nav__count">{{ view.risk_rows|length }}</span></a>{% endif %}
     <a href="#issues">{% include "partials/icon.html" with name="list" css="size-4" %}<span>All issues</span><span class="side-nav__count">{{ view.problem_rows|length }}</span></a>
     <a href="#pages">{% include "partials/icon.html" with name="file" css="size-4" %}<span>All pages</span><span class="side-nav__count">{{ view.all_pages|length }}</span></a>

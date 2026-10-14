@@ -1,0 +1,82 @@
+{% comment %}
+  "You vs a competitor": side by side once the competitor's check-up has finished
+  (view.rival, reports/comparison.py), its progress while it runs, and the form to pick one.
+  Needs `view`, `checkup`, `pdf`. Who leads is written in words, never colour alone.
+{% endcomment %}
+{% with rival=view.rival pending=checkup.competitor %}
+<section id="competitor" class="report-section" aria-labelledby="competitor-title">
+  <div class="section-head" data-reveal-group>
+    <p class="eyebrow-dash" data-reveal>Competitor</p>
+    <h2 id="competitor-title" class="section-title" data-reveal="words">
+      {% if rival %}You vs <span class="text-highlight" data-word>{{ rival.competitor.domain }}</span>{% else %}How do you compare with a <span class="text-highlight" data-word>competitor</span>?{% endif %}
+    </h2>
+    <p class="section-intro" data-reveal>
+      {% if rival %}
+        {% if rival.behind_count > rival.ahead_count %}{{ rival.competitor.domain }} is ahead on {{ rival.behind_count }} of the 5 vital signs.{% elif rival.ahead_count > rival.behind_count %}You're ahead on {{ rival.ahead_count }} of the 5 vital signs.{% else %}You're level on the vital signs.{% endif %}
+        Both websites were checked the same way, with the same {{ view.report.results|length }} checks.
+      {% else %}
+        Enter a competitor's website: we check it the same way and show you where they're ahead.
+      {% endif %}
+    </p>
+  </div>
+
+  {% if rival %}
+    <div class="rival-scores" data-reveal-group>
+      <div class="rival-score rival-score--ours" data-reveal>
+        <p class="rival-score__who">You · {{ checkup.domain }}</p>
+        <p class="rival-score__value">{{ rival.health.ours|default:"–" }}</p>
+      </div>
+      <p class="rival-scores__vs" aria-hidden="true">vs</p>
+      <div class="rival-score" data-reveal>
+        <p class="rival-score__who">{{ rival.competitor.domain }}</p>
+        <p class="rival-score__value">{{ rival.health.theirs|default:"–" }}</p>
+      </div>
+    </div>
+
+    <div class="rival-table" data-reveal>
+      <table>
+        <caption class="sr-only">Vital signs: your score and your competitor's</caption>
+        <thead><tr><th scope="col">Vital sign</th><th scope="col">You</th><th scope="col">{{ rival.competitor.domain }}</th><th scope="col">Who leads</th></tr></thead>
+        <tbody>
+          {% for sign in rival.signs %}
+            <tr>
+              <th scope="row">{{ sign.label }}</th>
+              <td class="{% if sign.leader == 'ours' %}is-lead{% endif %}">{{ sign.ours|default:"–" }}</td>
+              <td class="{% if sign.leader == 'theirs' %}is-lead{% endif %}">{{ sign.theirs|default:"–" }}</td>
+              <td>{% if sign.leader == "ours" %}<span class="delta delta--up">You</span>{% elif sign.leader == "theirs" %}<span class="delta delta--down">Them</span>{% else %}<span class="delta delta--same">Even</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="change-lists md:grid-cols-2!" data-reveal-group>
+      {% include "reports/_change_list.html" with items=rival.they_solved title="They've already solved" tone="rose" icon="fail" empty="Nothing: every problem they don't have, you don't have either." link="#issues" %}
+      {% include "reports/_change_list.html" with items=rival.we_solved title="You're ahead on" tone="green" icon="pass" empty="Nothing yet." %}
+    </div>
+  {% elif pending and not pdf %}
+    <div class="card mt-8" data-reveal>
+      {% if pending.status == "failed" %}
+        <p class="font-semibold">We couldn't check {{ pending.domain }}.</p>
+        <p class="mt-1 text-sm text-muted">{{ pending.error_message }}</p>
+      {% else %}
+        <p class="font-semibold">We're checking {{ pending.domain }} now ({{ pending.progress }}%).</p>
+        <p class="mt-1 text-sm text-muted">It takes about a minute. <a href="{% url 'checkups:detail' checkup.pk %}#competitor">Reload this page</a> to see the comparison.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if not pdf %}
+    <form method="post" action="{% url 'checkups:compare' checkup.pk %}" class="rival-form" data-reveal>
+      {% csrf_token %}
+      <label for="competitor-url" class="text-sm font-semibold">{% if rival %}Compare with another competitor{% else %}Your competitor's website{% endif %}</label>
+      <div class="mt-2 flex flex-col gap-2 sm:flex-row">
+        <input type="text" name="url" id="competitor-url" required placeholder="competitor.com" autocomplete="url"
+               inputmode="url" autocapitalize="none" spellcheck="false" class="field-input min-w-0 flex-1">
+        <button type="submit" class="btn-primary shrink-0">Compare</button>
+      </div>
+      <p class="mt-2 text-xs text-muted">It counts as one of your free check-ups. We only look at public pages.</p>
+    </form>
+  {% endif %}
+</section>
+{% endwith %}

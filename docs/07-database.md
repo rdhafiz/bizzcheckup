@@ -41,6 +41,7 @@ Lead 1 ──── * Checkup 1 ──── * Finding
 (optional)            1 ──── * CheckupImage
                       1 ──── * ReportEmail
 Subscription 1 ──── * Checkup   (the monthly re-checks)
+Checkup.competitor ──► Checkup  ("Compare with a competitor")
 ```
 
 A **Lead** can have several check-ups. A **Checkup** has many **Findings**. Deleting a

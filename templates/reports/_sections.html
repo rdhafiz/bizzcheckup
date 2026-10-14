@@ -105,6 +105,9 @@
 {# 1c. Since last time: only when the site was checked before ---------------------- #}
 {% if view.comparison %}{% include "reports/_changes.html" %}{% endif %}
 
+{# 1d. Side by side with a competitor (in the PDF only once it's finished) ------------- #}
+{% if not pdf or view.rival %}{% include "reports/_competitor.html" %}{% endif %}
+
 {# 2. The few problems to fix first ------------------------------------------------ #}
 {% if view.risk_rows %}
 <section id="fix-first" class="report-section" aria-labelledby="risks-title">

@@ -7,6 +7,25 @@ from bizzcheckup.engine.urls import InvalidURLError, normalize_url, site_root
 from . import services
 
 
+def clean_site_url(raw: str) -> tuple[str, bool]:
+    """The website's main address, checked to be safe: (url, whether a page was dropped).
+
+    Raises ValidationError with a friendly message for addresses that can't be checked.
+    """
+    try:
+        entered = normalize_url(raw)
+    except InvalidURLError as error:
+        raise forms.ValidationError(str(error)) from error
+    # Free check-ups cover the website from its main address, never one chosen page.
+    url = site_root(entered)
+    try:
+        # SSRF protection right away: never queue an internal address.
+        async_to_sync(services.make_guard().check_url)(url)
+    except BlockedURLError as error:
+        raise forms.ValidationError(str(error)) from error
+    return url, entered != url
+
+
 class CheckupForm(forms.Form):
     """The landing-page form: website address, optional contact details, consent."""
 
@@ -29,18 +48,7 @@ class CheckupForm(forms.Form):
     website = forms.CharField(required=False, label="Leave this field empty")
 
     def clean_url(self) -> str:
-        try:
-            entered = normalize_url(self.cleaned_data["url"])
-        except InvalidURLError as error:
-            raise forms.ValidationError(str(error)) from error
-        # Free check-ups cover the website from its main address, never one chosen page.
-        url = site_root(entered)
-        self.page_dropped = entered != url
-        try:
-            # SSRF protection right away: never queue an internal address.
-            async_to_sync(services.make_guard().check_url)(url)
-        except BlockedURLError as error:
-            raise forms.ValidationError(str(error)) from error
+        url, self.page_dropped = clean_site_url(self.cleaned_data["url"])
         return url
 
     def clean_name(self) -> str:
@@ -66,3 +74,13 @@ class EmailReportForm(forms.Form):
     @property
     def is_bot(self) -> bool:
         return bool(self.cleaned_data.get("website"))
+
+
+class CompetitorForm(forms.Form):
+    """ "Compare with a competitor", on the report page."""
+
+    url = forms.CharField(label="Your competitor's website", max_length=2048)
+
+    def clean_url(self) -> str:
+        url, _ = clean_site_url(self.cleaned_data["url"])
+        return url

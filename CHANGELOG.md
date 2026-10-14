@@ -61,6 +61,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   "1-3 days") and who usually does it ("You can usually do this yourself" or "a job for a
   web developer"). The issue list adds them up ("about 2 days of work") and "Get help"
   splits the quick fixes from the developer's part.
+- **Compare with a competitor.** Enter a competitor's website on the report: it's
+  checked the same way (and counts as one of the visitor's free check-ups), then the report
+  shows both scores, who leads on each vital sign, what they've already solved that you
+  haven't, and where you're ahead. Migration `0008`.
 - New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
   `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
 

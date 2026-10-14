@@ -59,6 +59,25 @@ Each issue appears **once**. The order follows the questions a business owner as
 | 5 | **How {first name} can help** (`#help`) | *Who can fix this?* | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, as the homepage's vital-sign cards (the same colour and icon per vital sign, `builder.CATEGORY_LOOK`): score, service, description and "Treats the N … issues in this report", which shows those issues. A lone last card spans the full width. The broad "rebuild" service (when 3+ areas need care) is a dark wide card, and the call to action a green banner with the heartbeat line | `builder.recommend_services()` |
 | 6 | **Contact** (`#contact`) | *How do I reach them?* | The **booking calendar** (`#book`, only when `booking_url` is set in `branding.yaml`): the Cal.com page in an `<iframe>` with `loading="lazy"` (it loads only when the reader scrolls near it) and a fixed height, so nothing jumps; "Book a free review call" in Get help jumps to it, and the PDF gets a link instead. Then a dark card in the opening band's style: the photo in a green gradient ring, name, title, intro, the highlights as credential badges; each way to reach them (email, WhatsApp, website, GitHub, CV, portfolio) as a large tile with its coloured icon; the QR code; the footer note | `branding.yaml`, `builder.qr_code_svg()` (made with a `viewBox`, so CSS scales it to fill its white square) |
 
+### You vs a competitor (`_competitor.html`, `comparison.compare_with_competitor()`)
+
+Under "Since last time", a visitor can enter a competitor's website. `views.compare`:
+
+1. cleans the address like the homepage form (`forms.clean_site_url()`: the main address
+   only, and the SSRF guard), and refuses the site's own address;
+2. reuses a recent report of that site, or one that's running, if there is one;
+3. otherwise starts a normal check-up, which counts towards the visitor's hourly limit and
+   respects the queue cap, exactly like any other;
+4. saves it as `Checkup.competitor` (migration `0008`) and says "We're checking
+   rival.com now".
+
+When the competitor's check-up has finished, the section shows both health scores, a
+table of the five vital signs with **who leads** (in words, "You" / "Them" / "Even"), and
+two lists: **They've already solved** (your problems they don't have: a strong reason to
+fix them) and **You're ahead on** (by check name, since their messages speak to their own
+owner). Only checks that ran on both sites count. The PDF includes the comparison once
+it's finished; the form is only on the web page.
+
 ### How long fixes take (`reports/fixtime.py`)
 
 Every finding has an **effort** level set by its check. `fixtime.py` turns it into words a

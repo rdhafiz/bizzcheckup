@@ -26,7 +26,7 @@ from bizzcheckup.engine.types import (
 )
 
 from .branding import Branding, Service, load_branding
-from .comparison import Comparison, compare
+from .comparison import Comparison, RivalComparison, compare, compare_with_competitor
 from .fixtime import FixSummary, FixTime, fix_time, summarise
 
 SEVERITY_ORDER = {Severity.FAIL: 0, Severity.WARN: 1, Severity.INFO: 2, Severity.PASS: 3}
@@ -156,6 +156,7 @@ class ReportView:
     image_kinds: set[str] = field(default_factory=set)  # pictures saved, e.g. {"mobile"}
     issues: list[IssueRow] = field(default_factory=list)  # every problem, then every note
     comparison: Comparison | None = None  # what changed since the last check-up of the site
+    rival: RivalComparison | None = None  # side by side with a competitor, when finished
 
     # --- the issue list ------------------------------------------------------------------
     @property
@@ -317,6 +318,7 @@ def build_report(checkup: Checkup) -> ReportView:
         image_kinds=image_kinds,
         issues=issue_rows(plan, vital_signs, image_kinds),
         comparison=compare(checkup, report),
+        rival=compare_with_competitor(checkup, report),
     )
 
 
