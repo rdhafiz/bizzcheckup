@@ -51,8 +51,15 @@ what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variab
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | no | empty | Cloudflare Turnstile on the form |
 | `CHECKUP_RUNNER` | no | `immediate` | `immediate`: run in the web app right away (no Redis). `celery`: use the queue and worker. |
 | `CHECKUP_MAX_CONCURRENT` | no | `3` | Check-ups running at the same time per web process (`immediate` mode) |
+| `SITE_URL` | prod: yes | `http://localhost:8000` | The site's public address, for links in emails |
+| `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` | no | empty | Gmail address and app password. Empty = emails are printed in the terminal, not sent |
+| `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL` | no | Gmail's | Another SMTP service, if not Gmail |
+| `LEAD_ALERT_EMAIL` | no | `branding.yaml` email | Who gets "new lead" alerts |
+| `LEAD_ALERT_LOW_SCORE` | no | `0` (off) | Also alert for anonymous check-ups scoring below this |
+| `REPORT_EMAILS_PER_DAY` | no | `3` | "Email me the report" sends per report per day |
 
-The security-related ones are explained in [Security](17-security.md).
+The security-related ones are explained in [Security](17-security.md), the email ones in
+[Emails](21-emails.md) (with the Gmail app password steps).
 
 ### Getting a PageSpeed API key (free)
 

@@ -70,3 +70,9 @@ def run_checkup(checkup_id: str) -> None:
     except Exception:
         logger.exception("PDF for check-up %s failed", checkup.pk)
     services.mark_done(checkup)
+
+    # The report to the visitor (if they left their email) and the alert to the
+    # consultant. Never fails the check-up: the report is already done.
+    from . import emails
+
+    emails.after_checkup(checkup)

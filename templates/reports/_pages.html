@@ -65,7 +65,7 @@
             {% endfor %}
           </ul>
         {% endif %}
-        <a class="btn-primary mt-6" href="{{ brand.full_audit_url }}" rel="noopener" target="_blank">
+        <a class="btn-primary mt-6" href="{% if pdf %}{{ brand.full_audit_url }}{% else %}{% url 'checkups:full_checkup' checkup.pk %}{% endif %}" rel="noopener" target="_blank">
           {{ brand.full_audit.button_label }} {% include "partials/icon.html" with name="arrow" css="size-4" %}
         </a>
       </aside>

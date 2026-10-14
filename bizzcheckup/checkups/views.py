@@ -4,6 +4,7 @@ from uuid import UUID
 
 from asgiref.sync import async_to_sync
 from django.contrib import messages
+from django.core.cache import cache
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
@@ -11,10 +12,11 @@ from django.views.decorators.http import require_GET, require_POST
 from bizzcheckup.core import security
 from bizzcheckup.engine.netguard import BlockedURLError
 from bizzcheckup.engine.urls import domain, site_root
+from bizzcheckup.reports.branding import load_branding
 
-from . import protection, services
-from .forms import CheckupForm
-from .models import Checkup, CheckupImage, Lead
+from . import emails, protection, services
+from .forms import CheckupForm, EmailReportForm
+from .models import Checkup, CheckupImage, Lead, ReportEmail
 from .progress import steps_for
 
 BOT_ERROR = "We couldn't start your check-up. Please reload the page and try again."
@@ -55,6 +57,9 @@ def start(request: HttpRequest) -> HttpResponse:
         lead = _save_lead(form)
         if lead is not None and existing.lead_id is None:
             Checkup.objects.filter(pk=existing.pk).update(lead=lead)
+            existing.lead = lead
+            if existing.status == Checkup.Status.DONE:  # still running: sent when it ends
+                emails.after_checkup(existing)
         return redirect("checkups:detail", checkup_id=existing.pk)
 
     ip_hash = security.hash_ip(ip)
@@ -106,6 +111,58 @@ def recheck(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
 
     checkup = services.create_checkup(url, ip_hash=ip_hash)
     return redirect("checkups:detail", checkup_id=checkup.pk)
+
+
+EMAIL_SENT = (
+    "We've sent the report to {email}. It should arrive in a minute (check your spam folder too)."
+)
+EMAIL_FAILED = (
+    "We couldn't send the email right now. Please try again in a few minutes, or download the PDF."
+)
+EMAIL_LIMIT = "This report has been emailed several times today. Please download the PDF instead."
+EMAIL_INVALID = "Please enter a valid email address."
+
+
+@require_POST
+def email_report(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
+    """ "Email me this report": send the report (with its PDF) to the address given."""
+    checkup = get_object_or_404(Checkup, pk=checkup_id, status=Checkup.Status.DONE)
+    back = redirect("checkups:detail", checkup_id=checkup.pk)
+    form = EmailReportForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, EMAIL_INVALID)
+        return back
+    if form.is_bot:
+        return back  # say nothing to a bot
+    if emails.emails_left_today(checkup) <= 0:
+        messages.error(request, EMAIL_LIMIT)
+        return back
+
+    address = form.cleaned_data["email"].lower()
+    if not emails.send_report(checkup, address):
+        messages.error(request, EMAIL_FAILED)
+        return back
+    ip_hash = security.hash_ip(security.client_ip(request))
+    ReportEmail.objects.create(checkup=checkup, email=address, ip_hash=ip_hash)
+
+    # They left an email: that's a lead, kept like the homepage form's.
+    lead = services.save_lead(name="", email=address, consent=form.cleaned_data["consent"])
+    if lead is not None and checkup.lead_id is None:
+        Checkup.objects.filter(pk=checkup.pk).update(lead=lead)
+    emails.alert_owner(checkup, "asked for the report by email", lead)
+    messages.success(request, EMAIL_SENT.format(email=address))
+    return back
+
+
+@require_GET
+def full_checkup(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
+    """ "Get a full check-up": tell the consultant (once a day per report), then go to
+    the offer's address from branding.yaml."""
+    checkup = get_object_or_404(Checkup, pk=checkup_id, status=Checkup.Status.DONE)
+    key = f"full-checkup-alert:{checkup.pk}"
+    if cache.add(key, True, timeout=24 * 60 * 60):  # add() is False if already there
+        emails.alert_owner(checkup, "clicked 'Get a full check-up'", checkup.lead)
+    return redirect(load_branding().full_audit_url)
 
 
 def _save_lead(form: CheckupForm) -> Lead | None:

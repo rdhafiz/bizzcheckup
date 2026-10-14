@@ -47,9 +47,10 @@ bizzcheckup/
 │   │   ├── protection.py     Report reuse, rate limit, global capacity
 │   │   ├── admin.py          Admin pages, health-band filter, lead CSV export
 │   │   ├── tasks.py          Celery job run_checkup: runs the engine in the worker
+│   │   ├── emails.py         The report by email, "new lead" alerts (docs/21-emails.md)
 │   │   ├── progress.py       Steps shown on the progress page
 │   │   ├── views.py          CONTROLLER: start, detail, progress (HTMX), screenshot
-│   │   └── urls.py           /checkups/new/, /checkups/<uuid>/, .../progress/, .../recheck/, .../screenshot.jpg
+│   │   └── urls.py           /checkups/new/, /checkups/<uuid>/, .../progress/, .../recheck/, .../email/, .../full-checkup/, .../screenshot.jpg
 │   └── reports/              Django app: the Health Report (docs/16-health-report.md)
 │       ├── apps.py           Registers the branding.yaml system check
 │       ├── branding.py       Reads and validates branding.yaml (Pydantic)
@@ -72,7 +73,8 @@ bizzcheckup/
 │   ├── partials/             Small reusable pieces: logo, icons, illustrations, score ring, footer
 │   ├── core/                 home (landing page + form), styleguide, legal/ (privacy, terms, cookies, ...)
 │   ├── checkups/             progress.html, _progress_data.html (HTMX data), _recheck_form.html, failed.html
-│   └── reports/              report.html (web), report_pdf.html (PDF), _sections.html (shared), ...
+│   ├── reports/              report.html (web), report_pdf.html (PDF), _sections.html (shared), ...
+│   └── emails/               report.html + report.txt (to the visitor), lead_alert.txt (to you)
 ├── frontend/tailwind.css     Design system source (colours, fonts, components)
 ├── static/                   Files sent to the browser as they are
 │   ├── css/app.css           BUILT by Tailwind (not in git)

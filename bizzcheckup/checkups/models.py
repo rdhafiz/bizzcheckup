@@ -127,6 +127,21 @@ class CheckupImage(models.Model):
         return kind in cls.Kind.values or cls.ELEMENT_KIND.fullmatch(kind) is not None
 
 
+class ReportEmail(models.Model):
+    """A report sent by email ("Email me this report"), kept to limit how often."""
+
+    checkup = models.ForeignKey(Checkup, on_delete=models.CASCADE, related_name="emails")
+    email = models.EmailField()
+    ip_hash = models.CharField(max_length=64, blank=True)  # never the raw IP
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.checkup_id} to {self.email}"
+
+
 class Finding(models.Model):
     """One result of one check, copied from the report for searching and filtering."""
 

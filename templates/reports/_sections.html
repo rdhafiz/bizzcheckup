@@ -66,7 +66,7 @@
               {% if brand.photo_url %}<img class="glance-offer__photo" src="{{ brand.photo_url }}" alt="" width="48" height="48" loading="lazy">{% endif %}
               <p class="text-sm"><span class="font-bold">Want all {{ view.all_pages|length }} pages checked?</span> {{ brand.name }} can check every page and send you a plan to fix them.</p>
             </div>
-            <a class="btn-primary glance-offer__button" href="{{ brand.full_audit_url }}" rel="noopener" target="_blank">
+            <a class="btn-primary glance-offer__button" href="{% if pdf %}{{ brand.full_audit_url }}{% else %}{% url 'checkups:full_checkup' checkup.pk %}{% endif %}" rel="noopener" target="_blank">
               Get a full check-up by {{ brand.name }} {% include "partials/icon.html" with name="arrow" css="size-4" %}
             </a>
           </div></div>

@@ -38,6 +38,25 @@
           <a class="btn-primary" href="{% url 'reports:pdf' checkup.pk %}">Download PDF</a>
           <button type="button" class="btn-glass" data-copy-link="{{ share_url }}">Copy share link</button>
           {% include "checkups/_recheck_form.html" with checkup=checkup button_class="btn-glass" %}
+          {# "Email me the report": a small form that opens under its button (no JavaScript needed); it
+             opens in place, under its button, so the band's edge never cuts it off. #}
+          <details class="email-report">
+            <summary class="btn-glass">{% include "partials/icon.html" with name="mail" css="size-4" %}Email me the report</summary>
+            <form method="post" action="{% url 'checkups:email_report' checkup.pk %}" class="email-report__form">
+              {% csrf_token %}
+              <label for="report-email" class="text-sm font-semibold">Send this report and its PDF to</label>
+              <div class="mt-2 flex gap-2">
+                <input type="email" name="email" id="report-email" required autocomplete="email"
+                       placeholder="you@business.com" class="field-input min-w-0 flex-1 text-sm">
+                <button type="submit" class="btn-primary shrink-0">Send</button>
+              </div>
+              <label class="mt-3 flex items-start gap-2 text-xs text-muted">
+                <input type="checkbox" name="consent" value="on" class="mt-0.5 size-4 shrink-0 accent-[var(--brand)]">
+                <span>{{ brand.first_name }} may contact me about this report.</span>
+              </label>
+              <div class="honeypot" aria-hidden="true"><label>Leave this field empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+            </form>
+          </details>
           <p class="w-full text-sm text-muted empty:hidden" data-copy-status aria-live="polite"></p>
         </div>
       {% endif %}

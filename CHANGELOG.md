@@ -6,6 +6,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Added
+- **The report by email.** Visitors who leave their email get the report (score, top
+  problems, a link and the PDF) as soon as their check-up finishes, and an **Email me the
+  report** button on every report sends it to any address (3 times per report per day).
+  Replies go to the consultant. Sent with Django's own email through Gmail SMTP: see
+  [docs/21-emails.md](docs/21-emails.md).
+- **Lead alerts.** The consultant gets an email when someone leaves their email, asks for
+  the report by email, or clicks **Get a full check-up** (now a tracked link), with the
+  site, score and top problems. Optionally also for anonymous low scores
+  (`LEAD_ALERT_LOW_SCORE`).
+- New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
+  `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
+
 ## [0.3.0-alpha] - 2026-10-10
 
 ### Added

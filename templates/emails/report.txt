@@ -1,0 +1,20 @@
+{% load bizz %}{% autoescape off %}Hello,
+
+Here is the {{ brand.product_name }} report for {{ checkup.domain }}.
+
+Health score: {{ checkup.health_score }}/100 ({{ checkup.health_score|band_label }})
+{% if problems %}
+Fix these first:
+{% for problem in problems %}  {{ forloop.counter }}. {{ problem }}
+{% endfor %}{% endif %}
+Open the full report (every issue, why it matters and how to fix it):
+{{ link }}
+
+The PDF version is attached{% if pdf_link %}, or download it here: {{ pdf_link }}{% endif %}
+
+Want help fixing these? Just reply to this email: it goes straight to {{ brand.name }}.
+
+--
+{{ brand.footer_note }}
+You're getting this email because someone asked for this report on {{ brand.product_name }}.
+{% endautoescape %}

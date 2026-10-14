@@ -38,7 +38,8 @@ commit the migration file.** CI fails if a model changes without a migration
 
 ```
 Lead 1 ──── * Checkup 1 ──── * Finding
-(optional)
+(optional)            1 ──── * CheckupImage
+                      1 ──── * ReportEmail
 ```
 
 A **Lead** can have several check-ups. A **Checkup** has many **Findings**. Deleting a
@@ -103,7 +104,15 @@ Served by `/checkups/<id>/images/<kind>/` (`views.image`). Added in migration
 ### `Lead`: a visitor who left their details
 
 `name` (optional), `email`, `consent` (did they agree to be contacted), `created_at`.
-The form that fills it arrives in phase 9.
+Filled by the homepage form, and by **Email me the report** on the report page.
+
+### `ReportEmail`: a report sent by email
+
+`checkup`, `email`, `ip_hash` (never the real IP), `created_at`. One row per report sent
+with **Email me the report** or after a check-up, so `emails.emails_left_today()` can
+count them and stop one report being emailed more than `REPORT_EMAILS_PER_DAY` times a
+day. Read-only in the admin. Added in migration `0006_reportemail`
+(see [Emails](21-emails.md)).
 
 ### Status flow
 

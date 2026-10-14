@@ -10,6 +10,7 @@
   {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 
+{% block body_class %}page-report{% endblock %}
 {% block header_container %}container-report{% endblock %}
 {# Like the homepage: the header sits on the opening band's photo. #}
 {% block header_class %}on-dark absolute inset-x-0 top-0 z-20{% endblock %}

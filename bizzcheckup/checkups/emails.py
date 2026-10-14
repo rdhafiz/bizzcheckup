@@ -1,0 +1,133 @@
+"""Emails: the report to the visitor, and "new lead" alerts to the consultant.
+
+Sent with Django's own email system (SMTP, Gmail by default: see docs/21-emails.md).
+Sending must never break a check-up or a page, so every function here logs failures
+and returns False instead of raising.
+"""
+
+import logging
+from datetime import timedelta
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
+
+from bizzcheckup.reports.branding import load_branding
+
+from .models import Checkup, Lead, ReportEmail
+
+logger = logging.getLogger(__name__)
+
+PDF_LIMIT = 15 * 1024 * 1024  # bigger PDFs are linked, not attached (Gmail allows 25 MB)
+
+
+def absolute(path: str) -> str:
+    """A full address for a link in an email, e.g. https://bizzcheckup.example/checkups/..."""
+    return str(settings.SITE_URL) + path
+
+
+def report_link(checkup: Checkup) -> str:
+    return absolute(reverse("checkups:detail", args=[checkup.pk]))
+
+
+def top_problems(checkup: Checkup, limit: int = 3) -> list[str]:
+    """The report's "Fix these first" messages, in the same order as on the page."""
+    from bizzcheckup.reports.builder import build_report  # avoids a circular import
+
+    try:
+        return [row.finding.message for row in build_report(checkup).risk_rows[:limit]]
+    except Exception:  # an alert without the list is better than no alert
+        logger.exception("Couldn't list the problems of check-up %s", checkup.pk)
+        return []
+
+
+def _send(message: EmailMultiAlternatives, what: str) -> bool:
+    try:
+        message.send()
+    except Exception:  # wrong password, mail server down, ...
+        logger.exception("Couldn't send %s", what)
+        return False
+    return True
+
+
+# --- The report, to the visitor --------------------------------------------------------
+
+
+def send_report(checkup: Checkup, to: str) -> bool:
+    """Email the report: score, top problems, a link, and the PDF attached."""
+    brand = load_branding()
+    context = {
+        "checkup": checkup,
+        "brand": brand,
+        "link": report_link(checkup),
+        "pdf_link": absolute(reverse("reports:pdf", args=[checkup.pk])),
+        "problems": top_problems(checkup),
+    }
+    message = EmailMultiAlternatives(
+        subject=(
+            f"Your {brand.product_name} report for {checkup.domain}: {checkup.health_score}/100"
+        ),
+        body=render_to_string("emails/report.txt", context),
+        to=[to],
+        reply_to=[brand.email],  # replies go to the consultant, not the robot
+    )
+    message.attach_alternative(render_to_string("emails/report.html", context), "text/html")
+
+    try:
+        from bizzcheckup.reports.pdf import ensure_pdf
+
+        pdf = ensure_pdf(checkup)
+        if len(pdf) <= PDF_LIMIT:
+            name = f"bizzcheckup-{checkup.domain}.pdf"
+            message.attach(name, pdf, "application/pdf")
+    except Exception:  # the link in the email still opens the report
+        logger.exception("No PDF to attach for check-up %s", checkup.pk)
+    return _send(message, f"the report of {checkup.pk} to a visitor")
+
+
+def emails_left_today(checkup: Checkup) -> int:
+    """How many more times this report may be emailed today (REPORT_EMAILS_PER_DAY)."""
+    since = timezone.now() - timedelta(days=1)
+    sent = ReportEmail.objects.filter(checkup=checkup, created_at__gte=since).count()
+    return max(0, int(settings.REPORT_EMAILS_PER_DAY) - sent)
+
+
+# --- "New lead" alerts, to the consultant ---------------------------------------------
+
+
+def alert_owner(checkup: Checkup, reason: str, lead: Lead | None = None) -> bool:
+    """Tell the consultant about a possible client: who, which site, its score, its problems."""
+    brand = load_branding()
+    to = settings.LEAD_ALERT_EMAIL or brand.email
+    context = {
+        "checkup": checkup,
+        "lead": lead,
+        "reason": reason,
+        "link": report_link(checkup),
+        "problems": top_problems(checkup),
+        "admin_link": absolute(reverse("admin:checkups_checkup_change", args=[checkup.pk])),
+    }
+    message = EmailMultiAlternatives(
+        subject=f"New lead: {checkup.domain} ({checkup.health_score}/100) {reason}",
+        body=render_to_string("emails/lead_alert.txt", context),
+        to=[to],
+        reply_to=[lead.email] if lead else None,  # "Reply" writes to the visitor
+    )
+    return _send(message, f"a lead alert for {checkup.pk}")
+
+
+def after_checkup(checkup: Checkup) -> None:
+    """Called when a check-up has finished: send the report and the alert they need."""
+    lead = checkup.lead
+    if lead is not None:
+        if send_report(checkup, lead.email):
+            ReportEmail.objects.create(checkup=checkup, email=lead.email)
+        alert_owner(checkup, "left their email", lead)
+    elif (
+        settings.LEAD_ALERT_LOW_SCORE
+        and checkup.health_score is not None
+        and checkup.health_score < settings.LEAD_ALERT_LOW_SCORE
+    ):
+        alert_owner(checkup, "has a low score (no contact details)")

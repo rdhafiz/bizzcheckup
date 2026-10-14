@@ -99,6 +99,8 @@ for new settings that may need a line in `.env.prod`.
 | `DJANGO_SECURE_SSL_REDIRECT` | `False` | See below |
 | `CLIENT_IP_HEADER` | `CF-Connecting-IP` | See below |
 | `PSI_API_KEY`, `TURNSTILE_*` | your keys | Paste them yourself; never share them |
+| `SITE_URL` | `https://your.domain` | Links inside emails point here |
+| `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL` | Gmail and its app password | Sends reports and lead alerts: see [Emails](21-emails.md) |
 
 **HTTPS and the redirect.** Visitors' HTTPS ends at Cloudflare; the tunnel brings the
 request to Django as plain http, with `X-Forwarded-Proto: https`. Django trusts that header

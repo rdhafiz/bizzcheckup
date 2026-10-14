@@ -292,6 +292,26 @@
   /* --- Live progress (templates/checkups/progress.html, static/js/progress.js) ---
      The homepage hero (photo, dark backdrop) with the check-up running on it: a big ring
      and the current step on the left, the steps as a timeline in the card on the right. */
+  /* "Email me the report" (report hero): a <details> whose form drops down under it. */
+  .email-report > summary {
+    @apply list-none gap-2;
+  }
+  .email-report > summary::-webkit-details-marker {
+    display: none;
+  }
+  .email-report[open] > summary {
+    @apply ring-2 ring-brand/60;
+  }
+  .email-report[open] {
+    @apply basis-full;
+  }
+  .email-report__form {
+    @apply mt-3 w-full max-w-md rounded-2xl border border-line bg-card p-4 text-ink shadow-2xl;
+    animation: fade-up 200ms ease-out;
+  }
+  .page-report .messages {
+    @apply absolute inset-x-0 top-16 z-30;
+  }
   .page-progress .messages {
     @apply absolute inset-x-0 top-16 z-30;
   }

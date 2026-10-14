@@ -233,7 +233,7 @@ def test_report_lists_every_page_found_and_offers_a_full_checkup(client: Client,
     assert "The other 40 weren't checked this time" in html
     assert ">/p39<" in html  # behind "Show all 41 pages", shown without the domain
     assert "All 41 pages, not just 1." in html
-    assert load_branding().full_audit_url in html.replace("&amp;", "&")
+    assert reverse("checkups:full_checkup", args=[checkup.pk]) in html  # tracked, then redirected
 
 
 def test_no_proposal_when_every_page_was_checked(client: Client, finished: Checkup) -> None:

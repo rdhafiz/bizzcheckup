@@ -176,6 +176,40 @@ CLIENT_IP_HEADER = env("CLIENT_IP_HEADER", default="")
 TURNSTILE_SITE_KEY = env("TURNSTILE_SITE_KEY", default="")
 TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
 
+# --- Email (docs/21-emails.md) ---------------------------------------------------------
+# The site's public address, for links in emails (they're sent without a web request, so
+# Django can't work it out). No trailing slash.
+SITE_URL = env("SITE_URL", default="http://localhost:8000").rstrip("/")
+# Gmail by default: turn on 2-step verification, then create an "app password" at
+# https://myaccount.google.com/apppasswords and put it in EMAIL_HOST_PASSWORD.
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_TIMEOUT = 15  # seconds: a slow mail server must not hang a page
+# No login yet: print emails in the terminal instead of sending them (handy locally).
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default=(
+        "django.core.mail.backends.smtp.EmailBackend"
+        if EMAIL_HOST_USER
+        else "django.core.mail.backends.console.EmailBackend"
+    ),
+)
+# Gmail only sends "from" the account itself, so that's the default sender.
+DEFAULT_FROM_EMAIL = env(
+    "DEFAULT_FROM_EMAIL", default=f"BizzCheckup <{EMAIL_HOST_USER or 'noreply@localhost'}>"
+)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+# Who gets "new lead" alerts. Empty = the email in branding.yaml.
+LEAD_ALERT_EMAIL = env("LEAD_ALERT_EMAIL", default="")
+# Also alert for check-ups without contact details whose health score is below this
+# (0 = off). Useful to spot sites that need help, but it can be a lot of email.
+LEAD_ALERT_LOW_SCORE = env.int("LEAD_ALERT_LOW_SCORE", default=0)
+# "Email me this report": how many times one report can be emailed per day.
+REPORT_EMAILS_PER_DAY = env.int("REPORT_EMAILS_PER_DAY", default=3)
+
 # How check-ups run (docs/12-background-jobs.md):
 #   "immediate" (default): start straight away inside the web app, no Redis/Celery needed
 #   "celery": send them to a separate Celery worker through Redis (for heavy traffic)

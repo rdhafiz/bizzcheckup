@@ -46,3 +46,17 @@ class CheckupForm(forms.Form):
     @property
     def is_bot(self) -> bool:
         return bool(self.cleaned_data.get("website"))
+
+
+class EmailReportForm(forms.Form):
+    """ "Email me this report", on the report page."""
+
+    email = forms.EmailField(label="Your email")
+    consent = forms.BooleanField(
+        label="The consultant may contact me about this report", required=False
+    )
+    website = forms.CharField(required=False, label="Leave this field empty")  # honeypot
+
+    @property
+    def is_bot(self) -> bool:
+        return bool(self.cleaned_data.get("website"))
