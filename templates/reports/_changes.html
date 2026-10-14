@@ -1,0 +1,50 @@
+{% comment %}
+  "Since your last check-up": only when the same website was checked before.
+  Needs `view` (view.comparison, reports/comparison.py) and `pdf`.
+  Score changes are shown with an arrow AND words (never colour alone).
+{% endcomment %}
+{% with change=view.comparison previous=view.comparison.previous %}
+<section id="changes" class="report-section" aria-labelledby="changes-title">
+  <div class="section-head" data-reveal-group>
+    <p class="eyebrow-dash" data-reveal>Since last time</p>
+    <h2 id="changes-title" class="section-title" data-reveal="words">
+      {% if change.improved %}Your website is <span class="text-highlight" data-word>getting healthier</span>{% elif change.health.direction == "down" %}Some things got <span class="text-highlight" data-word>worse</span>{% else %}What changed since <span class="text-highlight" data-word>last time</span>{% endif %}
+    </h2>
+    <p class="section-intro" data-reveal>
+      Compared with the check-up of {{ previous.finished_at|date:"j F Y" }} ({{ previous.finished_at|timesince:view.checkup.finished_at }} earlier).
+      {% if not pdf %}<a href="{% url 'checkups:detail' previous.pk %}">Open that report</a>{% endif %}
+    </p>
+  </div>
+
+  <div class="change-scores" data-reveal-group>
+    <div class="change-score change-score--main" data-reveal>
+      <p class="change-score__label">{{ change.health.label }}</p>
+      <p class="change-score__values">
+        <span class="change-score__before">{{ change.health.before|default:"–" }}</span>
+        <span aria-hidden="true">→</span><span class="sr-only">now</span>
+        <span class="change-score__after">{{ change.health.after|default:"–" }}</span>
+      </p>
+      {% include "reports/_delta.html" with score=change.health %}
+    </div>
+    {% for sign in change.signs %}
+      <div class="change-score" data-reveal>
+        <p class="change-score__label">{{ sign.label }}</p>
+        <p class="change-score__values"><span class="change-score__after">{{ sign.after|default:"–" }}</span></p>
+        {% include "reports/_delta.html" with score=sign %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="change-lists" data-reveal-group>
+    {% include "reports/_change_list.html" with items=change.fixed title="Fixed" tone="green" icon="pass" empty="Nothing fixed yet." %}
+    {% include "reports/_change_list.html" with items=change.new title="New problems" tone="rose" icon="fail" empty="No new problems." %}
+    {% include "reports/_change_list.html" with items=change.still title="Still to fix" tone="amber" icon="warn" empty="Nothing left over." link="#issues" %}
+  </div>
+  {% if change.newly_checked %}
+    <p class="mt-4 text-sm text-muted" data-reveal>
+      {{ change.newly_checked|length }} problem{{ change.newly_checked|length|pluralize:" was,s were" }} found by checks we've added since then, so
+      {{ change.newly_checked|length|pluralize:"it isn't,they aren't" }} counted as new. You'll find {{ change.newly_checked|length|pluralize:"it,them" }} in the list below.
+    </p>
+  {% endif %}
+</section>
+{% endwith %}

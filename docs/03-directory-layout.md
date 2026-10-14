@@ -55,6 +55,7 @@ bizzcheckup/
 │       ├── apps.py           Registers the branding.yaml system check
 │       ├── branding.py       Reads and validates branding.yaml (Pydantic)
 │       ├── builder.py        Report data: vital signs, diagnosis, risks, services, QR
+│       ├── comparison.py     Before and after: what changed since the last check-up
 │       ├── pdf.py            Headless Chromium → PDF, with no network access
 │       ├── views.py          report_page (used by checkups.detail), pdf download
 │       └── urls.py           /checkups/<uuid>/report.pdf

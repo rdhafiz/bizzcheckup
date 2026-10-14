@@ -22,6 +22,7 @@ from bizzcheckup.engine.types import (
 )
 
 from .branding import Branding, Service, load_branding
+from .comparison import Comparison, compare
 
 SEVERITY_ORDER = {Severity.FAIL: 0, Severity.WARN: 1, Severity.INFO: 2, Severity.PASS: 3}
 IMPACT_ORDER = {"high": 0, "medium": 1, "low": 2}
@@ -145,6 +146,7 @@ class ReportView:
     qr_svg: str = ""
     image_kinds: set[str] = field(default_factory=set)  # pictures saved, e.g. {"mobile"}
     issues: list[IssueRow] = field(default_factory=list)  # every problem, then every note
+    comparison: Comparison | None = None  # what changed since the last check-up of the site
 
     # --- the issue list ------------------------------------------------------------------
     @property
@@ -259,6 +261,7 @@ def build_report(checkup: Checkup) -> ReportView:
         qr_svg=qr_code_svg(str(branding.qr_target)) if branding.qr_target else "",
         image_kinds=image_kinds,
         issues=issue_rows(plan, vital_signs, image_kinds),
+        comparison=compare(checkup, report),
     )
 
 

@@ -52,11 +52,27 @@ Each issue appears **once**. The order follows the questions a business owner as
 | # | Section (`id`) | Question it answers | Shows | Comes from |
 |---|----------------|---------------------|-------|------------|
 | 1 | **Overview** (`#overview`, the dark band) and **At a glance** (`#snapshot`) | *How healthy is my website?* | The band: domain, URL, the **diagnosis** (one-sentence verdict), the actions, the score with 4 counters (need treatment, worth fixing, quick wins, checks passed). At a glance: the Desktop / Tablet / Phone screenshots, the link preview card, what we checked (pages and checks) and any notes; the vital signs on phones, tablets and paper | `ReportView.verdict`, `.needs_treatment`, `.worth_fixing`, `.healthy_count` |
+| 1c | **Since last time** (`#changes`, only when the same website was checked before) | *Is my website getting better?* | The date of the previous check-up and a link to it; the health score before → after and each vital sign with a chip ("▲ up 12", "▼ down 3", "No change": an arrow and words, never colour alone); then three columns: **Fixed**, **New problems**, **Still to fix** (5 each, then "and N more"). Problems found by checks added since the previous check-up are counted apart, so a new check never looks like a new problem | `reports/comparison.py`: `compare()`, `ReportView.comparison` |
 | 2 | **Fix these first** (`#fix-first`) | *What should I fix first?* | Up to 3 cards: the problem and what it costs you, with "See how to fix it", which opens that issue in the list (in the PDF: the solution itself) | `builder.top_risks()`, `ReportView.risk_rows` |
 | 3 | **All issues** (`#issues`) | *What do I do, and in what order?* | **One list** of every problem, quick wins first (plan order), then the "good to know" notes. Each row opens to show *why it matters*, *how to fix it*, *where* and any ready-made fix. Filters by vital sign and by severity. Vital signs that weren't checked say why. Passed checks are folded under "What's healthy", grouped by vital sign | `ReportView.issues` (`builder.issue_rows()`), `.issue_filters`, `engine.treatment.build_treatment_plan()` |
 | 4 | **All pages** (`#pages`) | *Which pages were checked?* | Every page address found (sitemap and links): checked ones first with a "Checked" badge, the first 30 shown and the rest behind "Show all" ("and N more" in the PDF). When some weren't checked, the **full check-up proposal** sits beside the list | `ReportView.all_pages`, `.unchecked_count`, `branding.full_audit` |
 | 5 | **How {first name} can help** (`#help`) | *Who can fix this?* | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, as the homepage's vital-sign cards (the same colour and icon per vital sign, `builder.CATEGORY_LOOK`): score, service, description and "Treats the N … issues in this report", which shows those issues. A lone last card spans the full width. The broad "rebuild" service (when 3+ areas need care) is a dark wide card, and the call to action a green banner with the heartbeat line | `builder.recommend_services()` |
 | 6 | **Contact** (`#contact`) | *How do I reach them?* | The **booking calendar** (`#book`, only when `booking_url` is set in `branding.yaml`): the Cal.com page in an `<iframe>` with `loading="lazy"` (it loads only when the reader scrolls near it) and a fixed height, so nothing jumps; "Book a free review call" in Get help jumps to it, and the PDF gets a link instead. Then a dark card in the opening band's style: the photo in a green gradient ring, name, title, intro, the highlights as credential badges; each way to reach them (email, WhatsApp, website, GitHub, CV, portfolio) as a large tile with its coloured icon; the QR code; the footer note | `branding.yaml`, `builder.qr_code_svg()` (made with a `viewBox`, so CSS scales it to fill its white square) |
+
+### Since last time (`_changes.html`, `reports/comparison.py`)
+
+`compare(checkup)` looks for the same address's most recent **finished** check-up before
+this one. Each problem is identified by the check that found it (`check_id`): a check can
+report several problems (one per page), so the most serious one stands for it.
+
+| Before | Now | Shown as |
+|--------|-----|----------|
+| problem | no problem | **Fixed** |
+| problem | problem | **Still to fix** |
+| no problem (checked) | problem | **New problem** |
+| check didn't exist yet | problem | apart: "found by checks we've added since then" |
+
+The same `Comparison` feeds the monthly re-check email.
 
 ### The issue list (`_issue.html`, `builder.IssueRow`)
 

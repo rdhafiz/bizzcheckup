@@ -27,6 +27,7 @@
       </p>
       <nav class="report-nav" aria-label="Report sections (short)">
         <a href="#overview">Overview</a>
+        {% if view.comparison %}<a href="#changes">Changes</a>{% endif %}
         {% if view.risk_rows %}<a href="#fix-first">Fix first</a>{% endif %}
         <a href="#issues">Issues</a>
         <a href="#pages">Pages</a>

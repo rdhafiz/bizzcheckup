@@ -84,6 +84,9 @@
   </div>
 </section>
 
+{# 1c. Since last time: only when the site was checked before ---------------------- #}
+{% if view.comparison %}{% include "reports/_changes.html" %}{% endif %}
+
 {# 2. The few problems to fix first ------------------------------------------------ #}
 {% if view.risk_rows %}
 <section id="fix-first" class="report-section" aria-labelledby="risks-title">

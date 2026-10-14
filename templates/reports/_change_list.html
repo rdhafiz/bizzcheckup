@@ -1,0 +1,20 @@
+{# One column of "Since last time": fixed, new or still-open problems. Needs items, title, tone, icon, empty; link is optional. #}
+<article class="change-list tone-{{ tone }}" data-reveal>
+  <header class="change-list__head">
+    <span class="tone-tile">{% include "partials/icon.html" with name=icon css="size-5" %}</span>
+    <h3 class="font-bold">{{ title }}</h3>
+    <span class="change-list__count">{{ items|length }}</span>
+  </header>
+  {% if items %}
+    <ul class="change-list__items">
+      {% for finding in items|slice:":5" %}<li>{{ finding.message }}</li>{% endfor %}
+    </ul>
+    {% if items|length > 5 %}
+      <p class="mt-2 text-sm text-muted">and {{ items|length|add:"-5" }} more{% if link and not pdf %}: <a href="{{ link }}">see them all</a>{% endif %}</p>
+    {% elif link and not pdf %}
+      <a class="mt-3 inline-flex text-sm font-semibold" href="{{ link }}">How to fix them</a>
+    {% endif %}
+  {% else %}
+    <p class="mt-3 text-sm text-muted">{{ empty }}</p>
+  {% endif %}
+</article>

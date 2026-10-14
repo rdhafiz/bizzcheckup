@@ -26,6 +26,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   public (`/.env`, `/.git/`: only yes/no is kept, never their content) and a security
   contact (`security.txt`, with a ready file). A new SECURITY collector uses DNS-over-HTTPS
   and RDAP, so no new library is needed.
+- **Before and after.** When a website was checked before, the report opens a "Since last
+  time" section: the health score and each vital sign before and after ("▲ up 12"), and
+  what was fixed, what's new and what's still to fix. Problems found by checks added since
+  then are counted apart, so they don't look like new problems.
 - New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
   `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
 

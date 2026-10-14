@@ -1693,6 +1693,67 @@
     @apply w-full justify-center text-center;
   }
 
+  /* "Since last time" (_changes.html): score changes, then fixed / new / still to fix. */
+  .change-scores {
+    @apply mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6;
+  }
+  .change-score {
+    @apply flex min-w-0 flex-col gap-1 rounded-2xl border border-line bg-card p-4;
+  }
+  .change-score--main {
+    @apply col-span-2 sm:col-span-3 xl:col-span-1;
+    background: color-mix(in srgb, var(--primary) 7%, var(--card));
+  }
+  .change-score__label {
+    @apply text-xs font-semibold text-muted;
+  }
+  .change-score__values {
+    @apply flex items-baseline gap-2 text-muted;
+  }
+  .change-score__before {
+    @apply text-lg tabular-nums line-through decoration-1;
+  }
+  .change-score__after {
+    @apply text-3xl leading-none font-extrabold tabular-nums text-ink;
+    font-family: var(--font-display);
+  }
+  .delta {
+    @apply mt-auto inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold;
+  }
+  .delta--up {
+    color: var(--healthy);
+    background: var(--healthy-soft);
+  }
+  .delta--down {
+    color: var(--urgent);
+    background: var(--urgent-soft);
+  }
+  .delta--same {
+    @apply font-semibold text-muted;
+    background: var(--line);
+  }
+  .change-lists {
+    @apply mt-6 grid items-start gap-4 md:grid-cols-3;
+  }
+  .change-list {
+    @apply flex min-w-0 flex-col rounded-2xl border border-line bg-card p-5;
+  }
+  .change-list__head {
+    @apply flex items-center gap-3;
+  }
+  .change-list__count {
+    @apply ml-auto rounded-full px-2.5 py-0.5 text-sm font-bold tabular-nums;
+    color: var(--tone);
+    background: var(--tone-soft);
+  }
+  .change-list__items {
+    @apply mt-4 space-y-2 text-sm;
+  }
+  .change-list__items li {
+    @apply border-l-2 pl-3;
+    border-color: var(--tone);
+  }
+
   /* Cards with the homepage's tinted glow. */
   .risk {
     box-shadow: 0 26px 40px -30px color-mix(in srgb, var(--band, var(--primary)) 55%, transparent);

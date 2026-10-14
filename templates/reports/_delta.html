@@ -1,0 +1,10 @@
+{# A score's change as a small chip: an arrow and words, so it never relies on colour. Needs `score` (comparison.ScoreChange). #}
+{% if score.delta is None %}
+  <span class="delta delta--same">Not measured both times</span>
+{% elif score.direction == "up" %}
+  <span class="delta delta--up"><span aria-hidden="true">▲</span> up {{ score.size }}</span>
+{% elif score.direction == "down" %}
+  <span class="delta delta--down"><span aria-hidden="true">▼</span> down {{ score.size }}</span>
+{% else %}
+  <span class="delta delta--same">No change</span>
+{% endif %}
