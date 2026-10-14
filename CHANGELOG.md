@@ -20,7 +20,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   Cal.com page) and the report's Contact section shows the booking calendar; "Book a free
   review call" jumps to it. It loads only when scrolled to, and the security policy allows
   that one site in a frame and nothing else. The PDF links to the booking page.
-- **5 security checks (59 in total)**, under Security & standards: the security
+- **4 local business checks (63 in total)**, under Google visibility: contact details
+  customers can find (ideally on the homepage), phone numbers you can tap to call (with
+  the `tel:` link to use), a WhatsApp chat link and directions on a map (both notes, with
+  ready links, no penalty).
+- **5 security checks**, under Security & standards: the security
   certificate's expiry (and whether it's valid), the domain name's expiry (RDAP), protection
   against fake emails (SPF and DMARC records, with the records to add), private files left
   public (`/.env`, `/.git/`: only yes/no is kept, never their content) and a security

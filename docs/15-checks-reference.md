@@ -34,6 +34,20 @@ Severity meanings:
 | `seo.broken_links` | Broken links | 6 | Status of internal links (needs PROBES) (partial) | All work | — | Any status ≥ 400 or unreachable, with a list of the pages each one is on |
 | `seo.duplicate_titles` | Unique page titles | 4 | Same title on several pages | All unique | Duplicates found | — |
 
+### Local business (`bizzcheckup/engine/checks/local.py`)
+
+What a customer on a phone needs to reach the business. Phone numbers are read from the
+page's visible text (scripts and styles left out): 9 to 15 digits written like a phone
+number (`+880 1717-863320`, `(555) 123-4567`, `01717863320`), never dates or prices. Two
+ways of writing the same number count once (the last 9 digits are compared).
+
+| Id | Title | Weight | Looks at | Pass | Warn | Fail |
+|----|-------|--------|----------|------|------|------|
+| `seo.contact_details` | Contact details customers can find | 4 | A phone number or email (as text, `tel:` or `mailto:` links) on the homepage, then on the other pages | On the homepage | None anywhere. (Only on other pages: **info**, put them in the footer.) | — |
+| `seo.click_to_call` | Phone numbers you can tap to call | 3 | Phone numbers shown on the homepage that aren't `tel:` links | All linked | One shown as plain text, with the `<a href="tel:...">` to use | — |
+| `seo.whatsapp_chat` | Chat on WhatsApp | 1 | A `wa.me` / WhatsApp link on the homepage | Present | Missing (**info**, with a ready link using the site's own number) | — |
+| `seo.directions` | Directions to your business | 1 | A Google Maps (or Apple, Bing, OpenStreetMap) embed or link on any page | Present | Missing (**info**: only matters if customers visit) | — |
+
 ### Technical SEO (`bizzcheckup/engine/checks/technical_seo.py`)
 
 These go deeper than the basic checks above: each one reviews every page and adds a

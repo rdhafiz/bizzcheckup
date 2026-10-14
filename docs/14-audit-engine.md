@@ -44,7 +44,7 @@ AuditReport (Pydantic model, saved as JSON)          types.py
 | `collectors/probes.py` | Extra requests: internal link statuses, http→https redirect |
 | `checks/base.py` | The `Check` base class |
 | `schema.py` | Page schema rules: what kind of page it is, which schema it should have, and the full suggested JSON-LD (used by `seo.page_schema`) |
-| `checks/seo.py`, `checks/technical_seo.py`, `checks/best_practices.py`, `checks/mobile.py`, … | The checks: see [Checks reference](15-checks-reference.md) |
+| `checks/seo.py`, `checks/technical_seo.py`, `checks/local.py`, `checks/best_practices.py`, `checks/mobile.py`, … | The checks: see [Checks reference](15-checks-reference.md) |
 | `preview.py` | Link previews: reads the Open Graph tags, sums up what a platform would show, and writes the complete set of tags a page should have |
 | `registry.py` | The list of all checks |
 | `scoring.py` | The scoring formula |
