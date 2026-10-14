@@ -275,6 +275,8 @@ class DeviceView(BaseModel):
     small_tap_selectors: list[str] = Field(default_factory=list)  # ...their CSS paths
     text_chars: int = 0  # visible text, in characters
     small_text_chars: int = 0  # ... of which smaller than 12 px
+    # Links and buttons visible without scrolling, as "label | href" (calls to action).
+    first_screen_links: list[str] = Field(default_factory=list)
     screenshot_jpeg: bytes | None = Field(default=None, exclude=True, repr=False)
 
     @property

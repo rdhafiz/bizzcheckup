@@ -20,7 +20,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   Cal.com page) and the report's Contact section shows the booking calendar; "Book a free
   review call" jumps to it. It loads only when scrolled to, and the security policy allows
   that one site in a frame and nothing else. The PDF links to the booking page.
-- **4 local business checks (63 in total)**, under Google visibility: contact details
+- **3 trust and conversion checks (66 in total)**, under Best practices: a clear next step
+  ("Book now", "Call us", WhatsApp...) visible without scrolling on a phone, measured in the
+  real phone view; a privacy policy (a warning when the site has forms); and reviews or
+  testimonials on the homepage (a note, with a ready testimonial snippet).
+- **4 local business checks**, under Google visibility: contact details
   customers can find (ideally on the homepage), phone numbers you can tap to call (with
   the `tel:` link to use), a WhatsApp chat link and directions on a map (both notes, with
   ready links, no penalty).

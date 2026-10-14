@@ -76,7 +76,7 @@ def sick_site() -> AuditContext:
 
 
 def test_check_count_across_five_categories() -> None:
-    assert len(CHECKS) == 63
+    assert len(CHECKS) == 66
     assert len({check.category for check in CHECKS}) == 5
 
 

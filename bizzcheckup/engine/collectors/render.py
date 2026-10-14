@@ -329,6 +329,21 @@ MEASURE_JS = """() => {
     if (box.width < 24 || box.height < 24) small.push(el);
   }
 
+  // Calls to action a visitor sees without scrolling: "Contact us", "Book now", a phone
+  // link... (the words are matched in Python: ACTION_WORDS in checks/trust.py).
+  const firstScreen = [];
+  const actions = 'a[href], button, [role="button"], input[type="submit"]';
+  for (const el of document.querySelectorAll(actions)) {
+    const box = el.getBoundingClientRect();
+    if (!visible(el, box) || box.width <= 2 || box.height <= 2) continue;
+    if (box.top >= window.innerHeight || box.bottom <= 0) continue;
+    const label = (el.getAttribute("aria-label") || el.value || el.textContent || "")
+      .trim().replace(/\\s+/g, " ").slice(0, 60);
+    const href = (el.getAttribute("href") || "").slice(0, 120);
+    if (label || href) firstScreen.push(label + " | " + href);
+    if (firstScreen.length >= 40) break;
+  }
+
   let textChars = 0;
   let smallTextChars = 0;
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -354,6 +369,7 @@ MEASURE_JS = """() => {
     small_tap_selectors: small.slice(0, MAX_EXAMPLES).map(cssPath),
     text_chars: textChars,
     small_text_chars: smallTextChars,
+    first_screen_links: firstScreen,
   };
 }"""
 
