@@ -5,6 +5,7 @@ import logging
 from asgiref.sync import async_to_sync, sync_to_async
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
+from django.conf import settings
 from django.utils import timezone
 
 from bizzcheckup.engine.runner import AuditError, run_audit
@@ -76,3 +77,9 @@ def run_checkup(checkup_id: str) -> None:
     from . import emails
 
     emails.after_checkup(checkup)
+
+
+@shared_task
+def run_due_rechecks() -> int:
+    """Celery Beat runs this every 6 hours: start the monthly re-checks that are due."""
+    return len(services.start_due_rechecks(settings.RECHECKS_PER_RUN))

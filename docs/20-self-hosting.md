@@ -56,7 +56,7 @@ alias bizz='docker compose --project-directory ~/apps/bizzcheckup -f ~/apps/bizz
 |------|---------|
 | Is everything running? | `bizz ps` (web should say `healthy`) |
 | Follow the logs | `bizz logs -f --tail 100` (`Ctrl+C` to stop). One service: `bizz logs -f worker` |
-| Restart the app | `bizz restart web worker` |
+| Restart the app | `bizz restart web worker beat` |
 | Apply a changed `.env.prod` | `bizz up -d` (recreates the containers that changed) |
 | Stop / start everything | `bizz down` / `bizz up -d` (`down` keeps the data; **never** add `-v`, it deletes the database) |
 | Django commands | `bizz exec web python manage.py <command>` |

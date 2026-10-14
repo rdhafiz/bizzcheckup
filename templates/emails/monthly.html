@@ -1,0 +1,58 @@
+{% load bizz %}{% comment %}
+  The monthly re-check email: the score before and after, then what was fixed, what's
+  new and what's still to fix. Styles are written on each element (see report.html).
+{% endcomment %}<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>{{ checkup.domain }} this month</title></head>
+<body style="margin:0;padding:0;background:#f7f6f2;font-family:Arial,Helvetica,sans-serif;color:#0e1b1e;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f6f2;padding:24px 12px;">
+<tr><td align="center">
+  <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #e2ded4;border-radius:16px;">
+    <tr><td style="padding:24px 28px 0;">
+      <p style="margin:0;font-size:18px;font-weight:bold;"><span style="color:#1d8047;">Bizz</span>Checkup</p>
+    </td></tr>
+    <tr><td style="padding:20px 28px 0;">
+      <p style="margin:0;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#1d8047;font-weight:bold;">Your monthly check-up</p>
+      <h1 style="margin:8px 0 0;font-size:24px;line-height:1.25;">{{ checkup.domain }}</h1>
+    </td></tr>
+    <tr><td style="padding:20px 28px 0;">
+      <table role="presentation" cellpadding="0" cellspacing="0" style="background:#0c1517;border-radius:12px;width:100%;">
+        <tr><td style="padding:18px 20px;">
+          <p style="margin:0;font-size:13px;color:#a9bcb7;">Health score</p>
+          <p style="margin:4px 0 0;font-size:40px;font-weight:bold;color:#ffffff;line-height:1;">
+            {% if change and change.health.before is not None %}<span style="font-size:22px;color:#a9bcb7;text-decoration:line-through;">{{ change.health.before }}</span> <span style="font-size:22px;color:#a9bcb7;">&rarr;</span> {% endif %}{{ checkup.health_score }}<span style="font-size:18px;color:#a9bcb7;">/100</span>
+          </p>
+          {% if change and change.health.delta %}
+            <p style="margin:8px 0 0;font-size:14px;font-weight:bold;color:{% if change.health.delta > 0 %}#5cc98a{% else %}#f97066{% endif %};">{% if change.health.delta > 0 %}&#9650; up {{ change.health.size }} point{{ change.health.size|pluralize }}{% else %}&#9660; down {{ change.health.size }} point{{ change.health.size|pluralize }}{% endif %} since last month</p>
+          {% else %}
+            <p style="margin:8px 0 0;font-size:14px;font-weight:bold;color:#a9bcb7;">{{ checkup.health_score|band_label }}</p>
+          {% endif %}
+        </td></tr>
+      </table>
+    </td></tr>
+    {% if change %}
+    <tr><td style="padding:24px 28px 0;">
+      <p style="margin:0;font-size:16px;font-weight:bold;color:#1d8047;">&#10003; Fixed since last time: {{ change.fixed|length }}</p>
+      {% for finding in change.fixed|slice:":5" %}<p style="margin:8px 0 0;font-size:14px;line-height:1.5;padding-left:12px;border-left:3px solid #31ac64;">{{ finding.message }}</p>{% endfor %}
+      <p style="margin:20px 0 0;font-size:16px;font-weight:bold;color:#b42318;">New problems: {{ change.new|length }}</p>
+      {% for finding in change.new|slice:":5" %}<p style="margin:8px 0 0;font-size:14px;line-height:1.5;padding-left:12px;border-left:3px solid #f04438;">{{ finding.message }}</p>{% endfor %}
+      <p style="margin:20px 0 0;font-size:14px;color:#56635f;">Still to fix: <strong style="color:#0e1b1e;">{{ change.still|length }}</strong></p>
+    </td></tr>
+    {% elif problems %}
+    <tr><td style="padding:24px 28px 0;">
+      <p style="margin:0;font-size:16px;font-weight:bold;">Fix these first</p>
+      {% for problem in problems %}<p style="margin:10px 0 0;font-size:14px;line-height:1.5;"><strong style="color:#b42318;">{{ forloop.counter }}.</strong> {{ problem }}</p>{% endfor %}
+    </td></tr>
+    {% endif %}
+    <tr><td style="padding:24px 28px 0;">
+      <a href="{{ link }}" style="display:inline-block;background:#31ac64;color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 22px;border-radius:10px;">Open the full report</a>
+    </td></tr>
+    <tr><td style="padding:24px 28px 28px;">
+      <p style="margin:0;padding-top:18px;border-top:1px solid #e2ded4;font-size:14px;line-height:1.5;">Want help with what's left? <strong>Just reply to this email</strong>: it goes straight to {{ brand.name }}.</p>
+    </td></tr>
+  </table>
+  <p style="margin:16px 0 0;font-size:12px;color:#56635f;">You asked {{ brand.product_name }} to re-check {{ checkup.domain }} every month.<br><a href="{{ unsubscribe }}" style="color:#56635f;">Stop these emails</a></p>
+</td></tr>
+</table>
+</body>
+</html>

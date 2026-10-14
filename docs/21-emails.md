@@ -5,7 +5,8 @@ BizzCheckup sends two kinds of email:
 | Email | To | When |
 |-------|----|------|
 | **The report** (score, top 3 problems, a link, the PDF attached) | the visitor | They left their email on the homepage form, or used **Email me the report** on the report page |
-| **"New lead" alert** (who, which site, its score, its top problems) | you, the consultant | Someone left their email, asked for the report by email, or clicked **Get a full check-up** |
+| **"New lead" alert** (who, which site, its score, its top problems) | you, the consultant | Someone left their email, asked for the report by email, or clicked **Get a full check-up**; or a monthly re-check's score dropped 5 points or more |
+| **Monthly "what changed"** (score before → after, fixed, new, still to fix) | the visitor | Every month, if they ticked **Re-check my website every month** |
 
 The code is in `bizzcheckup/checkups/emails.py`; the email texts are templates in
 `templates/emails/`.
@@ -88,6 +89,29 @@ through this small page first, which emails you an alert (at most once a day per
 remembered in Django's cache) and then forwards the visitor to the offer's address from
 `branding.yaml`. In the PDF the buttons still link straight to that address, because a PDF
 can't go through our site.
+
+### The monthly email (`emails.send_monthly()`)
+
+When a monthly re-check finishes (how they start: [Background jobs](12-background-jobs.md)),
+the visitor gets the score before and after, what was fixed, what's new and how much is
+still to fix, from the same comparison the report shows (`reports/comparison.py`). The
+subject says it at a glance: `shop.com this month: health score 72 → 84 (▲12)`. If the
+score **dropped 5 points or more**, you get an alert too: a good moment to offer help.
+
+**Unsubscribing.** Every monthly email has a "Stop these emails" link with a secret token
+(`/checkups/unsubscribe/<token>/`), and two headers that make Gmail and Outlook show their
+own **Unsubscribe** button:
+
+```
+List-Unsubscribe: <https://.../checkups/unsubscribe/<token>/>
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+```
+
+Opening the link only *asks* ("Stop the monthly check-ups of shop.com?"), because email
+security scanners open every link in an email; the button sends a POST that stops them.
+Gmail's button sends that POST itself (RFC 8058), without our page, so this one view
+doesn't require Django's CSRF token: the secret token in the address protects it instead.
+Ticking the box again later starts the same subscription again.
 
 ### Replying
 

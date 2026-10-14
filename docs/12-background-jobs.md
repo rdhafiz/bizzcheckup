@@ -148,3 +148,54 @@ celery -A config worker --loglevel=info --pool=solo
 
 `--concurrency=3` (in compose, set by `WORKER_CONCURRENCY`) means at most 3 check-ups
 run at the same time. That's the global cap from the brief.
+
+## Monthly re-checks: a clock that starts jobs (Celery Beat)
+
+Visitors can tick **"Re-check my website every month and email me what changed"**. That
+saves a `Subscription` with the date of the next check (`next_check_at`, 30 days later).
+Something has to look at the calendar and start those check-ups: that's a scheduler.
+
+**Celery Beat** is Celery's own clock, so it's no extra library. It's a tiny separate
+process (the `beat` container in `compose.yaml` and `compose.prod.yaml`) that sends a
+job to the queue on a timetable, `CELERY_BEAT_SCHEDULE` in `base.py`:
+
+```python
+CELERY_BEAT_SCHEDULE = {
+    "monthly-rechecks": {
+        "task": "bizzcheckup.checkups.tasks.run_due_rechecks",
+        "schedule": 6 * 60 * 60,  # every 6 hours, in seconds
+    },
+}
+```
+
+Every 6 hours, a worker runs `run_due_rechecks()`, which calls
+`services.start_due_rechecks()`:
+
+1. take the active subscriptions whose `next_check_at` has passed, oldest first, at most
+   `RECHECKS_PER_RUN` (5) at a time, so they never crowd out visitors' own check-ups;
+2. stop if the queue is full (`CHECKUP_QUEUE_CAP`); a site that's being checked right now
+   waits a day;
+3. start a normal check-up linked to the subscription, and move `next_check_at` 30 days on.
+
+When that check-up finishes, `emails.after_checkup()` sees the subscription and sends the
+**"what changed" email** (see [Emails](21-emails.md)) instead of the usual report email.
+
+```bash
+# Docker (starts with everything else):
+docker compose up beat
+# From your virtual environment:
+celery -A config beat --loglevel=info
+```
+
+### Without Celery (`immediate` mode)
+
+There's no clock then, so run the same thing once a day from the system's scheduler:
+
+```bash
+python manage.py run_rechecks            # --limit 10 to run more at once
+```
+
+It runs the due re-checks one after another, inside the command, so they finish before it
+exits. Schedule it with `cron` on Linux (`0 9 * * * cd /app && .venv/bin/python manage.py
+run_rechecks`) or Task Scheduler on Windows.
+

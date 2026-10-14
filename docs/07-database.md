@@ -40,6 +40,7 @@ commit the migration file.** CI fails if a model changes without a migration
 Lead 1 ──── * Checkup 1 ──── * Finding
 (optional)            1 ──── * CheckupImage
                       1 ──── * ReportEmail
+Subscription 1 ──── * Checkup   (the monthly re-checks)
 ```
 
 A **Lead** can have several check-ups. A **Checkup** has many **Findings**. Deleting a
@@ -113,6 +114,15 @@ with **Email me the report** or after a check-up, so `emails.emails_left_today()
 count them and stop one report being emailed more than `REPORT_EMAILS_PER_DAY` times a
 day. Read-only in the admin. Added in migration `0006_reportemail`
 (see [Emails](21-emails.md)).
+
+### `Subscription`: a monthly re-check
+
+`email`, `url` (the site's main address), `domain`, `lead`, `token` (the secret in the
+"unsubscribe" link), `active`, `next_check_at` (when the next re-check is due),
+`created_at`, `stopped_at`. One per email and website (`UniqueConstraint`), so ticking the
+box twice doesn't send two emails. Each re-check is a normal `Checkup` whose
+`subscription` field points back here. Added in migration `0007_subscription`; see
+[Background jobs](12-background-jobs.md).
 
 ### Status flow
 

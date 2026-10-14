@@ -112,6 +112,13 @@ CELERY_TASK_ACKS_LATE = True
 # If Redis is down, give up queueing within about a second instead of hanging the page.
 CELERY_TASK_PUBLISH_RETRY_POLICY = {"max_retries": 2, "interval_start": 0, "interval_step": 0.3}
 CELERY_BROKER_CONNECTION_TIMEOUT = 2
+# Celery Beat (the "clock" container) starts the monthly re-checks that are due.
+CELERY_BEAT_SCHEDULE = {
+    "monthly-rechecks": {
+        "task": "bizzcheckup.checkups.tasks.run_due_rechecks",
+        "schedule": 6 * 60 * 60,  # every 6 hours, in seconds
+    },
+}
 
 
 # --- Passwords --------------------------------------------------------------
@@ -207,6 +214,10 @@ LEAD_ALERT_EMAIL = env("LEAD_ALERT_EMAIL", default="")
 # Also alert for check-ups without contact details whose health score is below this
 # (0 = off). Useful to spot sites that need help, but it can be a lot of email.
 LEAD_ALERT_LOW_SCORE = env.int("LEAD_ALERT_LOW_SCORE", default=0)
+# Monthly re-checks (docs/21-emails.md): how often, and how many may start per run of the
+# scheduler (every 6 hours), so they never crowd out visitors' own check-ups.
+RECHECK_EVERY_DAYS = env.int("RECHECK_EVERY_DAYS", default=30)
+RECHECKS_PER_RUN = env.int("RECHECKS_PER_RUN", default=5)
 # "Email me this report": how many times one report can be emailed per day.
 REPORT_EMAILS_PER_DAY = env.int("REPORT_EMAILS_PER_DAY", default=3)
 

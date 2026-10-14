@@ -24,6 +24,9 @@ services:
   worker:
     <<: *prod-app
 
+  beat:
+    <<: *prod-app
+
   postgres:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set it in .env.prod}

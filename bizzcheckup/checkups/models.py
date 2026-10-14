@@ -29,6 +29,30 @@ class Lead(models.Model):
         return f"{self.name} <{self.email}>" if self.name else self.email
 
 
+class Subscription(models.Model):
+    """A visitor who asked us to re-check their website every month and email what changed."""
+
+    email = models.EmailField()
+    url = models.URLField(max_length=2048)  # the website's main address, e.g. https://shop.com/
+    domain = models.CharField(max_length=253)
+    lead = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.SET_NULL)
+    # The secret in the "unsubscribe" link: whoever has the email can stop it, nobody else.
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    active = models.BooleanField(default=True)
+    next_check_at = models.DateTimeField(db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    stopped_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["next_check_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["email", "url"], name="one_subscription_per_site")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.email}: {self.domain}"
+
+
 class Checkup(models.Model):
     """One health check-up of one website."""
 
@@ -58,6 +82,10 @@ class Checkup(models.Model):
     ip_hash = models.CharField(max_length=64, blank=True, db_index=True)  # never the raw IP
     lead = models.ForeignKey(
         Lead, null=True, blank=True, on_delete=models.SET_NULL, related_name="checkups"
+    )
+    # Set for the monthly re-checks: who gets the "what changed" email.
+    subscription = models.ForeignKey(
+        Subscription, null=True, blank=True, on_delete=models.SET_NULL, related_name="checkups"
     )
     raw_results = models.JSONField(default=dict, blank=True)  # the full engine AuditReport
     # Homepage screenshot (JPEG). Kept in the database so the web and worker

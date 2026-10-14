@@ -7,7 +7,8 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from bizzcheckup.core import security
 from bizzcheckup.engine.netguard import BlockedURLError
@@ -16,7 +17,7 @@ from bizzcheckup.reports.branding import load_branding
 
 from . import emails, protection, services
 from .forms import CheckupForm, EmailReportForm
-from .models import Checkup, CheckupImage, Lead, ReportEmail
+from .models import Checkup, CheckupImage, Lead, ReportEmail, Subscription
 from .progress import steps_for
 
 BOT_ERROR = "We couldn't start your check-up. Please reload the page and try again."
@@ -55,6 +56,7 @@ def start(request: HttpRequest) -> HttpResponse:
     existing = protection.recent_report(url) or protection.in_progress(url)
     if existing is not None:
         lead = _save_lead(form)
+        _subscribe(form, lead, url)
         if lead is not None and existing.lead_id is None:
             Checkup.objects.filter(pk=existing.pk).update(lead=lead)
             existing.lead = lead
@@ -68,7 +70,9 @@ def start(request: HttpRequest) -> HttpResponse:
     if protection.too_busy():
         return _form_error(request, form, BUSY_ERROR, status=503)
 
-    checkup = services.create_checkup(url, ip_hash=ip_hash, lead=_save_lead(form))
+    lead = _save_lead(form)
+    _subscribe(form, lead, url)
+    checkup = services.create_checkup(url, ip_hash=ip_hash, lead=lead)
     return redirect("checkups:detail", checkup_id=checkup.pk)
 
 
@@ -149,6 +153,8 @@ def email_report(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     lead = services.save_lead(name="", email=address, consent=form.cleaned_data["consent"])
     if lead is not None and checkup.lead_id is None:
         Checkup.objects.filter(pk=checkup.pk).update(lead=lead)
+    if form.cleaned_data["monthly"]:
+        services.subscribe(address, checkup.url, lead)
     emails.alert_owner(checkup, "asked for the report by email", lead)
     messages.success(request, EMAIL_SENT.format(email=address))
     return back
@@ -163,6 +169,25 @@ def full_checkup(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     if cache.add(key, True, timeout=24 * 60 * 60):  # add() is False if already there
         emails.alert_owner(checkup, "clicked 'Get a full check-up'", checkup.lead)
     return redirect(load_branding().full_audit_url)
+
+
+@csrf_exempt  # the secret token in the address is the protection; mail apps POST here
+@require_http_methods(["GET", "POST"])
+def unsubscribe(request: HttpRequest, token: UUID) -> HttpResponse:
+    """Stop the monthly re-checks. GET asks first (link checkers open links); POST stops.
+
+    Gmail's and Outlook's own "Unsubscribe" button POSTs here directly (RFC 8058).
+    """
+    subscription = get_object_or_404(Subscription, token=token)
+    if request.method == "POST" and subscription.active:
+        services.unsubscribe(subscription)
+    return render(request, "checkups/unsubscribe.html", {"subscription": subscription})
+
+
+def _subscribe(form: CheckupForm, lead: Lead | None, url: str) -> None:
+    """The visitor ticked "re-check every month" and left an email: remember it."""
+    if lead is not None and form.cleaned_data.get("monthly"):
+        services.subscribe(lead.email, url, lead)
 
 
 def _save_lead(form: CheckupForm) -> Lead | None:

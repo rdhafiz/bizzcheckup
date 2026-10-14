@@ -16,6 +16,9 @@ class CheckupForm(forms.Form):
     url = forms.CharField(label="Your website address", max_length=2048)
     name = forms.CharField(label="Your name", max_length=120, required=False)
     email = forms.EmailField(label="Your email", required=False)
+    monthly = forms.BooleanField(
+        label="Re-check my website every month and email me what changed", required=False
+    )
     consent = forms.BooleanField(
         label="I agree to the privacy note",
         error_messages={"required": "Please agree to the privacy note to start your check-up."},
@@ -54,6 +57,9 @@ class EmailReportForm(forms.Form):
     email = forms.EmailField(label="Your email")
     consent = forms.BooleanField(
         label="The consultant may contact me about this report", required=False
+    )
+    monthly = forms.BooleanField(
+        label="Re-check my website every month and email me what changed", required=False
     )
     website = forms.CharField(required=False, label="Leave this field empty")  # honeypot
 

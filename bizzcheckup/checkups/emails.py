@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from bizzcheckup.reports.branding import load_branding
 
-from .models import Checkup, Lead, ReportEmail
+from .models import Checkup, Lead, ReportEmail, Subscription
 
 logger = logging.getLogger(__name__)
 
@@ -118,8 +118,60 @@ def alert_owner(checkup: Checkup, reason: str, lead: Lead | None = None) -> bool
     return _send(message, f"a lead alert for {checkup.pk}")
 
 
+# --- The monthly re-check: what changed ----------------------------------------------
+
+ALERT_ON_DROP = 5  # tell the consultant when a subscribed site's score falls this much
+
+
+def unsubscribe_link(subscription: Subscription) -> str:
+    return absolute(reverse("checkups:unsubscribe", args=[subscription.token]))
+
+
+def send_monthly(checkup: Checkup, subscription: Subscription) -> bool:
+    """The monthly email: the score before and after, what was fixed, what's new."""
+    from bizzcheckup.reports.comparison import compare  # avoids a circular import
+
+    brand = load_branding()
+    change = compare(checkup)
+    stop = unsubscribe_link(subscription)
+    context = {
+        "checkup": checkup,
+        "brand": brand,
+        "change": change,
+        "link": report_link(checkup),
+        "problems": top_problems(checkup),
+        "unsubscribe": stop,
+    }
+    if change and change.health.delta:
+        arrow = "▲" if change.health.delta > 0 else "▼"
+        movement = f"{change.health.before} → {change.health.after} ({arrow}{change.health.size})"
+    else:
+        movement = f"{checkup.health_score}/100"
+    message = EmailMultiAlternatives(
+        subject=f"{checkup.domain} this month: health score {movement}",
+        body=render_to_string("emails/monthly.txt", context),
+        to=[subscription.email],
+        reply_to=[brand.email],
+        # One-click "Unsubscribe" in Gmail and Outlook (RFC 8058): they POST to this address.
+        headers={
+            "List-Unsubscribe": f"<{stop}>",
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+    )
+    message.attach_alternative(render_to_string("emails/monthly.html", context), "text/html")
+    sent = _send(message, f"the monthly email of {checkup.pk}")
+    if change and (change.health.delta or 0) <= -ALERT_ON_DROP:
+        alert_owner(checkup, f"dropped {change.health.size} points this month", checkup.lead)
+    return sent
+
+
 def after_checkup(checkup: Checkup) -> None:
     """Called when a check-up has finished: send the report and the alert they need."""
+    subscription = checkup.subscription
+    if subscription is not None:  # a monthly re-check: only the "what changed" email
+        if subscription.active:
+            send_monthly(checkup, subscription)
+        return
     lead = checkup.lead
     if lead is not None:
         if send_report(checkup, lead.email):

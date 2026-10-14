@@ -47,7 +47,8 @@ bizzcheckup/
 │   │   ├── protection.py     Report reuse, rate limit, global capacity
 │   │   ├── admin.py          Admin pages, health-band filter, lead CSV export
 │   │   ├── tasks.py          Celery job run_checkup: runs the engine in the worker
-│   │   ├── emails.py         The report by email, "new lead" alerts (docs/21-emails.md)
+│   │   ├── emails.py         The report by email, "new lead" alerts, monthly emails (docs/21)
+│   │   ├── management/commands/run_rechecks.py   Monthly re-checks without Celery (docs/12)
 │   │   ├── progress.py       Steps shown on the progress page
 │   │   ├── views.py          CONTROLLER: start, detail, progress (HTMX), screenshot
 │   │   └── urls.py           /checkups/new/, /checkups/<uuid>/, .../progress/, .../recheck/, .../email/, .../full-checkup/, .../screenshot.jpg

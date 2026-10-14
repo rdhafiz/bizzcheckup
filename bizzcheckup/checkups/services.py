@@ -16,7 +16,8 @@ from bizzcheckup.engine.netguard import NetGuard
 from bizzcheckup.engine.types import AuditReport, Category
 from bizzcheckup.engine.urls import domain, normalize_url, site_root
 
-from .models import Checkup, CheckupImage, Finding, Lead
+from . import protection
+from .models import Checkup, CheckupImage, Finding, Lead, Subscription
 
 logger = logging.getLogger(__name__)
 
@@ -48,17 +49,79 @@ def save_lead(*, name: str, email: str, consent: bool) -> Lead | None:
     return Lead.objects.create(name=name, email=email.lower(), consent=consent)
 
 
-def create_checkup(raw_url: str, *, ip_hash: str = "", lead: Lead | None = None) -> Checkup:
-    """Save a new queued check-up and send it to the worker.
+def create_checkup(
+    raw_url: str,
+    *,
+    ip_hash: str = "",
+    lead: Lead | None = None,
+    subscription: Subscription | None = None,
+    start: bool = True,
+) -> Checkup:
+    """Save a new queued check-up and send it to the worker (unless start=False).
 
     Raises engine.urls.InvalidURLError for addresses that can't be checked.
     """
     url = site_root(normalize_url(raw_url))  # the main address only (see urls.site_root)
-    checkup = Checkup.objects.create(url=url, domain=domain(url), ip_hash=ip_hash, lead=lead)
+    checkup = Checkup.objects.create(
+        url=url, domain=domain(url), ip_hash=ip_hash, lead=lead, subscription=subscription
+    )
 
     # Only queue the job once the row is really saved, or the worker might not find it.
-    transaction.on_commit(lambda: enqueue(checkup))
+    if start:
+        transaction.on_commit(lambda: enqueue(checkup))
     return checkup
+
+
+def subscribe(email: str, url: str, lead: Lead | None = None) -> Subscription:
+    """Re-check `url` every month and email `email` what changed (again, if it had stopped)."""
+    url = site_root(normalize_url(url))
+    subscription, created = Subscription.objects.get_or_create(
+        email=email.lower(),
+        url=url,
+        defaults={
+            "domain": domain(url),
+            "lead": lead,
+            "next_check_at": timezone.now() + timedelta(days=settings.RECHECK_EVERY_DAYS),
+        },
+    )
+    if not created and not subscription.active:
+        subscription.active = True
+        subscription.stopped_at = None
+        subscription.next_check_at = timezone.now() + timedelta(days=settings.RECHECK_EVERY_DAYS)
+        subscription.save(update_fields=["active", "stopped_at", "next_check_at"])
+    return subscription
+
+
+def unsubscribe(subscription: Subscription) -> None:
+    subscription.active = False
+    subscription.stopped_at = timezone.now()
+    subscription.save(update_fields=["active", "stopped_at"])
+
+
+def start_due_rechecks(limit: int, *, start: bool = True) -> list[Checkup]:
+    """Create the monthly re-checks that are due (at most `limit`), oldest first.
+
+    Respects the global queue cap. A site that's already being checked is moved to
+    tomorrow. With start=False the check-ups are only created (the caller runs them).
+    """
+    now = timezone.now()
+    started: list[Checkup] = []
+    due = Subscription.objects.filter(active=True, next_check_at__lte=now)[:limit]
+    for subscription in due:
+        if start and protection.too_busy():
+            break
+        if protection.in_progress(subscription.url) is not None:
+            subscription.next_check_at = now + timedelta(days=1)
+            subscription.save(update_fields=["next_check_at"])
+            continue
+        started.append(
+            create_checkup(
+                subscription.url, lead=subscription.lead, subscription=subscription, start=start
+            )
+        )
+        subscription.next_check_at = now + timedelta(days=settings.RECHECK_EVERY_DAYS)
+        subscription.save(update_fields=["next_check_at"])
+    return started
 
 
 def enqueue(checkup: Checkup) -> None:

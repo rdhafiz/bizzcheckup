@@ -57,6 +57,8 @@ what's different. Django picks the file from the `DJANGO_SETTINGS_MODULE` variab
 | `LEAD_ALERT_EMAIL` | no | `branding.yaml` email | Who gets "new lead" alerts |
 | `LEAD_ALERT_LOW_SCORE` | no | `0` (off) | Also alert for anonymous check-ups scoring below this |
 | `REPORT_EMAILS_PER_DAY` | no | `3` | "Email me the report" sends per report per day |
+| `RECHECK_EVERY_DAYS` | no | `30` | How often subscribed websites are re-checked |
+| `RECHECKS_PER_RUN` | no | `5` | The most monthly re-checks started each time the clock runs (every 6 hours) |
 
 The security-related ones are explained in [Security](17-security.md), the email ones in
 [Emails](21-emails.md) (with the Gmail app password steps).

@@ -91,6 +91,11 @@
             </div>
           </div>
           {% if form.email.errors %}<p id="email-error" class="field-error" role="alert">{{ form.email.errors.0 }}</p>{% endif %}
+          <label class="mt-3 flex items-start gap-3 text-sm">
+            <input type="checkbox" name="monthly" id="id_monthly" {% if form.monthly.value %}checked{% endif %}
+                   class="mt-0.5 size-5 shrink-0 accent-[var(--brand)]">
+            <span>Re-check my website every month and email me what changed. <span class="text-muted">Stop any time.</span></span>
+          </label>
         </fieldset>
 
         <div class="mt-5">

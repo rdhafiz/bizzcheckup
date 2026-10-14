@@ -30,6 +30,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   time" section: the health score and each vital sign before and after ("▲ up 12"), and
   what was fixed, what's new and what's still to fix. Problems found by checks added since
   then are counted apart, so they don't look like new problems.
+- **Monthly re-checks.** Visitors can tick "Re-check my website every month and email me
+  what changed" (on the homepage or with "Email me the report"). Celery Beat (the new
+  `beat` container) starts the due re-checks every 6 hours, a few at a time, and each one
+  ends with a "what changed" email: score before and after, fixed, new and still to fix.
+  One-click unsubscribe (Gmail's and Outlook's own button too). The consultant is alerted
+  when a site's score drops 5 points or more. Without Celery: `manage.py run_rechecks`.
+  Settings `RECHECK_EVERY_DAYS`, `RECHECKS_PER_RUN`; migration `0007`.
 - New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
   `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
 

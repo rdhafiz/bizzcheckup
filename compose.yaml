@@ -44,6 +44,11 @@ services:
     # --concurrency = how many check-ups run at the same time.
     command: celery -A config worker --loglevel=info --concurrency=${WORKER_CONCURRENCY:-3}
 
+  # The clock: every 6 hours it queues the monthly re-checks that are due (docs/12).
+  beat:
+    <<: *app
+    command: celery -A config beat --loglevel=info --schedule /tmp/celerybeat-schedule
+
   postgres:
     image: postgres:17-alpine
     environment:

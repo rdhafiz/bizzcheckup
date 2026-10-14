@@ -14,7 +14,7 @@ from django.utils.safestring import SafeString
 
 from bizzcheckup.engine.scoring import band_for
 
-from .models import Checkup, Finding, Lead, ReportEmail
+from .models import Checkup, Finding, Lead, ReportEmail, Subscription
 
 # Spreadsheet apps treat a cell starting with these as a formula, which an attacker can
 # abuse ("CSV injection"), e.g. a name like =HYPERLINK("http://evil",...).
@@ -134,6 +134,21 @@ class LeadAdmin(admin.ModelAdmin):
     @admin.action(description="Export selected leads to CSV")
     def export_csv(self, request: HttpRequest, queryset: QuerySet[Lead]) -> HttpResponse:
         return leads_csv(queryset.prefetch_related("checkups"))
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    """Monthly re-checks: who, which site, and when the next one runs."""
+
+    list_display = ("email", "domain", "active", "next_check_at", "created_at")
+    list_filter = ("active",)
+    search_fields = ("email", "domain")
+    readonly_fields = ("token", "created_at", "stopped_at")
+    actions = ["check_now"]
+
+    @admin.action(description="Re-check the selected sites at the next run")
+    def check_now(self, request: HttpRequest, queryset: QuerySet[Subscription]) -> None:
+        queryset.update(next_check_at=timezone.now())
 
 
 @admin.register(ReportEmail)

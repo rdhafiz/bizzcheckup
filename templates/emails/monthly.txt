@@ -1,0 +1,26 @@
+{% load bizz %}{% autoescape off %}Hello,
+
+Here is this month's check-up of {{ checkup.domain }}.
+
+Health score: {% if change %}{{ change.health.before|default:"–" }} -> {% endif %}{{ checkup.health_score }}/100 ({{ checkup.health_score|band_label }})
+{% if change %}
+Fixed since last time: {{ change.fixed|length }}
+{% for finding in change.fixed|slice:":5" %}  + {{ finding.message }}
+{% endfor %}
+New problems: {{ change.new|length }}
+{% for finding in change.new|slice:":5" %}  - {{ finding.message }}
+{% endfor %}
+Still to fix: {{ change.still|length }}
+{% elif problems %}
+Fix these first:
+{% for problem in problems %}  {{ forloop.counter }}. {{ problem }}
+{% endfor %}{% endif %}
+Open the full report:
+{{ link }}
+
+Want help with what's left? Just reply to this email: it goes straight to {{ brand.name }}.
+
+--
+You asked {{ brand.product_name }} to re-check {{ checkup.domain }} every month.
+Stop these emails: {{ unsubscribe }}
+{% endautoescape %}

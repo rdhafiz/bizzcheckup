@@ -4,7 +4,7 @@
 #
 #   1. fresh database backup (bizzcheckup-backup service, asks for your sudo password)
 #   2. optionally pull the latest code from GitHub (--pull)
-#   3. rebuild the image and restart web + worker (migrations run when web starts)
+#   3. rebuild the image and restart web, worker and beat (migrations run when web starts)
 #   4. wait until web is healthy (shows its logs and stops if it isn't)
 #   5. Django's deployment check (one security.W008 warning is expected)
 #   6. remove the old, now unused images

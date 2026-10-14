@@ -54,6 +54,10 @@
                 <input type="checkbox" name="consent" value="on" class="mt-0.5 size-4 shrink-0 accent-[var(--brand)]">
                 <span>{{ brand.first_name }} may contact me about this report.</span>
               </label>
+              <label class="mt-2 flex items-start gap-2 text-xs text-muted">
+                <input type="checkbox" name="monthly" value="on" class="mt-0.5 size-4 shrink-0 accent-[var(--brand)]">
+                <span>Re-check {{ checkup.domain }} every month and email me what changed.</span>
+              </label>
               <div class="honeypot" aria-hidden="true"><label>Leave this field empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
             </form>
           </details>
