@@ -4,7 +4,7 @@ BizzCheckup sends two kinds of email:
 
 | Email | To | When |
 |-------|----|------|
-| **The report** (score, top 3 problems, a link, the PDF attached) | the visitor | They left their email on the homepage form, or used **Email me the report** on the report page |
+| **The report** (score, top 3 problems, links to the report and its PDF) | the visitor | They left their email on the homepage form, or used **Email me the report** on the report page |
 | **"New lead" alert** (who, which site, its score, its top problems) | you, the consultant | Someone left their email, asked for the report by email, or clicked **Get a full check-up**; or a monthly re-check's score dropped 5 points or more |
 | **Monthly "what changed"** (score before → after, fixed, new, still to fix) | the visitor | Every month, if they ticked **Re-check my website every month** |
 
@@ -145,3 +145,28 @@ emails.send_report(checkup, "amy@shop.test")
 (message,) = mail.outbox            # exactly one email was sent
 assert message.to == ["amy@shop.test"]
 ```
+
+## Why the PDF is a link, not an attachment
+
+The first version attached the PDF (about 3 MB). On the self-hosted server it failed with
+"We couldn't send the email right now", and the log said `TimeoutError: The write
+operation timed out`. The Gmail login worked; the **upload** didn't finish: a home
+connection uploads about 100 KB a second, so 3 MB (4 MB once encoded for email) takes
+around 40 seconds, longer than the mail server waits. Now the email links to the PDF
+instead: it's a few kilobytes, sends in about 3 seconds on any connection, and small
+emails are less likely to be marked as spam. `EMAIL_TIMEOUT` is 30 seconds.
+
+## When emails don't send
+
+The page says "We couldn't send the email right now". The real reason is in the log:
+
+```bash
+bizz logs web --since 1h | grep -A 15 "Couldn't send"
+```
+
+| The log says | Meaning | Fix |
+|--------------|---------|-----|
+| `SMTPAuthenticationError` / `Username and Password not accepted` | Wrong login | Make a new app password; paste it without spaces |
+| `TimeoutError: The write operation timed out` | The upload was too slow | Make the email smaller (no attachments), or raise `EMAIL_TIMEOUT` |
+| `Connection refused` / `Network is unreachable` | The server can't reach Gmail | Check the internet connection and firewall rules |
+

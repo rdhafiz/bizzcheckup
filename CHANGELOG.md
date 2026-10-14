@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Fixed
+- Report emails failed on slow connections ("We couldn't send the email right now"): the
+  3 MB PDF attachment took longer to upload than the mail server waits. The email now links
+  to the PDF instead, so it's a few kilobytes and sends in seconds. `EMAIL_TIMEOUT` is now
+  30 seconds.
+
 ## [0.4.0-alpha] - 2026-10-14
 
 ### Added

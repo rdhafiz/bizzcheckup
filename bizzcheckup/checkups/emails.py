@@ -20,7 +20,6 @@ from .models import Checkup, Lead, ReportEmail, Subscription
 
 logger = logging.getLogger(__name__)
 
-PDF_LIMIT = 15 * 1024 * 1024  # bigger PDFs are linked, not attached (Gmail allows 25 MB)
 
 
 def absolute(path: str) -> str:
@@ -56,7 +55,7 @@ def _send(message: EmailMultiAlternatives, what: str) -> bool:
 
 
 def send_report(checkup: Checkup, to: str) -> bool:
-    """Email the report: score, top problems, a link, and the PDF attached."""
+    """Email the report: score, top problems, and links to the report and its PDF."""
     brand = load_branding()
     context = {
         "checkup": checkup,
@@ -74,16 +73,9 @@ def send_report(checkup: Checkup, to: str) -> bool:
         reply_to=[brand.email],  # replies go to the consultant, not the robot
     )
     message.attach_alternative(render_to_string("emails/report.html", context), "text/html")
-
-    try:
-        from bizzcheckup.reports.pdf import ensure_pdf
-
-        pdf = ensure_pdf(checkup)
-        if len(pdf) <= PDF_LIMIT:
-            name = f"bizzcheckup-{checkup.domain}.pdf"
-            message.attach(name, pdf, "application/pdf")
-    except Exception:  # the link in the email still opens the report
-        logger.exception("No PDF to attach for check-up %s", checkup.pk)
+    # The PDF is linked, not attached: a 3 MB attachment takes a slow home connection
+    # longer to upload than the mail server waits, and small emails reach the inbox more
+    # often than big ones.
     return _send(message, f"the report of {checkup.pk} to a visitor")
 
 

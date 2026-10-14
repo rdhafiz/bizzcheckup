@@ -194,7 +194,7 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-EMAIL_TIMEOUT = 15  # seconds: a slow mail server must not hang a page
+EMAIL_TIMEOUT = 30  # seconds: a slow connection or mail server must not hang a page forever
 # No login yet: print emails in the terminal instead of sending them (handy locally).
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND",

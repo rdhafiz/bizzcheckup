@@ -55,7 +55,8 @@ def test_report_email_has_the_score_problems_link_and_pdf(report: AuditReport) -
     assert "1. Your homepage has no title." in message.body
     html = message.alternatives[0][0]  # type: ignore[attr-defined]
     assert link in str(html)
-    assert message.attachments[0][0] == "bizzcheckup-shop.test.pdf"
+    assert f"https://check.example/checkups/{checkup.pk}/report.pdf" in message.body
+    assert message.attachments == []  # linked, not attached: small emails send fast
 
 
 def test_a_failing_mail_server_never_raises(report: AuditReport) -> None:

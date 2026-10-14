@@ -10,7 +10,7 @@ Fix these first:
 Open the full report (every issue, why it matters and how to fix it):
 {{ link }}
 
-The PDF version is attached{% if pdf_link %}, or download it here: {{ pdf_link }}{% endif %}
+Download it as a PDF: {{ pdf_link }}
 
 Want help fixing these? Just reply to this email: it goes straight to {{ brand.name }}.
 
