@@ -6,16 +6,20 @@ allowed in, getting real content without JavaScript, and machine-readable facts.
 """
 
 import json
+import re
+from datetime import UTC, datetime
 from typing import ClassVar
 
 from selectolax.lexbor import LexborHTMLParser
 
 from ..config import AI_CRAWLERS
 from ..context import PROBES, RENDER, AuditContext
-from ..types import AgentProbe, Category, Finding, Level, Severity
+from ..schema import question_answers, read_json_ld, site_facts, types_of
+from ..types import AgentProbe, Category, Finding, Level, Severity, Snippet
 from ..urls import origin
 from .accessibility import accessible_text
 from .base import Check
+from .local import visible_text
 
 AI_WHY = (
     "More and more customers ask AI assistants like ChatGPT, Claude or Perplexity for "
@@ -375,5 +379,149 @@ class ContentWithoutJs(Check):
                 effort=Level.HIGH,
                 impact=Level.MEDIUM if ratio >= 0.3 else Level.HIGH,
                 urls=url,
+            )
+        ]
+
+
+# --- AI search visibility: is the content easy to quote, attribute and trust? ------------
+
+QUESTION_HEADINGS_NEEDED = 2
+# "© 2026", "© 2019-2026", "Copyright 2026", also with an en dash between years.
+COPYRIGHT_YEAR = re.compile(
+    r"(?:\u00a9|&copy;|copyright)\s*(?:\d{4}\s*[-\u2013]\s*)?((?:19|20)\d{2})", re.I
+)
+ABOUT_LINK = re.compile(r"\babout\b|who we are|our story|our team|আমাদের সম্পর্কে", re.I)
+
+
+class AnswerReady(Check):
+    id = "agentic.answer_ready"
+    category = Category.AGENTIC
+    title = "Answers AI assistants can quote"
+    weight = 4
+
+    WHY = (
+        "AI assistants answer people's questions by quoting websites that answer them clearly. "
+        'Questions as headings ("How much does a website cost?") with a short answer below, '
+        "or an FAQ, are the easiest content for them to quote and link to."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        best_url, best = "", 0
+        for page in ctx.html_pages:
+            tree = ctx.dom(page) if page is ctx.homepage else ctx.tree(page)
+            found = len(question_answers(tree))
+            items, _ = read_json_ld(tree)
+            if any("FAQPage" in types_of(item) for item in items):
+                found = max(found, QUESTION_HEADINGS_NEEDED)
+            if found > best:
+                best_url, best = page.final_url, found
+        if best >= QUESTION_HEADINGS_NEEDED:
+            return [
+                self.passed(
+                    "Your website answers questions in a way AI assistants can quote.",
+                    self.WHY,
+                    [best_url],
+                )
+            ]
+        return [
+            self.finding(
+                Severity.WARN,
+                "Your website has no questions and answers (FAQ) for AI assistants to quote.",
+                self.WHY,
+                "Add a short FAQ to your homepage or main service page: the 5 questions "
+                "customers ask you most, each as a heading with a 2-3 sentence answer. The "
+                "page schema suggestions in this report then include the matching FAQ markup.",
+                impact=Level.MEDIUM,
+                urls=[ctx.homepage.final_url],
+                snippets=[
+                    Snippet(
+                        title="An FAQ that AI assistants (and visitors) can read",
+                        code="<section>\n  <h2>Frequently asked questions</h2>\n"
+                        "  <details>\n    <summary>REPLACE: How much does it cost?</summary>\n"
+                        "    <p>REPLACE: A short, direct answer in 2-3 sentences.</p>\n"
+                        "  </details>\n</section>",
+                    )
+                ],
+            )
+        ]
+
+
+class BusinessIdentity(Check):
+    id = "agentic.business_identity"
+    category = Category.AGENTIC
+    title = "Who you are, confirmed elsewhere"
+    weight = 3
+
+    WHY = (
+        "Before recommending a business, AI assistants check who it is: an About page, and "
+        "the same business on LinkedIn, Facebook or Google. Linking them tells the AI these "
+        "are all you, so it can recommend you with confidence."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        home = ctx.homepage
+        tree = ctx.dom(home)
+        facts = site_facts(home.final_url, tree)
+        about = any(
+            ABOUT_LINK.search(f"{node.text(strip=True)} {node.attributes.get('href') or ''}")
+            for node in tree.css("a[href]")
+        )
+        missing = []
+        if not about:
+            missing.append("link to an About page")
+        if not facts.same_as:
+            missing.append("links to your business profiles (LinkedIn, Facebook, ...)")
+        if not missing:
+            return [
+                self.passed(
+                    f"Your homepage links to an About page and {len(facts.same_as)} of your "
+                    "profiles elsewhere.",
+                    self.WHY,
+                )
+            ]
+        return [
+            self.finding(
+                Severity.WARN if len(missing) == 2 else Severity.INFO,
+                f"Your homepage has no {' and no '.join(missing)}.",
+                self.WHY,
+                "Link to an About page (who you are, since when, where, what you do) from "
+                "the menu, and to your business profiles from the footer. List the same "
+                "profiles in your Organization schema's sameAs.",
+                impact=Level.MEDIUM,
+                urls=[home.final_url],
+            )
+        ]
+
+
+class UpToDate(Check):
+    id = "agentic.up_to_date"
+    category = Category.AGENTIC
+    title = "Looks up to date"
+    weight = 2
+
+    WHY = (
+        "AI assistants and visitors both prefer recent information. A copyright year from "
+        'years ago makes a business look closed or neglected, even when it isn\'t: "© 2021" '
+        "is the first thing many people notice."
+    )
+
+    def run(self, ctx: AuditContext) -> list[Finding]:
+        home = ctx.homepage
+        years = [int(y) for y in COPYRIGHT_YEAR.findall(visible_text(home, ctx.dom(home)))]
+        if not years:
+            return []  # no date shown: nothing to judge
+        latest = max(years)
+        this_year = datetime.now(UTC).year
+        if latest >= this_year - 1:
+            return [self.passed(f"Your website shows a current year (© {latest}).", self.WHY)]
+        return [
+            self.finding(
+                Severity.WARN,
+                f"Your website still says © {latest}: it looks like it hasn't been updated "
+                f"since then.",
+                self.WHY,
+                f"Update the year in your footer to {this_year} (or make it update itself), and "
+                "refresh your main pages with recent work, prices or news.",
+                urls=[home.final_url],
             )
         ]

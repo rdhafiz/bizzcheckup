@@ -206,6 +206,9 @@ recommend the business?
 | `agentic.landmarks` | Clear page structure | 4 | `main`, `nav`, `header`, `footer` (or ARIA roles) (partial) | All four | Some missing (medium impact if `main` is missing) | — |
 | `agentic.named_controls` | Buttons AI agents can use | 4 | Homepage links and buttons with an accessible name (partial) | All named | Any nameless | — |
 | `agentic.content_without_js` | Content readable without JavaScript | 8 | Raw-HTML text ÷ rendered text (needs RENDER) (partial) | ≥ 70 % | 30–69 % | < 30 % (high impact) |
+| `agentic.answer_ready` | Answers AI assistants can quote | 4 | Headings or `<summary>` written as questions, each followed by an answer (`schema.question_answers()`), or `FAQPage` JSON-LD, on any page | 2 or more on one page | None, with a ready FAQ block | — |
+| `agentic.business_identity` | Who you are, confirmed elsewhere | 3 | A link to an About page ("about", "our story", "our team", "আমাদের সম্পর্কে") and links to the business's profiles (LinkedIn, Facebook, ...) on the homepage | Both | Neither. (One missing: **info**.) | — |
+| `agentic.up_to_date` | Looks up to date | 2 | The latest copyright year on the homepage ("© 2026", "© 2019–2026", "Copyright 2026"); no year: not judged | This year or last year | Older | — |
 
 **Bot-protection detection:** a response counts as a "challenge" when Cloudflare sends
 `cf-mitigated: challenge`, or when a short page or an error page (403/429/503)

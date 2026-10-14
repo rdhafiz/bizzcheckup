@@ -20,7 +20,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   Cal.com page) and the report's Contact section shows the booking calendar; "Book a free
   review call" jumps to it. It loads only when scrolled to, and the security policy allows
   that one site in a frame and nothing else. The PDF links to the booking page.
-- **3 trust and conversion checks (66 in total)**, under Best practices: a clear next step
+- **3 AI search checks (69 in total)**, under AI readiness: answers AI assistants can
+  quote (question headings with answers, or an FAQ, with a ready FAQ block), who the
+  business is (an About page and links to its profiles elsewhere) and whether it looks up
+  to date (an old copyright year such as "© 2021").
+- **3 trust and conversion checks**, under Best practices: a clear next step
   ("Book now", "Call us", WhatsApp...) visible without scrolling on a phone, measured in the
   real phone view; a privacy policy (a warning when the site has forms); and reviews or
   testimonials on the homepage (a note, with a ready testimonial snippet).

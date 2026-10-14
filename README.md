@@ -25,7 +25,7 @@ quick wins first, and a closing page where the consultant offers to help.
 
 ## What it checks
 
-66 checks in five vital signs. Every finding explains **why it matters for the business**
+69 checks in five vital signs. Every finding explains **why it matters for the business**
 first, then **how to fix it**, with severity, effort, impact and the affected URLs.
 
 | Vital sign | Examples |
@@ -63,7 +63,7 @@ flowchart LR
     subgraph E [Audit engine - pure Python, no Django]
       direction TB
       C[Crawler<br/>robots, sitemap, 10 pages] --> X
-      X[Collectors in parallel<br/>probes, security, Chromium + axe, PageSpeed] --> CH[66 checks]
+      X[Collectors in parallel<br/>probes, security, Chromium + axe, PageSpeed] --> CH[69 checks]
       CH --> S[Scoring + treatment plan]
     end
 
