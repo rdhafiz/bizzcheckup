@@ -21,7 +21,6 @@ from .models import Checkup, Lead, ReportEmail, Subscription
 logger = logging.getLogger(__name__)
 
 
-
 def absolute(path: str) -> str:
     """A full address for a link in an email, e.g. https://bizzcheckup.example/checkups/..."""
     return str(settings.SITE_URL) + path
