@@ -59,6 +59,25 @@ Each issue appears **once**. The order follows the questions a business owner as
 | 5 | **How {first name} can help** (`#help`) | *Who can fix this?* | Each area that needs care (score < 90) mapped to the most specific service in `branding.yaml`, as the homepage's vital-sign cards (the same colour and icon per vital sign, `builder.CATEGORY_LOOK`): score, service, description and "Treats the N … issues in this report", which shows those issues. A lone last card spans the full width. The broad "rebuild" service (when 3+ areas need care) is a dark wide card, and the call to action a green banner with the heartbeat line | `builder.recommend_services()` |
 | 6 | **Contact** (`#contact`) | *How do I reach them?* | The **booking calendar** (`#book`, only when `booking_url` is set in `branding.yaml`): the Cal.com page in an `<iframe>` with `loading="lazy"` (it loads only when the reader scrolls near it) and a fixed height, so nothing jumps; "Book a free review call" in Get help jumps to it, and the PDF gets a link instead. Then a dark card in the opening band's style: the photo in a green gradient ring, name, title, intro, the highlights as credential badges; each way to reach them (email, WhatsApp, website, GitHub, CV, portfolio) as a large tile with its coloured icon; the QR code; the footer note | `branding.yaml`, `builder.qr_code_svg()` (made with a `viewBox`, so CSS scales it to fill its white square) |
 
+### The score badge (`checkups/badges.py`, `/checkups/<id>/badge.svg`)
+
+When the health score is 90 or more (`ReportView.badge_ready`), "At a glance" offers a
+badge to show on the website itself: "Checked by BizzCheckup · 93 · Healthy", with the
+HTML to paste (`ReportView.badge_code`) and a **Copy** button. The badge links to our
+homepage, not to the report, so the report stays private.
+
+- It's an **SVG** drawn from `templates/checkups/badge.svg`, in the band's colour and with
+  the band's name written in it (never colour alone). Its width follows the product name
+  from `branding.yaml`, so a long name never spills into the score.
+- It always shows the **newest** finished check-up of the same address
+  (`badges.latest_checkup()`), so after a monthly re-check, the badge on the site updates
+  by itself (browsers keep it for an hour: `Cache-Control: max-age=3600`).
+- Every other response says `Cross-Origin-Resource-Policy: same-origin`; the badge says
+  `cross-origin`, because it's made to be shown on other websites. It also gets its own
+  strict `Content-Security-Policy: default-src 'none'`: an SVG may contain scripts, this
+  one never does, and the header makes sure none would run.
+- The badge is only offered on the web page, not in the PDF.
+
 ### Since last time (`_changes.html`, `reports/comparison.py`)
 
 `compare(checkup)` looks for the same address's most recent **finished** check-up before

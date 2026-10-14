@@ -1693,6 +1693,16 @@
     @apply w-full justify-center text-center;
   }
 
+  /* The badge for healthy sites (At a glance). */
+  .badge-card {
+    @apply mt-6 grid items-center gap-6 rounded-2xl border border-line bg-card p-5 sm:p-6
+      md:grid-cols-[minmax(0,1fr)_auto];
+    background: color-mix(in srgb, var(--primary) 6%, var(--card));
+  }
+  .badge-card__preview {
+    @apply h-11 w-auto justify-self-start md:justify-self-center;
+  }
+
   /* "Since last time" (_changes.html): score changes, then fixed / new / still to fix. */
   .change-scores {
     @apply mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6;

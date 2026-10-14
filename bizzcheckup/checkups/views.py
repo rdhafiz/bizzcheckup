@@ -15,7 +15,7 @@ from bizzcheckup.engine.netguard import BlockedURLError
 from bizzcheckup.engine.urls import domain, site_root
 from bizzcheckup.reports.branding import load_branding
 
-from . import emails, protection, services
+from . import badges, emails, protection, services
 from .forms import CheckupForm, EmailReportForm
 from .models import Checkup, CheckupImage, Lead, ReportEmail, Subscription
 from .progress import steps_for
@@ -169,6 +169,24 @@ def full_checkup(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     if cache.add(key, True, timeout=24 * 60 * 60):  # add() is False if already there
         emails.alert_owner(checkup, "clicked 'Get a full check-up'", checkup.lead)
     return redirect(load_branding().full_audit_url)
+
+
+@require_GET
+def badge(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
+    """An SVG badge with the website's latest health score, to show on the site itself.
+
+    It always shows the newest finished check-up of the same address (e.g. the monthly
+    re-check), so an old badge never shows an old score.
+    """
+    first = get_object_or_404(Checkup, pk=checkup_id, status=Checkup.Status.DONE)
+    svg = badges.badge_svg(first)
+    response = HttpResponse(svg, content_type="image/svg+xml; charset=utf-8")
+    response["Cache-Control"] = "public, max-age=3600"  # new scores show within an hour
+    # Other websites may show this picture (everything else here is same-origin only).
+    response["Cross-Origin-Resource-Policy"] = "cross-origin"
+    # An SVG can hold scripts: this one never does, and this tells browsers to run none.
+    response["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'"
+    return response
 
 
 @csrf_exempt  # the secret token in the address is the protection; mail apps POST here

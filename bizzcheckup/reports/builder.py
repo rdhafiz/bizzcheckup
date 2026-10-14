@@ -7,7 +7,10 @@ web report and the PDF are always identical, and the logic is easy to test.
 from dataclasses import dataclass, field
 
 import segno
+from django.conf import settings
+from django.urls import reverse
 
+from bizzcheckup.checkups import badges
 from bizzcheckup.checkups.models import Checkup
 from bizzcheckup.engine.scoring import CATEGORY_WEIGHTS, HEALTHY_FROM
 from bizzcheckup.engine.treatment import TreatmentPlan, build_treatment_plan
@@ -203,6 +206,25 @@ class ReportView:
             problems = "1 serious problem is" if serious == 1 else f"{serious} serious problems are"
             return f"Your website works, but {problems} holding your business back."
         return f"Your website works, but {total} issues are holding your business back."
+
+    # --- the badge for the site itself ------------------------------------------------
+    @property
+    def badge_ready(self) -> bool:
+        """Healthy sites get a badge to show on their own website."""
+        score = self.report.health_score
+        return score is not None and score >= HEALTHY_FROM
+
+    @property
+    def badge_code(self) -> str:
+        """The HTML to paste into the website: the badge, linking to our homepage."""
+        site = str(settings.SITE_URL)
+        src = site + reverse("checkups:badge", args=[self.checkup.pk])
+        alt = f"{self.branding.product_name} health score {self.report.health_score}/100"
+        size = badges.badge_size(self.branding.product_name)
+        return (
+            f'<a href="{site}/" target="_blank" rel="noopener">'
+            f'<img src="{src}" alt="{alt}" width="{size.width}" height="{badges.HEIGHT}"></a>'
+        )
 
     # --- device screenshots -------------------------------------------------------------
     @property

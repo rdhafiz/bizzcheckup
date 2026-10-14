@@ -75,6 +75,24 @@
     </div>
   </div>
 
+  {# Healthy sites: a badge to show on their own website (web page only). #}
+  {% if view.badge_ready and not pdf %}
+    <div class="badge-card" data-reveal>
+      <div class="min-w-0">
+        <p class="eyebrow-dash">Show it off</p>
+        <h3 class="mt-2 text-xl font-bold">Your website is healthy: tell your visitors</h3>
+        <p class="mt-1 text-sm text-muted">Paste this into your website's footer. It always shows your latest score, so it updates by itself after each check-up.</p>
+        <div class="snippet mt-4">
+          <div class="snippet__body">
+            <button type="button" class="snippet__copy" data-copy-code aria-live="polite">Copy</button>
+            <pre class="snippet__code snippet__code--wrap"><code>{{ view.badge_code }}</code></pre>
+          </div>
+        </div>
+      </div>
+      <img class="badge-card__preview" src="{% url 'checkups:badge' checkup.pk %}" alt="The badge: {{ brand.product_name }} health score {{ report.health_score }}">
+    </div>
+  {% endif %}
+
   {# The vital signs live in the sidebar on large screens; here for phones, tablets and paper. #}
   <div class="card mt-6 {% if not pdf %}lg:hidden{% endif %}" data-reveal>
     <h3 class="text-lg font-bold">The 5 vital signs</h3>

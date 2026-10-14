@@ -47,6 +47,7 @@ bizzcheckup/
 │   │   ├── protection.py     Report reuse, rate limit, global capacity
 │   │   ├── admin.py          Admin pages, health-band filter, lead CSV export
 │   │   ├── tasks.py          Celery job run_checkup: runs the engine in the worker
+│   │   ├── badges.py         The score badge (SVG) healthy sites can show
 │   │   ├── emails.py         The report by email, "new lead" alerts, monthly emails (docs/21)
 │   │   ├── management/commands/run_rechecks.py   Monthly re-checks without Celery (docs/12)
 │   │   ├── progress.py       Steps shown on the progress page

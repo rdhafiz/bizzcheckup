@@ -37,6 +37,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
   One-click unsubscribe (Gmail's and Outlook's own button too). The consultant is alerted
   when a site's score drops 5 points or more. Without Celery: `manage.py run_rechecks`.
   Settings `RECHECK_EVERY_DAYS`, `RECHECKS_PER_RUN`; migration `0007`.
+- **Score badge.** Websites scoring 90 or more get a "Checked by BizzCheckup · 93 ·
+  Healthy" badge (SVG) to paste into their footer, with a Copy button. It links to the
+  homepage (the report stays private) and always shows the site's newest score, so it
+  updates by itself after each monthly re-check.
 - New settings: `SITE_URL`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `LEAD_ALERT_EMAIL`,
   `LEAD_ALERT_LOW_SCORE`, `REPORT_EMAILS_PER_DAY`. Migration `0006` (`ReportEmail`).
 
