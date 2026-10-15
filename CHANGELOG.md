@@ -6,6 +6,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+## [0.5.0-alpha] - 2026-10-15
+
 ### Added
 - **SEO for BizzCheckup's own pages** ([docs/22-seo.md](docs/22-seo.md)): every page now
   has a canonical link, robots rules, Open Graph and Twitter cards and a share picture,
@@ -329,7 +331,8 @@ First public release: the complete check-up flow from landing page to PDF.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).
 
-[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.4.1-alpha...HEAD
+[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.5.0-alpha...HEAD
+[0.5.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.5.0-alpha
 [0.4.1-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.4.1-alpha
 [0.4.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.4.0-alpha
 [0.3.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.3.0-alpha
