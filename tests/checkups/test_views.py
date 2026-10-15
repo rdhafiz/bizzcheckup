@@ -107,7 +107,7 @@ def test_finished_checkup_shows_the_report_at_the_same_url(
     services.save_report(checkup, report)
     services.mark_done(checkup)
     html = client.get(reverse("checkups:detail", args=[checkup.pk])).content.decode()
-    assert "BizzCheckup Health Report" in html
+    assert "<title>shop.test: health score 66/100 | BizzCheckup</title>" in html
     assert "Needs attention" in html  # health score 66
 
 

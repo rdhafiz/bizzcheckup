@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
   setUpSectionHighlight();
 });
 
+// ======================================================================================
+// The issue list: filters, and links that open an issue
+// ======================================================================================
+
 // Filter the issue list by vital sign and by severity. Without JavaScript the filters
 // stay hidden and every issue is shown. A vital sign in the sidebar filters too.
 function setUpIssueFilters() {
@@ -76,6 +80,10 @@ function setUpIssueLinks() {
   });
 }
 
+// ======================================================================================
+// The sidebar: "you are here"
+// ======================================================================================
+
 // Sidebar: mark the section being read, so the reader always knows where they are.
 function setUpSectionHighlight() {
   var links = Array.prototype.slice.call(document.querySelectorAll(".side-nav a[href^='#']"));
@@ -94,6 +102,10 @@ function setUpSectionHighlight() {
     if (section) observer.observe(section);
   });
 }
+
+// ======================================================================================
+// Copy buttons: code snippets and the share link
+// ======================================================================================
 
 // "Copy" on a suggested fix (e.g. a page's JSON-LD): copies the code exactly as shown.
 function setUpCopyCode() {

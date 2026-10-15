@@ -162,7 +162,7 @@ def test_report_page_has_all_sections(client: Client, finished: Checkup) -> None
     html = client.get(reverse("checkups:detail", args=[finished.pk])).content.decode()
 
     for heading in [
-        "BizzCheckup Health Report",  # 1 overview
+        "Health report",  # 1 overview
         "The diagnosis",
         "Fix these first",  # 2 the top risks
         "All issues",  # 3 one list of every issue

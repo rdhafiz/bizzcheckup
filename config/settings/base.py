@@ -76,6 +76,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "bizzcheckup.core.context_processors.brand",
+                "bizzcheckup.core.context_processors.seo",
             ],
         },
     },

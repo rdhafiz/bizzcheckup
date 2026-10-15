@@ -6,7 +6,9 @@ bizzcheckup/
 │   ├── __init__.py           Package marker + __version__ ("0.4.1a0")
 │   ├── core/                 Django app: site-wide pages and helpers
 │   │   ├── apps.py           App configuration (name "bizzcheckup.core")
-│   │   ├── context_processors.py  Puts product_name/tagline into every template
+│   │   ├── context_processors.py  Puts product_name/tagline and a page `meta` into every template
+│   │   ├── seo.py            Each page's meta tags and structured data (docs/22-seo.md)
+│   │   ├── management/commands/make_seo_images.py   Draws the share picture and icon
 │   │   ├── security.py       IP hashing, Turnstile, security headers middleware
 │   │   ├── templatetags/bizz.py  Template filters: band, band_label, severity_label...
 │   │   ├── tasks.py          Celery jobs (just "ping" for now)
@@ -75,8 +77,8 @@ bizzcheckup/
 │   ├── wsgi.py / asgi.py     Entry points for web servers (gunicorn)
 ├── templates/                HTML templates (VIEW layer)
 │   ├── base.html             Page skeleton every page extends: header, footer, theme
-│   ├── partials/             Small reusable pieces: logo, icons, illustrations, score ring, footer
-│   ├── core/                 home (landing page + form), styleguide, legal/ (privacy, terms, cookies, ...)
+│   ├── partials/             Small reusable pieces: logo, icons, illustrations, score ring, footer, seo.html (meta tags)
+│   ├── core/                 home (landing page + form + FAQ), styleguide, legal/ (privacy, terms, ...), og_image.html
 │   ├── checkups/             progress.html, _progress_data.html (HTMX data), _recheck_form.html, failed.html
 │   ├── reports/              report.html (web), report_pdf.html (PDF), _sections.html (shared), ...
 │   └── emails/               report.html + report.txt (to the visitor), lead_alert.txt (to you)

@@ -30,7 +30,7 @@ def submit(client: Client, **fields: str):  # type: ignore[no-untyped-def]
 def test_landing_page_shows_brand_and_everything_the_brief_asks_for(client: Client) -> None:
     html = client.get("/").content.decode()
 
-    assert "<title>BizzCheckup — Check your business&#x27;s online health</title>" in html
+    assert "<title>BizzCheckup: free website health check-up for business owners</title>" in html
     assert '<span class="sr-only">BizzCheckup: </span>Is your business website' in html
     for name in ('name="url"', 'name="name"', 'name="email"', 'name="consent"'):
         assert name in html

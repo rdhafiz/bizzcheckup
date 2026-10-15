@@ -3,7 +3,6 @@
 {% block title %}Check-up of {{ checkup.domain }} couldn't finish — {{ product_name }}{% endblock %}
 
 {% block head %}
-  <meta name="robots" content="noindex">
   {% if turnstile_site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 

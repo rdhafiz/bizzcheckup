@@ -14,6 +14,11 @@ def choices(enum: type[Category] | type[Severity] | type[Level]) -> list[tuple[s
     return [(member.value, member.value.replace("_", " ").capitalize()) for member in enum]
 
 
+# ---------------------------------------------------------------------------------------
+# Visitors: leads and monthly re-checks
+# ---------------------------------------------------------------------------------------
+
+
 class Lead(models.Model):
     """A visitor who left their name/email and agreed to be contacted."""
 
@@ -51,6 +56,11 @@ class Subscription(models.Model):
 
     def __str__(self) -> str:
         return f"{self.email}: {self.domain}"
+
+
+# ---------------------------------------------------------------------------------------
+# Check-ups and what they found
+# ---------------------------------------------------------------------------------------
 
 
 class Checkup(models.Model):
@@ -158,6 +168,11 @@ class CheckupImage(models.Model):
     @classmethod
     def is_known_kind(cls, kind: str) -> bool:
         return kind in cls.Kind.values or cls.ELEMENT_KIND.fullmatch(kind) is not None
+
+
+# ---------------------------------------------------------------------------------------
+# Reports sent by email
+# ---------------------------------------------------------------------------------------
 
 
 class ReportEmail(models.Model):

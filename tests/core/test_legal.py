@@ -3,6 +3,7 @@
 from datetime import date
 
 import pytest
+from django.conf import settings
 from django.test import Client
 from django.urls import reverse
 
@@ -86,7 +87,8 @@ def test_robots_txt_keeps_crawlers_out_of_reports_and_points_to_the_sitemap(clie
     assert "User-agent: *" in text
     for path in ("/checkups/", "/admin/", "/healthz/", "/styleguide/"):
         assert f"Disallow: {path}" in text
-    assert "Sitemap: http://testserver/sitemap.xml" in text  # absolute, as crawlers need
+    # absolute, on the public domain (SITE_URL), as crawlers need
+    assert f"Sitemap: {settings.SITE_URL}/sitemap.xml" in text
 
 
 def test_sitemap_lists_the_home_and_legal_pages(client: Client) -> None:
@@ -94,9 +96,9 @@ def test_sitemap_lists_the_home_and_legal_pages(client: Client) -> None:
     xml = response.content.decode()
 
     assert response.status_code == 200
-    assert "<loc>http://testserver/</loc>" in xml
+    assert f"<loc>{settings.SITE_URL}/</loc>" in xml  # the public domain, like canonicals
     for name, _ in LEGAL_PAGES:
-        assert f"<loc>http://testserver{reverse(f'core:{name}')}</loc>" in xml
+        assert f"<loc>{settings.SITE_URL}{reverse(f'core:{name}')}</loc>" in xml
     updated = load_branding().legal.updated.isoformat()
     assert xml.count(f"<lastmod>{updated}</lastmod>") == len(LEGAL_PAGES)
     assert "/checkups/" not in xml  # reports are private, never listed

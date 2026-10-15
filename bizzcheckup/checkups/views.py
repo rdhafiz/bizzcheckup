@@ -24,6 +24,10 @@ from .progress import steps_for
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------------------
+# Messages shown to visitors
+# ---------------------------------------------------------------------------------------
+
 BOT_ERROR = "We couldn't start your check-up. Please reload the page and try again."
 RATE_LIMIT_ERROR = (
     "You've started several check-ups in the last hour. Please wait a little before "
@@ -36,6 +40,11 @@ PAGE_DROPPED_NOTE = (
     "from its homepage. Checking specific pages, or every page of your website, is part of "
     "the full check-up: see the offer at the end of your report."
 )
+
+
+# ---------------------------------------------------------------------------------------
+# Starting a check-up (the homepage form, "Check again now")
+# ---------------------------------------------------------------------------------------
 
 
 @require_POST
@@ -121,6 +130,10 @@ def recheck(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     return redirect("checkups:detail", checkup_id=checkup.pk)
 
 
+# ---------------------------------------------------------------------------------------
+# Compare with a competitor
+# ---------------------------------------------------------------------------------------
+
 COMPETITOR_SAME = "That's your own website: enter a competitor's address to compare."
 COMPETITOR_STARTED = (
     "We're checking {domain} now. It takes about a minute: reload this page to see the comparison."
@@ -156,6 +169,10 @@ def compare(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
         messages.success(request, COMPETITOR_STARTED.format(domain=theirs.domain))
     return back
 
+
+# ---------------------------------------------------------------------------------------
+# Email me the report, and the full check-up offer
+# ---------------------------------------------------------------------------------------
 
 EMAIL_SENT = (
     "We've sent the report to {email}. It should arrive in a minute (check your spam folder too)."
@@ -211,6 +228,11 @@ def full_checkup(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     return redirect(load_branding().full_audit_url)
 
 
+# ---------------------------------------------------------------------------------------
+# Pictures to share: the score card and the badge
+# ---------------------------------------------------------------------------------------
+
+
 @require_GET
 def share_card(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     """The score as a 1200 x 630 picture to post on social media (made once, then kept)."""
@@ -248,6 +270,11 @@ def badge(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     return response
 
 
+# ---------------------------------------------------------------------------------------
+# Monthly re-checks: unsubscribe
+# ---------------------------------------------------------------------------------------
+
+
 @csrf_exempt  # the secret token in the address is the protection; mail apps POST here
 @require_http_methods(["GET", "POST"])
 def unsubscribe(request: HttpRequest, token: UUID) -> HttpResponse:
@@ -259,6 +286,11 @@ def unsubscribe(request: HttpRequest, token: UUID) -> HttpResponse:
     if request.method == "POST" and subscription.active:
         services.unsubscribe(subscription)
     return render(request, "checkups/unsubscribe.html", {"subscription": subscription})
+
+
+# ---------------------------------------------------------------------------------------
+# Helpers for the forms above
+# ---------------------------------------------------------------------------------------
 
 
 def _subscribe(form: CheckupForm, lead: Lead | None, url: str) -> None:
@@ -281,6 +313,11 @@ def _form_error(
     if message:
         form.add_error(None, message)
     return render(request, "core/home.html", {"form": form}, status=status)
+
+
+# ---------------------------------------------------------------------------------------
+# The check-up page: progress while it runs, then the report
+# ---------------------------------------------------------------------------------------
 
 
 @require_GET
@@ -309,6 +346,11 @@ def progress(request: HttpRequest, checkup_id: UUID) -> HttpResponse:
     services.expire_if_stuck(checkup)
     status = 286 if checkup.is_finished else 200
     return render(request, "checkups/_progress_data.html", {"checkup": checkup}, status=status)
+
+
+# ---------------------------------------------------------------------------------------
+# Pictures of the checked website
+# ---------------------------------------------------------------------------------------
 
 
 @require_GET

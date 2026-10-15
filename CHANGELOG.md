@@ -6,6 +6,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+### Added
+- **SEO for BizzCheckup's own pages** ([docs/22-seo.md](docs/22-seo.md)): every page now
+  has a canonical link, robots rules, Open Graph and Twitter cards and a share picture,
+  from one central description per page (`core/seo.py`). The homepage sends structured
+  data (who runs it, the website, the free web app, its FAQ), and the legal pages send
+  their last-updated date and breadcrumbs.
+- **A FAQ on the homepage** ("Before you start"), from the same list as its FAQPage data.
+- `/.well-known/security.txt`, a share picture (`og-image.png`), a home-screen icon and
+  `manage.py make_seo_images` to redraw them.
+
+### Changed
+- Reports, their PDFs and pictures send `X-Robots-Tag: noindex`, and a shared report link
+  previews with its score and share card. The sitemap and robots.txt use `SITE_URL`, like
+  the canonical links. llms.txt lists the newer features.
+- Clearer sections and comments in the main views, services, models, `base.html` and
+  `report.js`.
+
 ## [0.4.1-alpha] - 2026-10-15
 
 ### Fixed

@@ -1,0 +1,79 @@
+{% load static %}<!doctype html>
+{% comment %}
+  The picture shown when someone shares BizzCheckup's homepage (1200 x 630, og:image), and
+  (with icon=True) the 180 x 180 home-screen icon. Never shown to visitors: it's
+  photographed by `python manage.py make_seo_images` into static/img/og-image.png and
+  static/img/apple-touch-icon.png. Run it again after changing this page or the branding.
+{% endcomment %}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Bricolage"; src: url("{% static 'fonts/bricolage-grotesque.woff2' %}") format("woff2"); font-weight: 200 800; }
+  @font-face { font-family: "Public Sans"; src: url("{% static 'fonts/public-sans.woff2' %}") format("woff2"); font-weight: 100 900; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: {{ width }}px; height: {{ height }}px; overflow: hidden; }
+  body { font-family: "Public Sans", sans-serif; color: #e7efec; background: #0c1517; }
+
+  /* ----- The icon: the logo mark on the brand green ----- */
+  .icon { width: 100%; height: 100%; display: grid; place-items: center; background: #31ac64; }
+
+  /* ----- The share picture: words on the left, the report on the right ----- */
+  .card {
+    position: relative; width: 100%; height: 100%; padding: 64px 72px;
+    background:
+      radial-gradient(ellipse 55% 75% at 88% 20%, rgba(49,172,100,.30), transparent 70%),
+      radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1.4px) 0 0 / 22px 22px,
+      #0c1517;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; font-family: "Bricolage"; font-weight: 800; font-size: 30px; }
+  .brand__mark { width: 46px; height: 46px; border-radius: 12px; background: #31ac64; display: grid; place-items: center; }
+  .brand b { color: #5cc98a; }
+  .title { margin-top: 56px; max-width: 640px; font-family: "Bricolage"; font-weight: 800; font-size: 68px; line-height: 1.02; letter-spacing: -.02em; }
+  .title span { color: #5cc98a; }
+  .lead { margin-top: 26px; max-width: 600px; font-size: 24px; line-height: 1.4; color: #a9bcb7; }
+  .pills { margin-top: 34px; display: flex; gap: 12px; }
+  .pill { padding: 10px 18px; border-radius: 999px; font-weight: 700; font-size: 18px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); }
+  .pill--green { background: #31ac64; border-color: #31ac64; color: #fff; }
+  .score { position: absolute; right: 72px; top: 150px; width: 330px; padding: 30px; border-radius: 28px; border: 1px solid rgba(255,255,255,.14); background: rgba(19,33,36,.9); box-shadow: 0 40px 80px -30px rgba(0,0,0,.8); text-align: center; }
+  .score svg { width: 210px; height: 210px; }
+  .score__value { font-family: "Bricolage"; font-weight: 800; fill: #fff; } /* size: the SVG text attribute */
+  .score__label { margin-top: 6px; font-weight: 700; font-size: 20px; color: #5cc98a; }
+  .signs { margin-top: 18px; display: grid; gap: 9px; text-align: left; }
+  .sign { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #a9bcb7; }
+  .sign i { flex: 1; height: 7px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; }
+  .sign i b { display: block; height: 100%; border-radius: 99px; }
+  .footer { position: absolute; left: 72px; bottom: 44px; font-size: 20px; color: #a9bcb7; }
+  .footer strong { color: #e7efec; }
+</style>
+</head>
+<body>
+{% if icon %}
+  <div class="icon">
+    <svg width="120" height="120" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+{% else %}
+  <div class="card">
+    <p class="brand"><span class="brand__mark"><svg width="30" height="30" viewBox="0 0 32 32"><path d="M3 17h6l2.5-6 4 12 3-9 2 3H29" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Bizz</b>Checkup</span></p>
+    <p class="title">Is your business website <span>healthy?</span></p>
+    <p class="lead">A free check-up in about a minute: {{ check_count }} checks, explained in plain language, with what to fix first.</p>
+    <div class="pills"><span class="pill pill--green">Free, no account</span><span class="pill">Report + PDF</span></div>
+
+    <div class="score">
+      <svg viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="3"/>
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#31ac64" stroke-width="3" stroke-linecap="round" pathLength="100" stroke-dasharray="92 100" transform="rotate(-90 18 18)"/>
+        <text class="score__value" x="18" y="18" text-anchor="middle" dominant-baseline="central" font-size="11">92</text>
+      </svg>
+      <p class="score__label">Healthy</p>
+      <div class="signs">
+        {% for label, value, colour in signs %}
+          <p class="sign"><span style="width:118px">{{ label }}</span><i><b style="width:{{ value }}%;background:{{ colour }}"></b></i></p>
+        {% endfor %}
+      </div>
+    </div>
+    <p class="footer">Free website check-up for business owners · <strong>{{ site_host }}</strong></p>
+  </div>
+{% endif %}
+</body>
+</html>

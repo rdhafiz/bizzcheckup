@@ -29,6 +29,7 @@ Read them in order the first time. Later, jump to the page you need.
 | 19 | [Motion: scroll reveal & parallax](19-motion.md) | How sections animate in and photos drift; the safety nets; performance |
 | 20 | [Self-hosting on a Windows PC](20-self-hosting.md) | WSL2, Docker, Cloudflare Tunnel, the network firewall, backups, daily commands |
 | 21 | [Emails](21-emails.md) | The report by email, lead alerts, setting up Gmail, how email is tested |
+| 22 | [BizzCheckup's own SEO](22-seo.md) | Meta tags, link previews, structured data, robots.txt, sitemap, llms.txt, security.txt |
 
 ## What is BizzCheckup?
 

@@ -12,6 +12,14 @@ The five vital signs:
 {% for sign in vital_signs %}
 - {{ sign.title }}: {{ sign.text }}{% endfor %}
 
+What a visitor gets, besides the report:
+
+- The report by email, and a monthly re-check with an email showing what changed (optional).
+- "Since last time": what was fixed and what's new, when the same website was checked before.
+- A side-by-side comparison with a competitor's website.
+- How long each fix takes, and whether the owner can do it or needs a developer.
+- A badge for healthy websites, and a picture of the score to share.
+
 Reports live at private, unguessable links under /checkups/. They are not public pages: please don't index, quote or summarise them.
 
 ## Main pages
@@ -37,4 +45,5 @@ Reports live at private, unguessable links under /checkups/. They are not public
 ## Optional
 
 - [Sitemap]({{ base_url }}{% url 'sitemap' %}): Every public page of the site.
+- [Security contact]({{ base_url }}{% url 'security_txt' %}): How to report a security problem.
 {% endautoescape %}

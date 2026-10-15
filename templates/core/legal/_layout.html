@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 {% comment %}
   Shared layout of the legal pages: a header band with the title and the date, a side menu
-  with every legal page, and the text. Each page fills the blocks below.
+  with every legal page, and the text. Each page fills the blocks below. The page title and
+  description (for Google and link previews) come from views.LEGAL_PAGES, through `meta`.
 {% endcomment %}
 
 {% block header_container %}container-wide{% endblock %}
-
-{% block title %}{% block legal_title %}{% endblock %} — {{ product_name }}{% endblock %}
 
 {% block content %}
   <header class="legal-hero">

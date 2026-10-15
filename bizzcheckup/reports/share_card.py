@@ -22,11 +22,14 @@ WIDTH, HEIGHT = 1200, 630  # the size Facebook, LinkedIn and WhatsApp show
 BAND_COLOURS = {"healthy": "#31ac64", "attention": "#f5b544", "urgent": "#e5484d"}
 
 
-async def html_to_png(html: str, resolve: Resolver) -> bytes:
+async def html_to_png(
+    html: str, resolve: Resolver, *, width: int = WIDTH, height: int = HEIGHT
+) -> bytes:
+    """Photograph an HTML page in offline Chromium. Also used by `manage.py make_seo_images`."""
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(args=["--disable-dev-shm-usage"])
         try:
-            page = await browser.new_page(viewport={"width": WIDTH, "height": HEIGHT})
+            page = await browser.new_page(viewport={"width": width, "height": height})
             await page.route("**/*", offline_router(html, resolve, set()))
             await page.goto(f"{ORIGIN}/", wait_until="networkidle", timeout=30_000)
             png: bytes = await page.screenshot(type="png")

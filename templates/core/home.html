@@ -242,4 +242,25 @@
       </div>
     </div>
   </section>
+
+  {# --- Questions and answers ------------------------------------------------------------ #}
+  {# The same list feeds the FAQPage data search engines and AI assistants read (core/seo.py), #}
+  {# so what they quote is exactly what visitors see here. Native <details>: no JavaScript.    #}
+  <section class="faq" aria-labelledby="faq-title">
+    <div class="container-wide faq__grid">
+      <div data-reveal-group>
+        <p class="eyebrow-dash" data-reveal>Questions</p>
+        <h2 id="faq-title" class="faq__title" data-reveal="words">Before you <span class="text-primary" data-word>start</span></h2>
+        <p class="mt-4 max-w-sm text-muted" data-reveal>Anything else? Write to {{ branding.first_name }} at <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>.</p>
+      </div>
+      <div class="faq__list" data-reveal-group>
+        {% for question, answer in faq %}
+          <details class="faq__item" data-reveal {% if forloop.first %}open{% endif %}>
+            <summary class="faq__question">{{ question }}<span class="faq__chevron" aria-hidden="true">{% include "partials/icon.html" with name="chevron" css="size-5" %}</span></summary>
+            <p class="faq__answer">{{ answer }}</p>
+          </details>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
 {% endblock %}

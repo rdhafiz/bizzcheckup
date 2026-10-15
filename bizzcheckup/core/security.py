@@ -10,6 +10,8 @@ import httpx
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 
+from .seo import is_private
+
 logger = logging.getLogger(__name__)
 
 TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
@@ -148,4 +150,9 @@ class SecurityHeadersMiddleware:
             "Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()"
         )
         response.setdefault("Cross-Origin-Resource-Policy", "same-origin")
+        # Private addresses (reports, their PDFs and pictures, admin): never in search
+        # results, even when a link is posted somewhere public. A header, because a PDF
+        # or a picture has no <head> to put a robots tag in.
+        if is_private(request.path):
+            response.setdefault("X-Robots-Tag", "noindex, nofollow")
         return response

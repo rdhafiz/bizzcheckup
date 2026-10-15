@@ -9,9 +9,10 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET
 
 from bizzcheckup.checkups.models import Checkup
+from bizzcheckup.core.seo import NO_INDEX, PageMeta, absolute
 
 from . import pdf as pdf_module
-from .builder import build_report
+from .builder import ReportView, build_report
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +20,29 @@ logger = logging.getLogger(__name__)
 def report_page(request: HttpRequest, checkup: Checkup) -> HttpResponse:
     """The full report. Called by checkups.views.detail for finished check-ups."""
     share_url = request.build_absolute_uri(reverse("checkups:detail", args=[checkup.pk]))
+    view = build_report(checkup)
     return render(
-        request, "reports/report.html", {"view": build_report(checkup), "share_url": share_url}
+        request,
+        "reports/report.html",
+        {"view": view, "share_url": share_url, "meta": report_meta(view)},
+    )
+
+
+def report_meta(view: ReportView) -> PageMeta:
+    """What a shared report link shows (WhatsApp, LinkedIn...): the score and its picture.
+
+    Reports stay private: `noindex`, so search engines never list them, even when someone
+    posts the link. The preview is only what people see in a chat when it's shared.
+    """
+    checkup = view.checkup
+    score = view.report.health_score
+    return PageMeta(
+        title=f"{checkup.domain}: health score {score}/100 | {view.branding.product_name}",
+        description=f"{view.verdict} A free website health check-up of {checkup.domain}.",
+        path=reverse("checkups:detail", args=[checkup.pk]),
+        robots=NO_INDEX,
+        image=absolute(reverse("checkups:share_card", args=[checkup.pk])),
+        image_alt=f"{checkup.domain}'s health score: {score} out of 100",
     )
 
 

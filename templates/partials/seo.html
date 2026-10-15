@@ -1,0 +1,39 @@
+{% comment %}
+  Every SEO tag in <head>, from the page's `meta` (core/seo.py PageMeta). Included once, by
+  base.html. The <title> and description stay in base.html as blocks, so a page can still
+  override them in its template.
+
+  1. Canonical and robots: the one true address of the page, and whether search engines
+     may list it (reports and other private pages: noindex).
+  2. Open Graph: the card Facebook, LinkedIn and WhatsApp show when the link is shared.
+  3. Twitter / X card: the same, for X.
+  4. Browser: theme colour (the phone's address bar) and the home-screen icon.
+  5. Structured data (JSON-LD): facts search engines and AI assistants read.
+{% endcomment %}{% load static %}
+{# 1. Canonical and robots #}
+  <link rel="canonical" href="{{ meta.url }}">
+  <meta name="robots" content="{{ meta.robots }}">
+{# 2. Open Graph #}
+  <meta property="og:type" content="{{ meta.og_type }}">
+  <meta property="og:site_name" content="{{ product_name }}">
+  <meta property="og:title" content="{{ meta.title }}">
+  <meta property="og:description" content="{{ meta.description }}">
+  <meta property="og:url" content="{{ meta.url }}">
+  <meta property="og:image" content="{{ meta.image_url }}">
+  <meta property="og:image:width" content="{{ meta.image_width }}">
+  <meta property="og:image:height" content="{{ meta.image_height }}">
+  <meta property="og:image:alt" content="{{ meta.image_alt|default:meta.title }}">
+  <meta property="og:locale" content="en_US">
+  {% if meta.updated %}<meta property="article:modified_time" content="{{ meta.updated|date:'Y-m-d' }}">{% endif %}
+{# 3. Twitter / X card #}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ meta.title }}">
+  <meta name="twitter:description" content="{{ meta.description }}">
+  <meta name="twitter:image" content="{{ meta.image_url }}">
+{# 4. Browser #}
+  <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0c1517" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <meta name="author" content="{{ branding.name }}">
+{# 5. Structured data #}
+  {{ meta.json_ld }}

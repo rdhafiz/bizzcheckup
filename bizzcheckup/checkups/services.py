@@ -21,6 +21,10 @@ from .models import Checkup, CheckupImage, Finding, Lead, Subscription
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------------------
+# Messages and engine settings
+# ---------------------------------------------------------------------------------------
+
 STUCK_ERROR = "Your check-up was interrupted before it could finish. Please try again."
 QUEUE_DOWN_ERROR = (
     "Our check-up service is busy or temporarily unavailable. Please try again in a few minutes."
@@ -40,6 +44,11 @@ def engine_config() -> EngineConfig:
 def make_guard() -> NetGuard:
     """The SSRF guard the worker uses. (Tests replace this to allow a local test site.)"""
     return NetGuard()
+
+
+# ---------------------------------------------------------------------------------------
+# Creating check-ups and leads
+# ---------------------------------------------------------------------------------------
 
 
 def save_lead(*, name: str, email: str, consent: bool) -> Lead | None:
@@ -70,6 +79,11 @@ def create_checkup(
     if start:
         transaction.on_commit(lambda: enqueue(checkup))
     return checkup
+
+
+# ---------------------------------------------------------------------------------------
+# Monthly re-checks
+# ---------------------------------------------------------------------------------------
 
 
 def subscribe(email: str, url: str, lead: Lead | None = None) -> Subscription:
@@ -124,6 +138,11 @@ def start_due_rechecks(limit: int, *, start: bool = True) -> list[Checkup]:
     return started
 
 
+# ---------------------------------------------------------------------------------------
+# Running check-ups: Celery, or a background thread
+# ---------------------------------------------------------------------------------------
+
+
 def enqueue(checkup: Checkup) -> None:
     """Start the check-up: immediately in this web app, or through the Celery queue."""
     if settings.CHECKUP_RUNNER == "celery":
@@ -172,6 +191,11 @@ def run_in_background_thread(checkup_id: str) -> None:
             connection.close()  # each thread has its own database connection
 
     threading.Thread(target=work, name=f"checkup-{checkup_id}", daemon=True).start()
+
+
+# ---------------------------------------------------------------------------------------
+# Saving results and the check-up's status
+# ---------------------------------------------------------------------------------------
 
 
 def expire_if_stuck(checkup: Checkup) -> None:

@@ -1,19 +1,29 @@
 {% load static %}<!doctype html>
 <html lang="en">
 <head>
+  {# ===== Page basics ===================================================== #}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{{ product_name }} — {{ tagline }}{% endblock %}</title>
-  <meta name="description" content="{% block description %}Free website health check-up for business owners: speed, accessibility, security, Google visibility and AI readiness, explained in plain language.{% endblock %}">
+  <title>{% block title %}{{ meta.title }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ meta.description }}{% endblock %}">
+
+  {# ===== SEO: canonical, robots, link previews, structured data ============ #}
+  {% include "partials/seo.html" %}
+
+  {# ===== Icons, fonts and styles =========================================== #}
   <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
   <link rel="preload" href="{% static 'fonts/public-sans.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
+  {# ===== Scripts: theme first (no flash of the wrong theme), the rest deferred #}
   <script src="{% static 'js/theme.js' %}"></script>
   <script src="{% static 'js/motion-boot.js' %}"></script>
   {# htmx would otherwise add an inline <style>, which our Content Security Policy blocks. #}
   <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/motion.js' %}" defer></script>
+
+  {# ===== Extra tags a page needs (its own scripts, preloads) ================ #}
   {% block head %}{% endblock %}
 </head>
 <body class="flex min-h-dvh flex-col {% block body_class %}{% endblock %}">

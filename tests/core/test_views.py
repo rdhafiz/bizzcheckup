@@ -10,7 +10,7 @@ def test_home_shows_brand_name_and_tagline(client: Client) -> None:
 
     assert response.status_code == 200
     html = response.content.decode()
-    assert "<title>BizzCheckup — Check your business&#x27;s online health</title>" in html
+    assert "<title>BizzCheckup: free website health check-up for business owners</title>" in html
 
 
 def test_healthz_returns_ok(client: Client) -> None:

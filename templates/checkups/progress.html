@@ -4,7 +4,6 @@
 {% block title %}Checking {{ checkup.domain }} — {{ product_name }}{% endblock %}
 
 {% block head %}
-  <meta name="robots" content="noindex">
   <link rel="preload" href="{% static 'img/hero-bg.webp' %}" as="image" type="image/webp">
   <script src="{% static 'js/progress.js' %}" defer></script>
   {# Without JavaScript there's no live update, so just reload every few seconds. #}
