@@ -6,6 +6,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follo
 
 ## [Unreleased]
 
+## [0.4.1-alpha] - 2026-10-15
+
 ### Fixed
 - Report emails failed on slow connections ("We couldn't send the email right now"): the
   3 MB PDF attachment took longer to upload than the mail server waits. The email now links
@@ -310,7 +312,8 @@ First public release: the complete check-up flow from landing page to PDF.
 - `start.sh`: a one-click local start (virtual env, libraries, `.env`, Docker services,
   Tailwind watcher, migrations, worker, dev server).
 
-[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.4.0-alpha...HEAD
+[Unreleased]: https://github.com/rdhafiz/bizzcheckup/compare/v0.4.1-alpha...HEAD
+[0.4.1-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.4.1-alpha
 [0.4.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.4.0-alpha
 [0.3.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.3.0-alpha
 [0.2.0-alpha]: https://github.com/rdhafiz/bizzcheckup/releases/tag/v0.2.0-alpha

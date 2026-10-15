@@ -8,7 +8,7 @@
   <a href="https://github.com/rdhafiz/bizzcheckup/actions/workflows/ci.yml"><img src="https://github.com/rdhafiz/bizzcheckup/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.12+-31ac64" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/django-5.2_LTS-31ac64" alt="Django 5.2 LTS">
-  <img src="https://img.shields.io/badge/version-0.4.0--alpha-b45309" alt="v0.4.0-alpha">
+  <img src="https://img.shields.io/badge/version-0.4.1--alpha-b45309" alt="v0.4.1-alpha">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-31ac64" alt="MIT licence"></a>
 </p>
 
@@ -208,7 +208,7 @@ server (gunicorn) and, with `CHECKUP_RUNNER=celery`, as the Celery worker.
 
 ## Roadmap
 
-v0.4.0-alpha covers the full flow, with 69 checks, pictures of where each problem is, the
+v0.4.1-alpha covers the full flow, with 69 checks, pictures of where each problem is, the
 report by email, monthly re-checks, before-and-after and competitor comparisons, and the
 dashboard report. Ideas for later:
 
